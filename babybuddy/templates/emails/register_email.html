@@ -1,0 +1,30 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Baby Asst Welcome</title>
+</head>
+<body>
+  <h1>{% trans "Welcome to Baby Asst" %}</h1>
+
+  <p>
+    {% blocktrans %}
+    Baby Asst is here to assist parents and caregivers with simple yet detailed record keeping of baby's care 
+    activities in an intuitive, mobile friendly, web application built for minimal night glare. Overtime Baby Asst 
+    will help parents and invited caregivers learn baby's patterns and habits ultimately leading to better care and 
+    understanding of baby.
+    {% endblocktrans %}
+  </p>
+  <p>{% blocktrans %}
+    The effectiveness of Baby Asst's relies and thrives off the feedback from it's users so any and all 
+    feedback is welcome at support@babyasst.com
+    {% endblocktrans %}
+  </p>
+
+  <h4>{% trans "Sincerely" %},</h4>
+  <h4>{% trans "Baby Asst Staff" %}</h4>
+</body>
+</html>

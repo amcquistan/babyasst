@@ -1,0 +1,21 @@
+{% extends 'cards/base.html' %}
+{% load i18n %}
+
+{% block header %}{% trans "Last Feeding" %}{% endblock %}
+
+{% block title %}
+    {% if feeding %}
+        {% blocktrans with time=feeding.start|timesince %}{{ time }} ago{% endblocktrans %}
+    {% else %}
+        {% trans "Never" %}
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if feeding %}
+        {{ feeding.type }}, {{ feeding.method }}
+        {% if feeding.amount %}
+            ({{ feeding.amount }})
+        {% endif %}
+    {% endif %}
+{% endblock %}

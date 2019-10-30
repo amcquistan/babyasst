@@ -1,0 +1,40 @@
+{
+    "name": "Baby Asst",
+    "description": "Helps caregivers track baby's habits to learn about and predict needs without (as much) guess work.",
+    "keywords": [
+        "baby",
+        "baby asst",
+        "baby assistant",
+        "dashboard",
+        "infant",
+        "newborn"
+    ],
+    "repository": "https://github.com/cdubz/babybuddy",
+    "website": "http://www.baby-buddy.net",
+    "buildpacks": [
+        {
+            "url": "heroku/python"
+        }
+    ],
+    "env": {
+        "DJANGO_SETTINGS_MODULE": {
+            "description": "A prebuilt configuration for Heroku.",
+            "value": "babybuddy.settings.heroku"
+        },
+        "SECRET_KEY": {
+            "description": "Used for the auth system.",
+            "generator": "secret"
+        },
+        "DISABLE_COLLECTSTATIC": {
+            "description": "Prevent static asset collection.",
+            "value": "1"
+        },
+        "TIME_ZONE": {
+            "description": "Sets the instance time zone.",
+            "value": "Etc/UTC"
+        }
+    },
+    "scripts": {
+        "postdeploy": "python manage.py migrate"
+    }
+}

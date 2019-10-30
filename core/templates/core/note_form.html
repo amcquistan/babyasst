@@ -1,0 +1,32 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% trans "Update a Note" %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  {% if child %}
+  <li class="breadcrumb-item"><a href="{% url 'core:child-list' %}">{% trans "Children" %}</a></li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'core:child' slug=child.slug %}">
+      {{ child }}
+    </a>
+  </li>
+  <li class="breadcrumb-item"><a href="{% url 'core:note' slug=child.slug %}">{% trans "Notes" %}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{% trans "Update" %}</li>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-10 offset-1">
+      {% if child %}
+      {% blocktrans %}<h1>Update <span class="text-info">{{ object }}</span></h1>{% endblocktrans %}
+      {% else %}
+      {% blocktrans %}<h1>Add <span class="text-info">{{ object }}</span></h1>{% endblocktrans %}
+      {% endif %}
+      {% include 'babybuddy/form.html' %}
+    </div>
+  </div>
+{% endblock %}

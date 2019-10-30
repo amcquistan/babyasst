@@ -1,0 +1,106 @@
+{% extends 'babybuddy/page.html' %}
+{% load bootstrap i18n widget_tweaks %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item active">{% trans "Accounts" %}</li>
+{% endblock %}
+
+{% block content %}
+
+  <div class="row">
+    <div class="col-md-10 offset-1">
+      <h1 class='mb-5'>{% trans "Accounts" %}</h1>
+  
+      <div class="table-response">
+        <table class="table table-striped table-hover">
+          <thead class="thead-inverse">
+            <tr>
+              <th>{% trans "Account" %}</th>
+              <th>{% trans "Children" %}</th>
+              <th class="text-center">{% trans "Phone Notifications" %}</th>
+              <th class="text-center">{% trans "Email Notifications" %}</th>
+              <th class="text-center">{% trans "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for form in forms %}
+  
+            <tr>
+              {% with form.instance.account as acct %}
+              <td>{{ acct }}</td>
+              <td>
+                {% for child in acct.children.all %}
+                <p><a href="{% url 'core:child' slug=child.slug %}">{{ child }}</a></p>
+                {% endfor %}
+              </td>
+              {% endwith %}
+              {% with form.instance as acct_settings %}
+              <td class="text-center">{{ acct_settings.phone_notifications_enabled|bool_icon }}</td>
+              <td class="text-center">{{ acct_settings.email_notifications_enabled|bool_icon }}</td>
+              {% endwith %}
+              <td class="text-center">
+                <button type="button" class="btn btn-info edit-btn">Edit</button>
+              </td>
+            </tr>
+            <tr style="display:none;">
+              <form action="{% url 'babybuddy:accounts-update' pk=form.instance.id %}" method="POST">
+                {% csrf_token %}
+                {{ form.account }}
+                {% with form.instance.account as acct %}
+                <td>{{ acct }}</td>
+                <td>
+                  {% for child in acct.children.all %}
+                  <p><a href="{% url 'core:child' slug=child.slug %}">{{ child }}</a></p>
+                  {% endfor %}
+                </td>
+                {% endwith %}
+                <td>
+                  {% with form.phone_notifications_enabled as field %}
+                    {% include 'babybuddy/form_field.html' %}
+                  {% endwith %}
+                </td>
+                <td>
+                  {% with form.email_notifications_enabled as field %}
+                    {% include 'babybuddy/form_field.html' %}
+                  {% endwith %}
+                </td>
+                <td class="text-center">
+                  <button type="reset" class="btn btn-warning cancel-btn">Cancel</button>
+                  <button type="submit" class="btn btn-primary save-btn">Save</button>
+                </td>
+              </form>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+  
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(function(){
+  var $editBtn;
+  var $displayRow;
+
+  $('.edit-btn').click(function(){
+    $displayRow = $(this).parent().parent();
+    $editRow = $displayRow.next();
+    $editRow.show();
+    $displayRow.hide();
+    console.log('edit-btn clicked');
+  });
+  $('.save-btn').click(function(){
+    console.log('save-btn clicked');
+  });
+  $('.cancel-btn').click(function(){
+    $displayRow.show();
+    $editRow.hide();
+    console.log('cancel-btn clicked');
+  });
+});
+</script>
+{% endblock %}

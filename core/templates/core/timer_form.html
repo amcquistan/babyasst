@@ -1,0 +1,35 @@
+{% extends 'babybuddy/page.html' %}
+{% load duration i18n %}
+
+{% block title %}{% trans "Timer" %}{% endblock %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'core:child-list' %}">{% trans "Children" %}</a></li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'core:child' slug=child.slug %}">
+      {{ child }}
+    </a>
+  </li>
+  <li class="breadcrumb-item"><a href="{% url 'core:timer' slug=child.slug %}">{% trans "Timers" %}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{% trans "Update" %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-10 offset-1">
+    {% blocktrans %}<h1>Update <span class="text-info">{{ object }}</span></h1>{% endblocktrans %}
+    {% include 'babybuddy/form.html' %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block javascript %}
+  <script type="text/javascript">
+    $(function () {
+      $('#datetimepicker_start').datetimepicker({
+          format: 'YYYY-MM-DD HH:mm:ss'
+      });
+    });
+  </script>
+{% endblock %}

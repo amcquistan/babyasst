@@ -1,0 +1,87 @@
+{% extends 'babybuddy/page.html' %}
+{% load bootstrap duration i18n widget_tweaks %}
+
+{% block title %}
+  {% trans "Sleep" %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'core:child-list' %}">{% trans "Children" %}</a></li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'core:child' slug=child.slug %}">
+      {{ child }}
+    </a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">{% trans "Sleep" %}</li>
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-10 offset-1">
+      <h1 class='mb-5'>{% trans "Sleep" %}</h1>
+      <div class="mb-5">
+        {% include 'babybuddy/form.html' %}
+      </div>
+
+      <div class="table-responsive mb-4">
+        <table class="table table-striped table-hover">
+          <thead class="thead-inverse">
+            <tr>
+              <th>{% trans "Duration" %}</th>
+              <th>{% trans "Start" %}</th>
+              <th>{% trans "End" %}</th>
+              <th class="text-center">{% trans "Nap" %}</th>
+              <th class="text-center">{% trans "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sleep in object_list %}
+              <tr>
+                <td>{{ sleep.duration|duration_string }}</td>
+                <td>{{ sleep.start|date:'n/j/y G:i' }}</td>
+                <td>{{ sleep.end|date:'n/j/y G:i' }}</td>
+                <td class="text-center">{{ sleep.nap|bool_icon }}</td>
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm" role="group" aria-label="{% trans "Actions" %}">
+                    <a href="{% url 'core:sleep-update' slug=child.slug pk=sleep.id %}" class="btn btn-primary">
+                      <i class="icon icon-update" aria-hidden="true"></i>
+                    </a>
+
+                    {% if sleep.child.account == user.account %}
+                      <a href="{% url 'core:sleep-delete' slug=child.slug pk=sleep.id %}" class="btn btn-danger">
+                        <i class="icon icon-delete" aria-hidden="true"></i>
+                      </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <th colspan="5">{% trans "No sleep entries found." %}</th>
+              </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+      </div>
+    {% comment %}
+    {% include 'babybuddy/paginator.html' %}
+    {% endcomment %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block javascript %}
+  <script type="text/javascript">
+    $(function () {
+      $('#datetimepicker_start').datetimepicker({
+        format: 'YYYY-MM-DD HH:mm',
+        useCurrent: false
+      });
+      $('#datetimepicker_end').datetimepicker({
+        defaultDate: 'now',
+        format: 'YYYY-MM-DD HH:mm'
+      });
+    });
+  </script>
+{% endblock %}

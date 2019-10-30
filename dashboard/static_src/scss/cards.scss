@@ -1,0 +1,124 @@
+.card-dashboard {
+    @extend .mb-3;
+
+    .card-header {
+        @extend .h4;
+        margin-bottom: 0;
+    }
+
+    .card-body {
+        .card-title {
+            @extend .h4;
+        }
+
+        .card-text {
+            @extend .text-muted;
+        }
+    }
+}
+
+.card-diaperchange {
+    @extend .border-danger;
+    text-decoration: none;
+
+    .card-header {
+        @extend .text-white, .bg-danger;
+    }
+
+    .card-body {
+        @extend .text-danger;
+        text-decoration: none !important;
+    }
+
+    .progress {
+        height: $progress-height * 2;
+    }
+}
+
+.card-feeding {
+    @extend .border-primary;
+    text-decoration: none !important;
+
+    .card-header {
+        @extend .text-white, .bg-primary;
+    }
+
+    .card-body {
+        @extend .text-primary;
+        text-decoration: none;
+    }
+}
+
+.card-sleep {
+    @extend .border-secondary;
+    text-decoration: none !important;
+
+    .card-header {
+        @extend .text-white, .bg-secondary;
+    }
+}
+
+.card-statistics {
+    @extend .border-light;
+
+    .card-header {
+        @extend .text-dark, .bg-light;
+    }
+
+    .card-body {
+        @extend .text-light;
+
+        .container {
+            padding: 0;
+        }
+    }
+}
+
+.card-timer {
+    @extend .border-light;
+
+    .card-header {
+        @extend .text-dark, .bg-light;
+    }
+
+    .card-body {
+        @extend .text-light;
+    }
+}
+
+.card-tummytime {
+    @extend .border-success;
+    text-decoration: none !important;
+
+    .card-header {
+        @extend .text-white, .bg-success;
+    }
+
+    .card-body {
+        @extend .text-success;
+    }
+}
+
+.card-feeding, .card-sleep, .card-tummytime {
+  .card-body {
+    .card-selected-icon {
+      display: none;
+    }
+  }
+}
+
+.card-active {
+  // border-width: 3px !important;
+  border-color: white !important;
+  .card-header {
+      color: black !important;
+      background-color: white !important;
+  }
+  .card-body {
+      color: white !important;
+
+      .card-selected-icon {
+        display: inline-block;
+      }
+  }
+}

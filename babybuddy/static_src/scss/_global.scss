@@ -1,0 +1,31 @@
+// Baby Buddy site-wide custom styles.
+
+// Remove extra margin below site breadcrumb.
+.breadcrumb {
+    margin-bottom: 0;
+}
+
+// Extra-small button.
+.btn-xs {
+    @include button-size(.2rem, .12rem, .75rem, 1, .2rem);
+}
+
+// Temporary workaround. See: https://github.com/twbs/bootstrap/issues/23553
+.dropdown-menu-right {
+    right: 0;
+    left: auto; // Reset the default from `.dropdown-menu`
+}
+
+// BB form fields do not follow typical BS4 style that enables this display.
+.invalid-feedback {
+    display: block;
+}
+
+// Disable hover effect on buttons (used for checkbox buttons).
+.btn-no-hover {
+    &:hover {
+        color: inherit;
+        background-color: inherit;
+        border-color: inherit;
+    }
+}

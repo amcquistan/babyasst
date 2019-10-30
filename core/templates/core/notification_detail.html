@@ -1,0 +1,53 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'core:notification-list' %}">{% trans "Notifications" %}</a></li>
+  <li class="breadcrumb-item font-weight-bold">{{ notification.title }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="jumbotron" id="notification">
+  <!-- count down to next notification event -->
+  <div class="row justify-content-center">
+    <div class="col-10 offset-1">
+      <h1 class="mb-2">{% trans "Notification" %}</h1>
+      {% if notification.active %}
+      <p class="text-center text-muted">
+        {% trans "Time until next notification event" %}
+      </p>
+      <div class="h1 text-center" id="timer-status">
+        <!-- <span id="notification-days" class="timer-days"></span>d -->
+        <span id="notification-hours" class="timer-hours"></span>h
+        <span id="notification-minutes" class="timer-minutes"></span>m
+      </div>
+      {% else %}
+      <p class="h1 text-center timer-stopped" id="timer-status">{% trans "Cancelled" %}</p>
+      {% endif %}
+      
+      <p class="text-center text-muted">
+        {% trans "Created by" %} {{ notification.user.first_name }} {{ notification.user.last_name }}
+      </p>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-10 offset-1">
+      <form action="{% url 'core:notification-detail' notification.id %}" method="POST">
+        {% include 'core/notification_form_fields.html' %}
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- table of notification events go here -->
+{% endblock %}
+
+
+{% block javascript %}
+<script type="application/javascript">
+  BabyBuddy.Notification.init({{ notification.id }}, 'notification');
+</script>
+{% endblock %}

@@ -1,0 +1,25 @@
+# coverage
+.coverage
+/htmlcov
+
+# database
+*.sqlite3
+
+# enviornment
+.env
+docker.env
+
+# ide
+/.idea
+
+# npm folder
+/node_modules
+
+# python
+*.pyc
+
+# static build files
+/*/static
+
+# media folder
+/media

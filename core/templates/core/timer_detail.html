@@ -1,0 +1,159 @@
+{% extends 'babybuddy/page.html' %}
+{% load duration i18n timers js_helpers %}
+
+{% block title %}{% if timer.name %}{{ timer.name }}{% else %}{{ timer }}{% endif %}{% endblock %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'core:timer-list' %}">{% trans "Timers" %}</a></li>
+  <li class="breadcrumb-item font-weight-bold">{% if timer.name %}{{ timer.name }}{% else %}{{ timer }}{% endif %}</li>
+{% endblock %}
+
+{% block content %}
+  <div class="jumbotron text-center" id="timer">
+
+    <div class="h1{% if not timer.active %} timer-stopped{% endif %}" id="timer-status">
+      <span id="timer-hours" class="timer-hours">{{ timer.duration|hours }}</span>h
+      <span id="timer-minutes" class="timer-minutes">{{ timer.duration|minutes }}</span>m
+      <span id="timer-seconds" class="timer-seconds">{{ timer.duration|seconds }}</span>s
+    </div>
+    
+    <p class="lead text-secondary">
+      {% if not timer.active and not timer.complete and timer.end %}
+        {% trans "Stopped" %} {{ timer.end }}
+      {% elif timer.complete %}
+        {% trans "Finished" %} {{ timer.end }}
+      {% endif %}
+    </p>
+    <p class="text-muted">
+      {% if timer.name %}{{ timer.name }}{% else %}{{ timer }}{% endif %} {% trans "created by" %} {{ timer.user.first_name }} {{ timer.user.last_name }}
+    </p>
+
+    <div class="row">
+      <div class="col-md-10 offset-1">
+
+        <fieldset>
+          <div class="form-group row justify-content-center mb-5">
+            <div class="card-deck">
+              <a id="card-feeding" href="#" class="card card-feeding {% if timer.is_feeding %}card-active{% endif %}">
+                <div class="card-header text-center">
+                  <i class="icon icon-2x icon-feeding" aria-hidden="true"></i>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title text-center">{% trans "Feedings" %}</h3>
+                  <i class="card-selected-icon icon icon-true icon-2x"></i>
+                </div>
+              </a>
+              <a id="card-sleep" href="#" class="card card-sleep {% if timer.is_sleeping %}card-active{% endif %}">
+                <div class="card-header text-center">
+                  <i class="icon icon-2x icon-sleep" aria-hidden="true"></i>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title text-center">{% trans "Sleep" %}</h3>
+                  <i class="card-selected-icon icon icon-true icon-2x"></i>
+                </div>
+              </a>
+              <a id="card-tummytime" href="#" class="card card-tummytime {% if timer.is_tummytime %}card-active{% endif %}">
+                <div class="card-header text-center">
+                  <i class="icon icon-2x icon-tummytime" aria-hidden="true"></i>
+                </div>
+                <div class="card-body">
+                  <h3 class="card-title text-center">{% trans "Tummy Time" %}</h3>
+                  <i class="card-selected-icon icon icon-true icon-2x"></i>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <div class="form-group row mb-4">
+            <label for="name" class="col-1 offset-2 mb-0 mt-1">Name</label>
+            <div class="col-7">
+              <input name="name" id="name" type="text" placeholder="Timer name" value="{% if timer.name %}{{ timer.name }}{% endif %}" class="form-control">
+            </div>
+          </div>
+
+          <div class="form-group row mb-4">
+            <label for="account" class="col-1 offset-2 mb-0 mt-1">Account</label>
+            <div class="col-7">
+              <select name="account" id="account" class="form-control">
+                <option value="" selected disabled>Account</option>
+                {% for acct in accounts %}
+                  <option {% if timer.account == user.acccount %}selected{% endif %} value="{{ acct.id }}">{{ acct }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group row mb-4">
+            <label for="child" class="col-1 offset-2 mb-0 mt-1">Child</label>
+            <div class="col-7">
+              <select name="child" id="child" class="form-control">
+                <option value="" selected disabled>Child</option>
+                {% for child in children %}
+                  <option {% if timer.child == child %}selected{% endif %} value="{{ child.id }}">{{ child }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+        </fieldset>
+
+      </div>
+    </div>
+
+    {% if not timer.complete %}
+    <div class="form-group row justify-content-center" role="group" aria-label="{% trans "Timer actions" %}">
+      <a id='pause-timer' class="btn btn-primary btn-lg" href="#" role="button">
+        <i class="icon icon-pause" aria-hidden="true"></i>
+      </a>
+
+      <a id='start-timer' class="btn btn-secondary btn-lg" href="#" role="button">
+        <i class="icon icon-play" aria-hidden="true"></i>
+      </a>
+
+      <a id='end-timer' class="btn btn-warning btn-lg" href="{% url 'core:timer-complete' timer.id %}" role="button">
+        <i class="icon icon-stop" aria-hidden="true"></i>
+      </a>
+      {% endif %}
+    </div>
+
+    <!-- The Modal -->
+  <div class="modal fade" id="timer-msg-modal">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+      
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h4 class="modal-title">{% trans "Hmm ... Something Went Wrong" %}</h4>
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        
+        <!-- Modal body -->
+        <div class="modal-body">
+         <p id="modal-error-message"></p>
+         <div class="row justify-content-end">
+           <div class="col">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Ok" %}</button>
+            <a href="{% url 'babybuddy:user-account' %}" class="btn btn-info">{% trans "Upgrade to Premium" %}</a>
+           </div>
+         </div>
+        </div>
+        {% comment %}
+        <!-- Modal footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">{% trans "Ok" %}</button>
+          <a href="{% url 'babybuddy:user-account' %}" class="btn btn-info">{% "Upgrade to Premium" %}</a>
+        </div>
+        {% endcomment %}
+        
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script type="application/javascript">
+  var timerId = {{ timer.id }};
+  BabyBuddy.Timer.init(timerId, 'timer');
+</script>
+{% endblock %}

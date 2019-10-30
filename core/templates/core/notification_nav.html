@@ -1,0 +1,30 @@
+{% load i18n %}
+
+<li class="nav-item dropdown">
+  <a id="nav-notification-menu-link"
+    class="nav-link dropdown-toggle"
+    href="#"
+    data-toggle="dropdown"
+    aria-haspopup="true"
+    aria-expanded="false">
+    <i class="icon icon-notification" aria-hidden="true"></i>
+    {% trans "Notifications" %}
+  </a>
+  <div class="dropdown-menu" aria-labelledby="nav-timer-menu-link">
+    <a class="dropdown-item" href="{% url 'core:notification-add' %}">
+      <i class="icon icon-notification" aria-hidden="true"></i> {% trans "Add Notification" %}
+    </a>
+    <a class="dropdown-item" href="{% url 'core:notification-list' %}">
+      <i class="icon icon-list" aria-hidden="true"></i> {% trans "View Notifications" %}
+    </a>
+
+    {% if notifications %}
+      <h6 class="dropdown-header">{% trans "Active Notifications" %}</h6>
+      {% for notification in notifications %}
+        <a class="dropdown-item" href="{% url 'core:notification-detail' notification.id %}">{{ notification.title }}</a>
+      {% empty %}
+        <a class="dropdown-item disabled" href="#">{% trans "None" %}</a>
+      {% endfor %}
+    {% endif %}
+  </div>
+</li>

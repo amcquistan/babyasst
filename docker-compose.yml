@@ -1,0 +1,25 @@
+---
+version: "3.7"
+
+services:
+  db:
+    image: postgres
+    environment:
+      - PGDATA=/db-data
+    volumes:
+      - db:/db-data:rw
+  app:
+    image: cdubzzz/babybuddy
+    env_file:
+      - docker.env
+    command: gunicorn -c /app/gunicorn.py babybuddy.wsgi
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - app:/app:rw
+
+volumes:
+  app: {}
+  db: {}

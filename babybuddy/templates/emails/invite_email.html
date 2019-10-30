@@ -1,0 +1,18 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Baby Asst Account Invite</title>
+</head>
+<body>
+  <h1>{% trans "Baby Asst Account Invitation" %}</h1>
+
+  <p>{% trans "You have been invited by " %} <span style="font-weight: bold; color: grey;">{{ account.owner.first_name }} {{ account.owner.last_name }}</span> {% trans " to join the Baby Asst account " %} <span style="font-weight: bold; color: grey;">{{ account.name }}</span></p>
+
+  <h4>{% trans "Sincerely" %},</h4>
+  <h4>{% trans "Baby Asst Staff" %},</h4>
+</body>
+</html>

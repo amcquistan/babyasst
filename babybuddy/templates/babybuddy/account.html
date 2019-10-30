@@ -1,0 +1,317 @@
+{% extends 'babybuddy/page.html' %}
+{% load bootstrap i18n widget_tweaks account js_helpers %}
+
+{% block title %}{% trans "User Account" %}{% endblock %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item active">{% trans "My Account" %}</li>
+{% endblock %}
+
+{% block content %}
+  <script src="https://js.stripe.com/v3/"></script>
+  <div class="row" id='account-container'>
+    <div class="col-md-10 offset-1">
+      <h1 class='mb-5'>{% trans "My Account" %}</h1>
+
+      <form id='subscription-form' action="{% url 'babybuddy:user-account-subscription' user.account.id %}" class="mb-5 mt-3" method="POST">
+        <legend class="mb-4">{% trans "Account Plan" %}</legend>
+        {% csrf_token %}
+        <input type="hidden" name="stripe_subscription_token" id="stripe_subscription_token">
+        <input type="hidden" name="stripe_subscription_service" id="stripe_subscription_service" value="{{ subscription_service }}">
+
+        <!-- pricing cards go here -->
+        <div class="card-deck mb-3 text-center">
+
+          <div class="card box-shadow">
+            <div class="card-header">
+              <h2 class="my-0 font-weight-normal">Free</h2>
+            </div>
+            <div class="card-body">
+              <h3 class="card-title">
+                $0 <small class="text-muted">/ mo</small>
+              </h3>
+              <ul class="list-unstyled mt-3 mb-4">
+                <li>1 account member</li>
+                <li>1 child</li>
+                <li>10 timers <small class="text-muted">/ mo</small></li>
+                <li>10 notifications <small class="text-muted">/ mo</small></li>
+                <li>unlimited activity logging</li>
+                <li>unlimited reporting</li>
+              </ul>
+              <a
+                id='free-plan-btn'
+                class="btn btn-lg btn-block btn-secondary">
+                {% if not is_premium %}{% trans "Current Plan" %}{% else %}{% trans "Downgrade" %}{% endif %}
+              </a>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <h2 class="my-0 font-weight-normal">Premium</h2>
+            </div>
+            <div class="card-body">
+              <h3 class="card-title">
+                $3 <small class="text-muted">/ mo</small>
+              </h3>
+              <ul class="list-unstyled mt-3 mb-4">
+                <li>3 account members ($1 additional per member)</li>
+                <li>1 child ($1 additional per child)</li>
+                <li>unlimited timers</li>
+                <li>unlimited notifications</li>
+                <li>unlimited activity logging</li>
+                <li>unlimited reporting</li>
+              </ul>
+              <a
+                id='premium-plan-btn'
+                class="btn btn-lg btn-block btn-secondary">
+                {% if is_premium %}{% trans "Current Plan" %}{% else %}{% trans "Upgrade" %}{% endif %}
+              </a>
+            </div>
+          </div>
+
+        </div>
+      </form>
+
+      <form class='mb-5 mt-3' role="form" action="{% url 'babybuddy:user-account' %}" method="POST">
+        {% csrf_token %}
+        {{ account_settings_form.account }}
+        <fieldset>
+          <legend>{% trans "Account Settings" %}</legend>
+          <div class="form-group row">
+            {% with account_form.name as field %}
+              {% include 'babybuddy/form_field.html' %}
+            {% endwith %}
+          </div>
+          <div class="form-group row">
+            {% with account_settings_form.phone_notifications_enabled as field %}
+              {% include 'babybuddy/form_field.html' %}
+            {% endwith %}
+          </div>
+          <div class="form-group row">
+            {% with account_settings_form.email_notifications_enabled as field %}
+              {% include 'babybuddy/form_field.html' %}
+            {% endwith %}
+          </div>
+        </fieldset>
+        <div class="form-group row justify-content-end">
+          <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
+        </div>
+      </form>
+
+      <legend class="mb-4 mt-3">{% trans "Account Children" %}</legend>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead class="thead-inverse">
+            <tr>
+              <th>{% trans "Name" %}</th>
+              <th>{% trans "Birth Date" %}</th>
+              <th class="text-center">{% trans "Active" %}</th>
+              <th class="text-center">{% trans "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for child in children %}
+            <tr>
+              <td>{{ child.name }}</td>
+              <td>{{ child.birth_date|date:"" }}</td>
+              <td class="text-center">{{ child.is_active|bool_icon }}</td>
+              <td class="text-center">
+                <form style="display: inline;" class='deactivate-child-form' action="">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-warning">Deactivate</button>
+                </form>
+                <form style="display: inline;" class='delete-child-form' action="">
+                  {% csrf_token %}
+                  <button id="delete-account-user-btn" type="submit" class="btn btn-danger">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+              <tr>
+                <th colspan="4">{% trans "No children found." %}</th>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if is_premium %}
+      <legend class="mb-4 mt-3">{% trans "Account Members" %}</legend>
+
+      <form id='invitee-form' action="{% url 'babybuddy:user-account-invite' user.account.id %}" method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="stripe_invitee_token" id="stripe_invitee_token">
+        <input type="hidden" name="stripe_invitee_user_email" id="stripe_invitee_user_email">
+        <input type="hidden" name="stripe_invitee_use_existing_payment_source" id="stripe_invitee_use_existing_payment_source">
+        <div class="row mb-4">
+          <div class="col-10 offset-1">
+            <div class="input-group">
+              <input id='invitee' name="invitee" type="text" class='form-control' placeholder="{% trans 'Invite user by email' %}">
+              <div class="input-group-append">
+                <a id='invitee-btn' class="btn btn-success">Invite</a>
+              </div>
+            </div>
+            <div class="help-block">
+              {% if users_to_add_before_incurring_cost > 0 %}
+                {% trans "You may add up to " %}{{ users_to_add_before_incurring_cost }}{% trans " more members before incurring additional costs of $1 per new user." %}
+              {% else %}
+                {% trans "Adding an additional member will incur an additional cost of $1 per user." %}
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </form>
+
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead class="thead-inverse">
+            <tr>
+              <th>{% trans "Name" %}</th>
+              <th>{% trans "Phone" %}</th>
+              <th class="text-center">{% trans "Active" %}</th>
+              <th class="text-center">{% trans "Phone Notifications" %}</th>
+              <th>{% trans "Email" %}</th>
+              <th class="text-center">{% trans "Email Notifications" %}</th>
+              <th class="text-center">{% trans "Actions" %}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for account_member in account_members %}
+            <tr>
+              <td>{{ account_member.first_name }} {{ account_member.last_name }}</td>
+              <td>{{ account_member.phone_number }}</td>
+              <td class="text-center">{{ account_member.is_active|bool_icon }}</td>
+              <td class="text-center">{{ account_member.phone_notifications_enabled|bool_icon }}</td>
+              <td>{{ account_member.email }}</td>
+              <td class="text-center">{{ account_member.email_notifications_enabled|bool_icon }}</td>
+              <td class="text-center">
+                <form style="display: inline;" class='deactivate-member-form' action="{% url 'babybuddy:user-account-member-deactivate' account.id account_member.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-warning">Deactivate</button>
+                </form>
+                <form style="display: inline;" class='delete-member-form' action="{% url 'babybuddy:user-account-member-delete' account.id account_member.id %}">
+                  {% csrf_token %}
+                  <button id="delete-account-user-btn" type="submit" class="btn btn-danger">Remove</button>
+                </form>
+              </td>
+            </tr>
+            {% empty %}
+              <tr>
+                <th colspan="7">{% trans "No account members found." %}</th>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% endif %}
+  
+    </div>
+
+<!-- Premium Plan Modal -->
+<div class="modal fade" id="payment-modal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+      
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h3 class="modal-title text-dark">{% trans "Baby Asst Payment Submission" %}</h3>
+          <button type="button" class="close" data-dismiss="modal">×</button>
+        </div>
+        
+        <!-- Modal body -->
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-10 offset-1">
+              <h4 class="text-dark">Purchase Description</h4>
+              <p class="text-dark" id="purchase-description"></p>
+            </div>
+          </div>
+          <div class="row" id='existing-payment-source-section'>
+            <div class="col-10 offset-1">
+              <h4 class="text-center" id="purchase-description">Previously Used Payment Source</h4>
+              <p class="text-center"><span id="payment-brand"></span> **** **** **** <span id="payment-last4"></span></p>
+              <p class="text-center"><span id="payment-expmo"></span> / <span id="payment-expyr"></span></p>
+              <div class="form-check">
+                <input type="checkbox" id="use-existing-payment-source">
+                <label for="use-existing-payment-source">Use existing payment source</label>
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-10 offset-1">
+              <label class="text-dark" for="card-elements">
+                Credit or debit card
+              </label>
+              <div id="card-element"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-10 offset-1">
+              <div id="card-errors" role="alert"></div>
+            </div>
+          </div>
+  
+        </div>
+        
+        <div class="modal-footer">
+          <button id="card-button" class="btn btn-primary">Submit Payment</button>
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+{% endblock %}
+
+{% block javascript %}
+
+<script>
+var userId = {{ user.id }};
+var accountId = {{ user.account.id }};
+var usersToAddBeforeIncurringCost = {{ users_to_add_before_incurring_cost }};
+var stripeClientKey = "{{ stripe_client_key }}";
+
+BabyBuddy.Account.init(
+  'account-container',
+  userId,
+  accountId,
+  usersToAddBeforeIncurringCost,
+  stripeClientKey
+);
+
+$(function(){
+  var $editBtn;
+  var $displayRow;
+
+  $('.edit-btn').click(function(){
+    $displayRow = $(this).parent().parent();
+    $editRow = $displayRow.next();
+    $editRow.show();
+    $displayRow.hide();
+    console.log('edit-btn clicked');
+  });
+  $('.save-btn').click(function(){
+    console.log('save-btn clicked');
+  });
+  $('.cancel-btn').click(function(){
+    $displayRow.show();
+    $editRow.hide();
+    console.log('cancel-btn clicked');
+  });
+
+  $('.delete-member-form').submit(function(evt){
+    var confirmed = confirm("Are you sure you want to delete account member?");
+    if (!confirmed) {
+      evt.preventDefault();
+    }
+  });
+  $('.deactivate-member-form').submit(function(evt){
+    var confirmed = confirm("Are you sure you want to deactivate account member?");
+    if (!confirmed) {
+      evt.preventDefault();
+    }
+  });
+});
+</script>
+{% endblock %}

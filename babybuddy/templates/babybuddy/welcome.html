@@ -1,0 +1,62 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n widget_tweaks %}
+
+{% block title %}{% trans "Welcome!" %}{% endblock %}
+
+{% block breadcrumbs %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Welcome!" %}</li>
+{% endblock %}
+
+{% block content %}
+    <div class="jumbotron">
+        <h1 class="display-3">{% trans "Welcome to Baby Asst!" %}</h1>
+        <p class="lead">
+          {% blocktrans %}Simplify life by recording baby's needs and activities opening the doors to <span class="text-info">reduced stress and guess work</span>.{% endblocktrans %}
+        </p>
+        <hr class="my-4">
+        <div class="card-deck">
+            <div class="card card-diaperchange">
+                <div class="card-header text-center">
+                    <i class="icon icon-2x icon-diaperchange" aria-hidden="true"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title text-center">{% trans "Diaper Changes" %}</h3>
+                </div>
+            </div>
+            <div class="card card-feeding">
+                <div class="card-header text-center">
+                    <i class="icon icon-2x icon-feeding" aria-hidden="true"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title text-center">{% trans "Feedings" %}</h3>
+                </div>
+            </div>
+            <div class="card card-sleep">
+                <div class="card-header text-center">
+                    <i class="icon icon-2x icon-sleep" aria-hidden="true"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title text-center">{% trans "Sleep" %}</h3>
+                </div>
+            </div>
+            <div class="card card-tummytime">
+                <div class="card-header text-center">
+                    <i class="icon icon-2x icon-tummytime" aria-hidden="true"></i>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title text-center">{% trans "Tummy Time" %}</h3>
+                </div>
+            </div>
+        </div>
+        <hr class="my-4">
+        <p class="lead">
+          {% blocktrans %}Baby Asst is here to assist parents and caregivers with simple yet detailed record keeping of baby's care activities in an intuitive, mobile friendly, web application built for minimal night glare. 
+          Overtime Baby Asst will help parents and invited caregivers learn baby's patterns and habits ultimately leading to better care and understanding of baby.{% endblocktrans %}
+        </p>
+        <p class="text-center">
+          <a href="{% url 'core:child-add' %}" class="btn btn-lg btn-success">
+            <i class="icon icon-child" aria-hidden="true"></i> {% trans "Add a Child" %}
+          </a>
+        </p>
+    </div>
+{% endblock %}

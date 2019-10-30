@@ -1,0 +1,144 @@
+{% extends "registration/base.html" %}
+{% load i18n static widget_tweaks %}
+
+{% block title %}Accept Invitation{% endblock %}
+{% block content %}
+  <div class="row">
+    <div class="bg-light p-4 rounded text-dark mb-5 col-8 offset-2">
+      <h2>Welcome to Baby Asst</h2>
+      <p>Your username is <span class="text-info">{{ invitee.username }}</span></p>
+      <form id='accept-invite-form' method="POST" action="{% url 'babybuddy:user-account-invite-accept' account.id invitee.id %}">
+          {% csrf_token %}
+  
+          <label class="sr-only" for="first_name">
+            {{ form.first_name.label }}
+          </label>
+          <div class="input-group mb-3 fade-in">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="icon icon-user" aria-hidden="true"></i></span>
+            </div>
+            {% render_field form.first_name name='first_name' class+='form-control' id='first_name' placeholder=form.first_name.label %}
+          </div>
+  
+          <label class="sr-only" for="last_name">
+            {{ form.last_name.label }}
+          </label>
+          <div class="input-group mb-3 fade-in">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="icon icon-user" aria-hidden="true"></i></span>
+            </div>
+            {% render_field form.last_name name='last_name' class+='form-control' id='last_name' placeholder=form.last_name.label %}
+          </div>
+  
+          <label class="sr-only" for="email">
+            {{ form.email.label }}
+          </label>
+          <div class="input-group mb-3 fade-in">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="icon icon-mail" aria-hidden="true"></i></span>
+            </div>
+            {% render_field form.email name='email' class+='form-control' id='email' placeholder=form.email.label value=invitee.email %}
+          </div>
+  
+          <label class="sr-only" for="new_password1">
+            {{ form.new_password1.label }}
+          </label>
+          <div class="input-group mb-3 fade-in">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="icon icon-lock" aria-hidden="true"></i></span>
+            </div>
+            {% render_field form.new_password1 name='new_password1' class+='form-control' id='new_password1' placeholder=form.new_password1.label %}
+          </div>
+  
+          <label class="sr-only" for="new_password2">
+            {{ form.new_password2.label }}
+          </label>
+          <div class="input-group mb-3 fade-in">
+            <div class="input-group-prepend">
+              <span class="input-group-text"><i class="icon icon-lock" aria-hidden="true"></i></span>
+            </div>
+            {% render_field form.new_password2 name='new_password2' class+='form-control' id='new_password2' placeholder=form.new_password2.label %}
+          </div>
+  
+          <div class="input-group mb-3 fade-in">
+            <div class="form-check">
+              <label for="phone_notifications_enabled" class="form-check-label">
+                {% render_field form.phone_notifications_enabled name='phone_notifications_enabled' class+='form-check-input' id='phone_notifications_enabled' %}
+                {{ form.phone_notifications_enabled.label }} (you can change this later)
+              </label>
+            </div>
+          </div>
+  
+          <div class="input-group mb-3 fade-in">
+            <div class="form-check">
+              <label for="email_notifications_enabled" class="form-check-label">
+                {% render_field form.email_notifications_enabled name='email_notifications_enabled' class+='form-check-input' id='email_notifications_enabled' %}
+                {{ form.email_notifications_enabled.label }} (you can change this later)
+              </label>
+            </div>
+          </div>
+  
+          <div class="input-group mb-3 fade-in">
+            <div class="form-check">
+              <label for="accept-terms" class="form-check-label">
+                {% render_field form.approved_terms name='approved_terms' class+='form-check-input' id='accept-terms' %}
+                {{ form.approved_terms.label }}
+              </label>
+            </div>
+          </div>
+  
+          <div class="input-group mb-3 fade-in">
+            <div style='margin: 2px 5px;'>
+              <a id='terms-of-service-link' href="https://thecodinginterface.com/terms-of-service/" target="_BLANK">Terms of Service</a>
+            </div>
+            <div style='margin: 2px 5px;'>
+              <a id='privacy-policy-link' href="https://thecodinginterface.com/privacy-policy/" target="_BLANK">Privacy Statement</a>
+            </div>
+          </div>
+          <div class="input-group mb-3 fade-in">
+            <p>
+              * You must click, read, and agree the terms of service and privacy policy to signup and use this service.
+            </p>
+          </div>
+  
+          <div class="row justify-content-end">
+            <div class="col">
+              <button class="btn btn-primary w-100 fade-in" type="submit" name="login">
+                  {% trans "Login" %}
+              </button>
+            </div>
+          </div>
+      </form>
+
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(function(){
+  var form = $('#accept-invite-form');
+  var termsCheckBox = $('#accept-terms');
+  termsCheckBox.prop("disabled", true);
+
+  var tosLinkClicked = false;
+  var privacyLinkClicked = false;
+  var tosLink = $('#terms-of-service-link').click(function(){
+    tosLinkClicked = true;
+    termsCheckBox.prop("disabled", !(tosLinkClicked && privacyLinkClicked));
+  });
+  var privacyLink = $('#privacy-policy-link').click(function(){
+    privacyLinkClicked = true;
+    termsCheckBox.prop("disabled", !(tosLinkClicked && privacyLinkClicked));
+  });
+
+  form.submit(function(evt){
+    var termsAndPrivacyValidated = termsCheckBox.prop('checked') && tosLinkClicked && privacyLinkClicked;
+    if (!termsAndPrivacyValidated) {
+      evt.preventDefault();
+    }
+  });
+});
+</script>
+{% endblock %}

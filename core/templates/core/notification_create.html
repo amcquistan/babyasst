@@ -1,0 +1,26 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n %}
+
+{% block title %}{{ notification.title }}{% endblock %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'core:notification-list' %}">{% trans "Notifications" %}</a></li>
+  <li class="breadcrumb-item active">{% trans "Add" %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row" id="notification">
+  <div class="col-md-10 offset-1">
+    <h1 class="mb-5">{% trans "Add Notification" %}</h1>
+    <form action="{% url 'core:notification-add' %}" method="POST">
+      {% include 'core/notification_form_fields.html' %}
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block javascript %}
+<script type="application/javascript">
+BabyBuddy.Notification.init(null, 'notification');
+</script>
+{% endblock %}

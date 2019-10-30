@@ -1,0 +1,38 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Baby Asst New User Account Invite</title>
+  <style>
+  .invite-link {
+    display: inline-block;
+    padding: 6px 10px;
+    background-color:#69849f;
+    color: #e1f7f4 !important;
+    text-decoration: none;
+  }
+  .invite-link:hover {
+    background-color:#4e5760;
+    color: #a1acab;
+    border-color: #69849f;
+  }
+  </style>
+</head>
+<body>
+  <h1>{% trans "Baby Asst Account Invitation" %}</h1>
+  
+  <p><span style="font-weight: bold; color: grey;">{{ account.owner.first_name }} {{ account.owner.last_name }}</span> {% trans " has invited you to join the " %} <span style="font-weight: bold; color: grey;">{{ account.name }}</span> {% trans " account on Baby Asst." %}</p>
+
+  <h3>{% trans "Your account username is " %} {{ invitee.username }}</h3>
+
+  <p>{% trans "Please click the link below to accept your invitation and complete your Baby Asst profile." %}</p>
+
+  <a class="invite-link" href="{{ accept_url }}" style="display: inline-block; padding: 8px 12px; background-color: ">{% trans "Accept Invite" %}</a>
+
+  <h4>{% trans "Sincerely" %},</h4>
+  <h4>{% trans "Baby Asst Staff" %},</h4>
+</body>
+</html>

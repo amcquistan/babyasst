@@ -1,0 +1,42 @@
+{% extends 'babybuddy/page.html' %}
+{% load i18n %}
+
+{% block title %}
+  {% trans "Add a Temperature Reading" %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  {% if child %}
+  <li class="breadcrumb-item">
+    <a href="{% url 'core:child' slug=child.slug %}">
+      {{ child }}
+    </a>
+  </li>
+  <li class="breadcrumb-item"><a href="{% url 'core:temperature' slug=child.slug %}">{% trans "Temperatures" %}</a></li>
+  <li class="breadcrumb-item active" aria-current="page">{% trans "Update" %}</li>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+  <div class="row">
+    <div class="col-md-10 offset-1">
+      {% if child %}
+      {% blocktrans %}<h1>Update <span class="text-info">{{ object }}</span></h1>{% endblocktrans %}
+      {% else %}
+      {% blocktrans %}<h1>Add <span class="text-info">{{ object }}</span></h1>{% endblocktrans %}
+      {% endif %}
+      {% include 'babybuddy/form.html' %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block javascript %}
+  <script type="text/javascript">
+    $(function () {
+      $('#datetimepicker_time').datetimepicker({
+        defaultDate: 'now',
+        format: 'YYYY-MM-DD HH:mm'
+      });
+    });
+  </script>
+{% endblock %}
