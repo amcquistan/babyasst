@@ -45,7 +45,12 @@ class Settings(models.Model):
         max_length=255,
         verbose_name=_('Language')
     )
-    phone_number = models.CharField(max_length=100, null=True, blank=True)
+    phone_number = models.CharField(
+        max_length=100,
+        null=True,
+        blank=True,
+        help_text=_('international format +14155552671 = +[country code][area code][phone]')
+    )
 
     def __str__(self):
         return str(format_lazy(_('{user}\'s Settings'), user=self.user))
@@ -126,8 +131,6 @@ class Account(models.Model):
         return preferred_card
 
     def has_payment_source(self, stripe_customer=None):
-        if settings.MOCK_STRIPE:
-            return False, None
         try:
             if not stripe_customer:
                 stripe_customer = self.find_or_create_stripe_customer()
@@ -177,8 +180,6 @@ class Account(models.Model):
         return cancelled
 
     def is_premium_subscriber(self):
-        if settings.MOCK_STRIPE:
-            return True, None
         if not self.payment_processor_id:
             return False, None
 
@@ -193,8 +194,6 @@ class Account(models.Model):
         return is_active, subscription
 
     def can_add_child(self):
-        if settings.MOCK_STRIPE:
-            return True  
         is_premium, subscription = self.is_premium_subscriber()
         if not is_premium:
             children_cnt = self.children.count()
@@ -208,8 +207,6 @@ class Account(models.Model):
         return False
 
     def can_start_timer(self):
-        if settings.MOCK_STRIPE:
-            return True
         is_premium, subscription = self.is_premium_subscriber()
         if is_premium:
             return True
@@ -221,8 +218,6 @@ class Account(models.Model):
         return timers_cnt < settings.FREE_TIMER_COUNT
 
     def can_add_notification(self):
-        if settings.MOCK_STRIPE:
-            return True
         is_premium, subscription = self.is_premium_subscriber()
         if is_premium:
             return True
@@ -233,9 +228,6 @@ class Account(models.Model):
         return notification_cnt < settings.FREE_NOTIFICATION_COUNT
 
     def has_active_subscription(self, stripe_customer, plan, subscriptions=None):
-        if settings.MOCK_STRIPE:
-            return True, None
-
         if not subscriptions:
             subscriptions = self.fetch_subscriptions(stripe_customer)
             if not subscriptions:

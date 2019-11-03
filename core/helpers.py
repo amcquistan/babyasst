@@ -29,7 +29,7 @@ def validate_account(user, obj=None, account=None, check_subscription=False):
 
     if check_subscription:
         account = account if account else obj.account
-        return account.can_add_notifications(), accounts
+        return account.can_add_notification(), accounts
 
     return True, accounts
 

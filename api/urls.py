@@ -18,7 +18,7 @@ router.register(r'weight', views.WeightViewSet)
 app_name = 'api'
 
 urlpatterns = [
-    path('api/', include(router.urls)),
+    # path('api/', include(router.urls)),
     path('api/accounts/', views.AccountsAPIView.as_view()),
     path('api/accounts/<int:pk>/', views.AccountAPIView.as_view()),
     path('api/children/', views.ChildrenAPIView.as_view()),
@@ -26,8 +26,8 @@ urlpatterns = [
     path('api/notifications/<int:pk>/', views.NotificationAPIView.as_view()),
     path('api/timers/', views.TimersAPIView.as_view()),
     path('api/timers/<int:pk>/', views.TimerAPIView.as_view()),
-    path('api/auth/', include(
-        'rest_framework.urls',
-        namespace='rest_framework'
-    ))
+    # path('api/auth/', include(
+    #     'rest_framework.urls',
+    #     namespace='rest_framework'
+    # ))
 ]

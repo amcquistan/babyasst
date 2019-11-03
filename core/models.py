@@ -4,10 +4,12 @@ from datetime import timedelta
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy as _
+
 
 from babybuddy.models import Account
 
@@ -291,6 +293,139 @@ class NapsManager(models.Manager):
         return qs.filter(id__in=[obj.id for obj in qs if obj.nap])
 
 
+class Notification(models.Model):
+    model_name = 'notification'
+    user = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='notifications_created',
+        verbose_name=_('Created By')
+    )
+    account = models.ForeignKey(
+        Account,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+        help_text=_('Select an account'),
+        verbose_name=_("Account")
+    )
+    child = models.ForeignKey(
+        Child,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notifications',
+        help_text=_('Select a child'),
+        verbose_name=_('Child')
+    )
+    title = models.CharField(
+        max_length=255,
+        help_text=_('Descriptive title to identify the notification'),
+        verbose_name=_("Title")
+    )
+    body = models.TextField(help_text=_("Instructive message to display with notification"))
+    url = models.CharField(max_length=255, blank=True, null=True)
+    frequency_hours = models.IntegerField(
+        default=0,
+        help_text=_('Hours between notificiations'),
+        verbose_name=_("Frequency"),
+        validators=[MinValueValidator(0)]
+    )
+    intervals = models.IntegerField(
+        default=1,
+        help_text=_('Number of subsequent times to issue the notification'),
+        verbose_name=_("Interval"),
+        validators=[MinValueValidator(1)]
+    )
+    active = models.BooleanField(default=True)
+    start = models.DateTimeField(
+        blank=False,
+        null=False,
+        help_text=_('When would like the notification to start occuring?'),
+        verbose_name=_("Start time") 
+    )
+    end = models.DateTimeField(
+        blank=True,
+        null=True,
+        help_text=_('When would like the notification to stop occuring?'),
+        verbose_name=_("End time")
+    )
+
+    class Meta:
+        ordering = ['-start']
+        verbose_name = _('Notification')
+        verbose_name_plural = _('Notifications')
+        indexes = [
+          models.Index(fields=['child'], name='child_idx'),
+        ]
+
+    def __str__(self):
+        return str(_('Notification'))
+
+    def save(self, *args, **kwargs):
+        is_create = self.id is None
+        super(Notification, self).save(*args, **kwargs)
+        
+        # create or update notification events
+
+        if not is_create:
+            existing_events = self.notification_events.exclude(sent=True).order_by('send_at').all()
+            
+            for existing_evt in existing_events:
+                existing_evt.delete()
+
+        if self.active:
+            account_member_settings = self.account.account_member_settings.exclude(is_active=False).all()
+
+            for i in range(self.intervals):
+                send_at = self.start + timedelta(hours=self.frequency_hours * i)
+                for member_settings in account_member_settings:
+                    NotificationEvent.objects.create(
+                        notification=self,
+                        user=member_settings.user,
+                        send_at=send_at
+                    )
+
+
+
+
+class NotificationEvent(models.Model):
+    model_name= 'notification_event'
+    notification = models.ForeignKey(
+        Notification,
+        on_delete=models.CASCADE,
+        related_name='notification_events',
+        verbose_name=_("Notification")
+    )
+    user = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='notification_events',
+        verbose_name=_("Notification Event")
+    )
+    send_at = models.DateTimeField(verbose_name=_('Send At'), null=False, blank=False)
+    sent = models.BooleanField(default=False, verbose_name=_('Sent'))
+    acknowledged = models.BooleanField(
+        default=False,
+        verbose_name=_('Acknowledged')
+    )
+    acknowledged_type = models.CharField(
+        choices=[
+            ('text_message', _('Text Message')),
+            ('email', _('Email')),
+            ('app', _('Web')),
+        ],
+        max_length=255,
+        verbose_name=_('Acknowledged Type')
+    )
+    url = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['notification'], name='notification_idx'),
+            models.Index(fields=['send_at'], name='send_at_idx')
+        ]
+
+
 class Sleep(models.Model):
     model_name = 'sleep'
     child = models.ForeignKey(
@@ -347,6 +482,46 @@ class Sleep(models.Model):
         validate_time(self.end, 'end')
         validate_duration(self)
         validate_unique_period(Sleep.objects.filter(child=self.child), self)
+
+
+class Suggestion(models.Model):
+    model_name = 'suggestion'
+    child = models.ForeignKey(
+        'Child',
+        on_delete=models.CASCADE,
+        related_name='suggestion',
+        help_text=_('Select a child'),
+        verbose_name=_('Child')
+    )
+
+    diaper_change = models.BooleanField(default=False)
+    feeding = models.BooleanField(default=False)
+    sleep = models.BooleanField(default=False)
+    temperature_check = models.BooleanField(default=False)
+    tummy_time = models.BooleanField(default=False)
+    quantity = models.DecimalField(decimal_places=2, max_digits=6, blank=True, null=True)
+    units = models.CharField(max_length=20, blank=True, null=True)
+
+    send_text_notification = models.BooleanField(
+        default=False,
+        verbose_name=_('Send text message')
+    )
+    send_email_notification = models.BooleanField(
+        default=False,
+        verbose_name=_('Send email')
+    )
+    send_app_notification = models.BooleanField(
+        default=True,
+        verbose_name=_('Send app notification')
+    )
+    user = models.ForeignKey(
+        'auth.User',
+        on_delete=models.CASCADE,
+        related_name='suggestions',
+        verbose_name=_('Suggestion')
+    )
+    send_at = models.DateTimeField(blank=True, null=True, verbose_name=_('Send At'))
+    sent = models.BooleanField(default=False, verbose_name=_('Sent'))
 
 
 class Temperature(models.Model):
@@ -505,101 +680,6 @@ class Timer(models.Model):
         if self.end:
             validate_time(self.end, 'end')
         # validate_duration(self)
-
-
-class Notification(models.Model):
-    model_name = 'notification'
-    user = models.ForeignKey(
-        'auth.User',
-        on_delete=models.CASCADE,
-        related_name='notifications_created',
-        verbose_name=_('Created By')
-    )
-    account = models.ForeignKey(
-        Account,
-        on_delete=models.CASCADE,
-        related_name="notifications",
-        help_text=_('Select an account'),
-        verbose_name=_("Account")
-    )
-    child = models.ForeignKey(
-        Child,
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='notifications',
-        help_text=_('Select a child'),
-        verbose_name=_('Child')
-    )
-    title = models.CharField(
-        max_length=255,
-        help_text=_('Descriptive title to identify the notification'),
-        verbose_name=_("Title")
-    )
-    body = models.TextField(help_text=_("Instructive message to display with notification"))
-    url = models.CharField(max_length=255, blank=True, null=True)
-    frequency_hours = models.IntegerField(
-        default=0,
-        help_text=_('Hours between notificiations'),
-        verbose_name=_("Frequency")
-    )
-    intervals = models.IntegerField(
-        default=1,
-        help_text=_('Number of subsequent times to issue the notification'),
-        verbose_name=_("Interval")
-    )
-    active = models.BooleanField(default=True)
-    start = models.DateTimeField(
-        blank=False,
-        null=False,
-        help_text=_('When would like the notification to start occuring?'),
-        verbose_name=_("Start time") 
-    )
-    end = models.DateTimeField(
-        blank=True,
-        null=True,
-        help_text=_('When would like the notification to stop occuring?'),
-        verbose_name=_("End time")
-    )
-
-
-class NotificationEvent(models.Model):
-    model_name= 'notification_event'
-    notification = models.ForeignKey(
-        Notification,
-        on_delete=models.CASCADE,
-        related_name='notification_events',
-        verbose_name=_("Notification")
-    )
-    user = models.ForeignKey(
-        'auth.User',
-        on_delete=models.CASCADE,
-        related_name='notification_events',
-        verbose_name=_("Notification Event")
-    )
-    type = models.CharField(
-        choices=[
-            ('text message', _('Text Message')),
-            ('email', _('Email')),
-            ('web', _('Web')),
-        ],
-        max_length=255,
-        verbose_name=_('Type')
-    )
-    acknowledged = models.BooleanField(
-        default=False,
-        verbose_name=_('Acknowledged')
-    )
-    acknowledged_type = models.CharField(
-        choices=[
-            ('text message', _('Text Message')),
-            ('email', _('Email')),
-            ('web', _('Web')),
-        ],
-        max_length=255,
-        verbose_name=_('Acknowledged Type')
-    )
-    url = models.CharField(max_length=255, blank=True, null=True)
 
 
 class TummyTime(models.Model):

@@ -218,6 +218,7 @@ class NoteForm(forms.ModelForm):
 
 
 class NotificationForm(forms.ModelForm):
+
     class Meta:
         model = models.Notification
         fields = [
@@ -246,6 +247,7 @@ class NotificationForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         accounts = kwargs.pop('accounts')
         children = kwargs.pop('children')
+        instance = kwargs.get('instance')
         super(NotificationForm, self).__init__(*args, **kwargs)
         self.fields['account'].queryset = accounts
         if not children:
@@ -253,6 +255,14 @@ class NotificationForm(forms.ModelForm):
         self.fields['child'].queryset = children
 
         set_common_select_fields_empty_values(self)
+
+        now = timezone.now()
+        if instance and instance.start < now:
+            has_sent_events = instance.notification_events.filter(sent=True).count() > 0
+            if has_sent_events:
+                for field in self.fields:
+                    if field != 'active':
+                        self.fields[field].widget.attrs['readonly'] = True
 
 
 class SleepQuickAddForm(forms.ModelForm):

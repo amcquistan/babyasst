@@ -52,3 +52,7 @@ __license__ = 'BSD 2-Clause'
 VERSION = __version__
 
 default_app_config = 'babybuddy.apps.BabyBuddyConfig'
+
+from .celery import celery_app
+
+__all__ = ('celery_app',)

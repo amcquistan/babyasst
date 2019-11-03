@@ -38,21 +38,33 @@ BabyBuddy.Notification = function (root) {
           $timerStatus = $el.find('#timer-status');
           self = this;
 
+          var initialDate = $start.find('input').val() ? $start.find('input').val() : moment().format('YYYY-MM-DD HH:mm');
+          $start.find('input').val(initialDate);
+
           $start.datetimepicker({
-            format: 'YYYY-MM-DD HH:mm'
-            // useCurrent: false
+            format: 'YYYY-MM-DD HH:mm',
+            startDate: initialDate
           });
           $end.datetimepicker({
-            format: 'YYYY-MM-DD HH:mm'
+            format: 'YYYY-MM-DD HH:mm',
+            onShow: function(ct) {
+              var minDate = self.getMinEndDate();
+              minDate = minDate.format('YYYY-MM-DD HH:mm');
+              this.setOptions({
+                minDate: minDate
+              })
+            }
           });
 
           $start.change(_.debounce(function(evt){
             console.log('start date changed', evt);
+            self.updateEndDate();
           }, 600));
 
           $end.change(_.debounce(function(evt){
             console.log('end date changed', evt);
             // validate end date
+
           }, 1200));
 
           $frequencyInHours.change(_.debounce(function(evt){
@@ -112,29 +124,58 @@ BabyBuddy.Notification = function (root) {
           window.addEventListener('beforeunload', function(){
             // self.save();
           });
-      },
 
-      updateEndDate: function () {
-        debugger
-        var hrs = $frequencyInHours.val();
-        var intervals = $intervals.val();
-        var startDt = $start.find('input').val();
+          self.updateEndDate();
+      },
+      getMinEndDate: function() {
+        var hrs = 0;
+        var intervals = 1;
+        var startDT = $start.find('input').val() ? moment($start.find('input').val()) : moment();
+
         try {
-          hrs = hrs ? parseInt(hrs) : 0;
-          if (hrs > 0 && startDt) {
-            intervals = intervals ? parseInt(intervals) : 1;
-            var endDate = moment(startDt).add(moment.duration((hrs * intervals), 'hours'));
-            // figure out how to format date correctly with moment 
-            // to match format used in datetime picker display input field
-            $end.find('input').val(endDate.format('YYYY-MM-DD HH:mm'));
-          } else if (startDt) {
-            // figure out how to format date correctly with moment 
-            // to match format used in datetime picker display input field
-            $end.val(startDt);
-          }
+          hrs = parseInt($frequencyInHours.val());
         } catch(err) {
-          console.error('Error updating end date', err);
+          console.log(err);
         }
+
+        try {
+          intervals = parseInt($intervals.val());
+        } catch(err) {
+          console.log(err);
+        }
+
+        try {
+          var endDT = startDT.clone().add((hrs * intervals), 'hours');
+          return endDT;
+        } catch(err) {
+          console.log(err);
+        }
+        
+        return moment();
+      },
+      updateEndDate: function () {
+        var endDT = self.getMinEndDate();
+        $end.find('input').val(endDT.format('YYYY-MM-DD HH:mm'));
+        // debugger
+        // var hrs = $frequencyInHours.val();
+        // var intervals = $intervals.val();
+        // var startDt = $start.val();
+        // try {
+        //   hrs = hrs ? parseInt(hrs) : 0;
+        //   if (hrs > 0 && startDt) {
+        //     intervals = intervals ? parseInt(intervals) : 1;
+        //     var endDate = moment(startDt).add(moment.duration((hrs * intervals), 'hours'));
+        //     // figure out how to format date correctly with moment 
+        //     // to match format used in datetime picker display input field
+        //     $end.val(endDate.format('YYYY-MM-DD HH:mm'));
+        //   } else if (startDt) {
+        //     // figure out how to format date correctly with moment 
+        //     // to match format used in datetime picker display input field
+        //     $end.val(startDt);
+        //   }
+        // } catch(err) {
+        //   console.error('Error updating end date', err);
+        // }
       },
 
       fillChildOptions: function(availableChildren) {

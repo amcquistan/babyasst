@@ -1,5 +1,7 @@
 import os
 
+from celery.schedules import crontab
+
 from django.utils.translation import gettext_lazy as _
 from dotenv import load_dotenv, find_dotenv
 
@@ -139,8 +141,8 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 EMAIL_PORT = 587
 PASSWORD_RESET_TIMEOUT_DAYS = 2
 
+# Internationalization
 USE_I18N = True
-
 USE_L10N = True
 
 USE_TZ = True
@@ -223,3 +225,26 @@ BABY_BUDDY = {
     'NAP_START_MAX': os.environ.get('NAP_START_MAX', '18:00'),
     'ALLOW_UPLOADS': os.environ.get('ALLOW_UPLOADS', True)
 }
+
+
+# Celery / Redis Settings
+
+CELERY_BROKER_URL = 'redis://localhost:6379'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_SERIALIZER = 'json'
+
+CELERY_BEAT_SCHEDULE = {
+  'notifications-task': {
+    'task': 'babybuddy.tasks.notifications_task',
+    'schedule': crontab(minute='*/2') # do every five minutes
+  }
+}
+
+
+#TWILIO Settings
+
+TWILIO_PHONE = os.environ.get('TWILIO_PHONE')
+TWILIO_SID = os.environ.get('TWILIO_SID')
+TWILIO_AUTH_TOKEN = os.environ.get('TWILIO_AUTH_TOKEN')

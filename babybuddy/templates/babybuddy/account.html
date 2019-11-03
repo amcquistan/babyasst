@@ -209,59 +209,59 @@
 
 <!-- Premium Plan Modal -->
 <div class="modal fade" id="payment-modal">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-      <div class="modal-content">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+    
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h3 class="modal-title text-dark">{% trans "Baby Asst Payment Submission" %}</h3>
+        <button type="button" class="close" data-dismiss="modal">×</button>
+      </div>
       
-        <!-- Modal Header -->
-        <div class="modal-header">
-          <h3 class="modal-title text-dark">{% trans "Baby Asst Payment Submission" %}</h3>
-          <button type="button" class="close" data-dismiss="modal">×</button>
+      <!-- Modal body -->
+      <div class="modal-body">
+        <div class="row">
+          <div class="col-10 offset-1">
+            <h4 class="text-dark">Purchase Description</h4>
+            <p class="text-dark" id="purchase-description"></p>
+          </div>
         </div>
-        
-        <!-- Modal body -->
-        <div class="modal-body">
-          <div class="row">
-            <div class="col-10 offset-1">
-              <h4 class="text-dark">Purchase Description</h4>
-              <p class="text-dark" id="purchase-description"></p>
+        <div class="row" id='existing-payment-source-section'>
+          <div class="col-10 offset-1">
+            <h4 class="text-center" id="purchase-description">Previously Used Payment Source</h4>
+            <p class="text-center"><span id="payment-brand"></span> **** **** **** <span id="payment-last4"></span></p>
+            <p class="text-center"><span id="payment-expmo"></span> / <span id="payment-expyr"></span></p>
+            <div class="form-check">
+              <input type="checkbox" id="use-existing-payment-source">
+              <label for="use-existing-payment-source">Use existing payment source</label>
             </div>
           </div>
-          <div class="row" id='existing-payment-source-section'>
-            <div class="col-10 offset-1">
-              <h4 class="text-center" id="purchase-description">Previously Used Payment Source</h4>
-              <p class="text-center"><span id="payment-brand"></span> **** **** **** <span id="payment-last4"></span></p>
-              <p class="text-center"><span id="payment-expmo"></span> / <span id="payment-expyr"></span></p>
-              <div class="form-check">
-                <input type="checkbox" id="use-existing-payment-source">
-                <label for="use-existing-payment-source">Use existing payment source</label>
-              </div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-10 offset-1">
-              <label class="text-dark" for="card-elements">
-                Credit or debit card
-              </label>
-              <div id="card-element"></div>
-            </div>
-          </div>
-          <div class="row">
-            <div class="col-10 offset-1">
-              <div id="card-errors" role="alert"></div>
-            </div>
-          </div>
-  
         </div>
-        
-        <div class="modal-footer">
-          <button id="card-button" class="btn btn-primary">Submit Payment</button>
-          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+        <div class="row">
+          <div class="col-10 offset-1">
+            <label class="text-dark" for="card-elements">
+              Credit or debit card
+            </label>
+            <div id="card-element"></div>
+          </div>
         </div>
+        <div class="row">
+          <div class="col-10 offset-1">
+            <div id="card-errors" role="alert"></div>
+          </div>
+        </div>
+
+      </div>
+      
+      <div class="modal-footer">
+        <button id="card-button" class="btn btn-primary">Submit Payment</button>
+        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
+</div>
 
-  </div>
+</div>
 {% endblock %}
 
 {% block javascript %}

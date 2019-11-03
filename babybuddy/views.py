@@ -268,8 +268,7 @@ class UserAccountView(UserPassesTestMixin, View):
         user_acct_settings = [uas for uas in acct_members_settings if uas.user.id == user.id][0]
         # acct_members_settings = [uas for uas in acct_members_settings if uas.user.id != user.id]
         account_settings_form = self.account_settings_form(instance=user_acct_settings)
-        
-        
+
         account_users = []
         for account_user in account.users.exclude(pk=user.id).all():
             account_user_data = {

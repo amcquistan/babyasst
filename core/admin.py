@@ -38,6 +38,19 @@ class NoteAdmin(admin.ModelAdmin):
     search_fields = ('child__last_name',)
 
 
+@admin.register(models.Notification)
+class NotificationAdmin(admin.ModelAdmin):
+    list_display = ('account', 'user', 'title', 'body', 'frequency_hours', 'intervals', 'start', 'end',)
+    list_filter = ('account',)
+    search_fields = ('account__name', 'user__last_name', 'child__first_name', 'title')
+
+
+@admin.register(models.NotificationEvent)
+class NotificationEventAdmin(admin.ModelAdmin):
+    list_display = ('notification', 'user', 'send_at', 'sent',)
+    list_filter = ('notification',)
+    search_fields = ('notification__title', 'user__first_name', 'user__last_name',)
+
 @admin.register(models.Sleep)
 class SleepAdmin(admin.ModelAdmin):
     list_display = ('start', 'end', 'duration', 'child', 'nap')

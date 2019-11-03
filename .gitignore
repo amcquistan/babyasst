@@ -23,3 +23,9 @@ docker.env
 
 # media folder
 /media
+
+.vscode
+
+dump.rdb
+
+celerybeat-schedule.db
