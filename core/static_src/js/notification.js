@@ -294,7 +294,7 @@ BabyBuddy.Notification = function (root) {
           } else {
             var r = secsSinceStart % freqInSecs;
             if (r !== 0) {
-              secsUntilNext = Math.round((1 - r) * freqInSecs);
+              secsUntilNext = Math.round(freqInSecs - r);
             }
           }
           var durationUntilNext = moment.duration(secsUntilNext, 'seconds');
