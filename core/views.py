@@ -140,7 +140,6 @@ class ChildActivityUpdateView(ChildActivityTestMixin, BaseChildActivityView):
     success_url_name = 'core:child'
 
     def get(self, request, slug, pk):
-        import pdb; pdb.set_trace()
         child = self.get_child()
         context = {
           'child': child,
@@ -615,7 +614,6 @@ class TimerCompleteView(UserPassesTestMixin, View):
         return timer.account.id in user_accts
 
     def get(self, request, *args, **kwargs):
-        import pdb; pdb.set_trace()
         timer = models.Timer.objects.get(id=kwargs['pk'])
         messages.success(request, '{} complete.'.format(timer))
 
