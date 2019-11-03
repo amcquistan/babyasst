@@ -22,6 +22,7 @@ stripe = "*"
 celery = "*"
 redis = "*"
 twilio = "*"
+uwsgi = "*"
 
 [dev-packages]
 coveralls = "*"

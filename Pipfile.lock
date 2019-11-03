@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "435199fc866699eb07ed9b66c48b5d849a4bd2287337c9018b42fdfbb09248d8"
+            "sha256": "d20562ef9406e1840b297d37e035c40c8784739898c1e2a0e7f7532c1777130a"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -250,6 +250,7 @@
                 "sha256:e0697b826da6c2472bb6488db4c0a7fa8af0d52fa08833ceb3681358914b14e5",
                 "sha256:e9a3edd5f714229d41057d56ac0f39ad9bdba6767e8c888c951869f0bdd129b0"
             ],
+            "markers": "python_version >= '2.7'",
             "version": "==6.2.1"
         },
         "plotly": {
@@ -392,6 +393,12 @@
             ],
             "markers": "python_version >= '3.4'",
             "version": "==1.25.6"
+        },
+        "uwsgi": {
+            "hashes": [
+                "sha256:4972ac538800fb2d421027f49b4a1869b66048839507ccf0aa2fda792d99f583"
+            ],
+            "version": "==2.0.18"
         },
         "vine": {
             "hashes": [

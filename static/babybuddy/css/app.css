@@ -7701,10 +7701,10 @@ a.text-error:hover, a.text-error:focus {
 .fa-backward:before {
   content: ""; }
 
-.fa-play:before {
+.fa-play:before, .icon-play:before {
   content: ""; }
 
-.fa-pause:before {
+.fa-pause:before, .icon-pause:before {
   content: ""; }
 
 .fa-stop:before, .icon-stop:before {
@@ -7947,7 +7947,7 @@ a.text-error:hover, a.text-error:focus {
 .fa-hdd-o:before {
   content: ""; }
 
-.fa-bullhorn:before {
+.fa-bullhorn:before, .icon-notification:before {
   content: ""; }
 
 .fa-bell:before {
@@ -7998,7 +7998,7 @@ a.text-error:hover, a.text-error:focus {
 .fa-arrows-alt:before {
   content: ""; }
 
-.fa-group:before,
+.fa-group:before, .icon-accounts:before,
 .fa-users:before,
 .icon-chat:before {
   content: ""; }
@@ -8099,7 +8099,7 @@ a.text-error:hover, a.text-error:focus {
 .fa-sort-asc:before {
   content: ""; }
 
-.fa-envelope:before, .icon-envelope:before {
+.fa-envelope:before, .icon-envelope:before, .icon-mail:before {
   content: ""; }
 
 .fa-linkedin:before {
@@ -9766,7 +9766,7 @@ a.text-error:hover, a.text-error:focus {
     top: 16px; } }
 
 #timer-status {
-  font-size: 2.5rem;
+  font-size: 5.5rem;
   font-weight: 300; }
   #timer-status.timer-stopped {
     color: #a72431; }
@@ -9778,11 +9778,39 @@ a.text-error:hover, a.text-error:focus {
 .card-dashboard .card-header {
   margin-bottom: 0; }
 
-.card-diaperchange .progress {
-  height: 2rem; }
+.card-diaperchange {
+  text-decoration: none; }
+  .card-diaperchange .card-body {
+    text-decoration: none !important; }
+  .card-diaperchange .progress {
+    height: 2rem; }
+
+.card-feeding {
+  text-decoration: none !important; }
+  .card-feeding .card-body {
+    text-decoration: none; }
+
+.card-sleep {
+  text-decoration: none !important; }
 
 .card-statistics .card-body .container {
   padding: 0; }
+
+.card-tummytime {
+  text-decoration: none !important; }
+
+.card-feeding .card-body .card-selected-icon, .card-sleep .card-body .card-selected-icon, .card-tummytime .card-body .card-selected-icon {
+  display: none; }
+
+.card-active {
+  border-color: white !important; }
+  .card-active .card-header {
+    color: black !important;
+    background-color: white !important; }
+  .card-active .card-body {
+    color: white !important; }
+    .card-active .card-body .card-selected-icon {
+      display: inline-block; }
 
 @media (min-width: 576px) and (max-width: 991.98px) {
   #dashboard-child.card-columns {

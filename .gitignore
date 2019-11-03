@@ -28,4 +28,5 @@ docker.env
 
 dump.rdb
 
+babybuddy/settings/production.py
 celerybeat-schedule.db
