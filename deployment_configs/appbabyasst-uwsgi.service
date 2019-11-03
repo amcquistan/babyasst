@@ -1,0 +1,15 @@
+[Unit]
+Description=uWSGI Python container server  
+After=network.target
+
+[Service]
+User=babyasst
+Group=babyasst
+WorkingDirectory=/var/www/babybuddy/public
+Environment="/home/babyasst/.local/share/virtualenvs/public-BuvyXxxq/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin"
+ExecStart=/home/babyasst/.local/share/virtualenvs/public-BuvyXxxq/bin/uwsgi --ini /var/www/babybuddy/public/deployment_configs/uwsgi.ini
+
+[Install]
+WantedBy=multi-user.target
+
+
