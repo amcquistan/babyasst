@@ -10,6 +10,8 @@ from . import views
 app_patterns = [
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('tos/', views.TOSView.as_view(), name='tos'),
+    path('privacy/', views.PrivacyView.as_view(), name='privacy'),
     path('signup/', views.RegisterView.as_view(), name='signup'),
     path(
         'password_reset/',

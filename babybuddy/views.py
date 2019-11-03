@@ -26,6 +26,15 @@ from babybuddy import forms, models
 from babybuddy.mixins import PermissionRequired403Mixin, StaffOnlyMixin, AccountMemberRequiredMixin, CanManageAccountTestMixin
 # from babybuddy.mixins import PermissionRequired403Mixin, AccountMemberRequiredMixin
 
+class TOSView(View):
+    def get(self, request):
+        return render(request, 'registration/tos.html')
+
+
+class PrivacyView(View):
+    def get(self, request):
+        return render(request, 'registration/privacy.html')
+
 
 class RegisterView(View):
     form_class = forms.UserSignupForm
