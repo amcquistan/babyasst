@@ -25,7 +25,7 @@ class Dashboard(LoginRequiredMixin, View):
         elif children_cnt == 1:
 
             child = children[0]
-            return redirect(reverse('dashboard:dashboard-child', args=(child.slug,)))
+            return redirect(reverse('core:child', args=(child.slug,)))
 
         children = sorted(children, key=lambda c: (c.account.name.lower(), c.last_name, c.first_name))
         return render(request, 'dashboard/dashboard.html', {'children': children})

@@ -1,17 +1,21 @@
 {% load i18n widget_tweaks %}
 
 <div class="container-fluid">
-    <form role="form" method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        {% for field in form %}
-            {% if field.is_hidden %}
-              {{ field }}
-            {% else %}
-            <div class="form-group row">
-                {% include 'babybuddy/form_field.html' %}
-            </div>
-            {% endif %}
-        {% endfor %}
+  <form role="form" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {% for field in form %}
+      {% if field.is_hidden %}
+        {{ field }}
+      {% else %}
+      <div class="form-group row">
+        {% include 'babybuddy/form_field.html' %}
+      </div>
+      {% endif %}
+    {% endfor %}
+    <div class="row input-group mt-4 mb-5">
+      <div class="col-2 offset-10">
         <button type="submit" class="btn btn-primary">{% trans "Submit" %}</button>
-    </form>
+      </div>
+    </div>
+  </form>
 </div>

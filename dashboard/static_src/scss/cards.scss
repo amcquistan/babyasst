@@ -26,7 +26,8 @@
     }
 
     .card-body {
-        @extend .text-danger;
+        // @extend .text-danger;
+        color: #c3515c !important;
         text-decoration: none !important;
     }
 
