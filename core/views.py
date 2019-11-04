@@ -615,6 +615,7 @@ class TimerCompleteView(UserPassesTestMixin, View):
 
     def get(self, request, *args, **kwargs):
         timer = models.Timer.objects.get(id=kwargs['pk'])
+        timer.stop()
         messages.success(request, '{} complete.'.format(timer))
 
         if timer.child is None:
