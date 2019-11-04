@@ -162,6 +162,10 @@ BabyBuddy.Timer = function ($) {
           });
           options.unshift('<option disabled>Children</option>');
           $childrenSelect.html(options.join('\n'));
+          if (availableChildren.length === 1) {
+            var child = availableChildren[0];
+            $childrenSelect.val(child.id);
+          }
         },
 
         run: function() {
@@ -253,10 +257,10 @@ BabyBuddy.Timer = function ($) {
         fetchAccounts: function() {
           return $.get('/api/accounts/')
             .then(function(response){
-              debugger
               accounts = response;
               if (!$accountSelect.val() && accounts.length) {
                 $accountSelect.val(accounts[0].id);
+                $accountSelect.change();
               }
               return response;
             });
@@ -272,6 +276,8 @@ BabyBuddy.Timer = function ($) {
           timer.is_feeding = $feedingCard.is('.card-active');
           timer.is_sleeping = $sleepCard.is('.card-active');
           timer.is_tummytime = $tummytimeCard.is('.card-active');
+          timer.child = $childrenSelect.val();
+          timer.account = $accountSelect.val();
           return $.post('/api/timers/' + timerId + '/', timer)
             .then(function(response){
               timer = response;
