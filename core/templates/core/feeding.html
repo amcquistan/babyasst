@@ -86,8 +86,6 @@
       defaultDate: 'now',
     });
     $startPicker.on('change.datetimepicker', function(evt){
-      debugger
-      console.log('start datetime changed', evt);
       $endPicker.datetimepicker('minDate', evt.date);
     });
 

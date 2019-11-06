@@ -156,26 +156,6 @@ BabyBuddy.Notification = function (root) {
       updateEndDate: function () {
         var endDT = self.getMinEndDate();
         $end.find('input').val(endDT.format('YYYY-MM-DD HH:mm'));
-        // debugger
-        // var hrs = $frequencyInHours.val();
-        // var intervals = $intervals.val();
-        // var startDt = $start.val();
-        // try {
-        //   hrs = hrs ? parseInt(hrs) : 0;
-        //   if (hrs > 0 && startDt) {
-        //     intervals = intervals ? parseInt(intervals) : 1;
-        //     var endDate = moment(startDt).add(moment.duration((hrs * intervals), 'hours'));
-        //     // figure out how to format date correctly with moment 
-        //     // to match format used in datetime picker display input field
-        //     $end.val(endDate.format('YYYY-MM-DD HH:mm'));
-        //   } else if (startDt) {
-        //     // figure out how to format date correctly with moment 
-        //     // to match format used in datetime picker display input field
-        //     $end.val(startDt);
-        //   }
-        // } catch(err) {
-        //   console.error('Error updating end date', err);
-        // }
       },
 
       fillChildOptions: function(availableChildren) {
