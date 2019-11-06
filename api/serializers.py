@@ -2,8 +2,9 @@
 from rest_framework import serializers
 
 from django.contrib.auth.models import User
+from django.utils import timezone
 
-from core import models
+from core import models, timeline
 
 from babybuddy import models as babybuddy_models
 
@@ -76,6 +77,28 @@ class ChildSerializer(serializers.ModelSerializer):
         model = models.Child
         fields = ('id', 'first_name', 'last_name', 'birth_date', 'slug', 'account', 'is_active')
         lookup_field = 'slug'
+
+
+class TimeLineSerializer(serializers.Serializer):
+    child = None
+    date = serializers.DateTimeField()
+    items = serializers.SerializerMethodField()
+
+    def __init__(self, **kwargs):
+        self.child = kwargs.pop('child')
+        super(TimeLineSerializer, self).__init__(**kwargs)
+
+    def get_items(self, instance):
+        items = []
+        date = instance['date']
+        for item in timeline.get_objects(self.child, date):
+            items.append({
+              'time': str(item['time']),
+              'event': item['event'],
+              'model_name': item['model_name'],
+              'type': item.get('type')
+            })
+        return items
 
 
 class DiaperChangeSerializer(CoreModelSerializer):

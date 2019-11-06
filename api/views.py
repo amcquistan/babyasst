@@ -69,6 +69,33 @@ class ChildrenAPIView(ListOrCreateModelWithAccountAPIView):
         return Response({}, status=status.HTTP_403_FORBIDDEN)
 
 
+class ChildAPIView(ViewOrUpdateModelWithAccountAPIView):
+    model = models.Child
+    serializer = serializers.ChildSerializer
+
+    def post(self, request, format=None):
+        '''Not allowed from API'''
+        return Response({}, status=status.HTTP_403_FORBIDDEN)
+
+
+class ChildTimelineAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    model = models.Child
+    serializer = serializers.TimeLineSerializer
+
+    def get(self, request, child_id, date_str, format=None):
+        child = get_object_or_404(self.model, pk=child_id)
+
+        if not api_permissions.can_view_update_obj_with_acct(request, child):
+            return Response(None, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.serializer(child=child, data={'date': date_str})
+        if serializer.is_valid():
+            data = serializer.data
+            return Response(data)
+        return Response({}, status=status.HTTP_400_BAD_REQUEST)
+
+
 class AccountsAPIView(APIView):
     permission_classes = (IsAuthenticated,)
     model = models.Account

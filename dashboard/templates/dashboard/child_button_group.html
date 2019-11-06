@@ -2,9 +2,11 @@
 
 <div class="child-actions btn-group btn-group-lg center-block" role="group" aria-label="{% trans "Child actions" %}">
 
+    {% comment %}
     <a href="{% url 'dashboard:dashboard-child' object.slug %}" class="btn btn-success">
       <i class="icon icon-dashboard" aria-hidden="true"></i>
     </a>
+    {% endcomment %}
 
     <div class="btn-group" role="group">
         <button id="reports-dropdown"

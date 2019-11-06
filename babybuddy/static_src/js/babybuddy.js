@@ -40,7 +40,25 @@ function csrfSafeMethod (method) {
 }
 
 var BabyBuddy = function () {
-    var BabyBuddy = {};
+    var BabyBuddy = {
+      ApiRoutes: {
+        children: function() {
+          return '/api/children/';
+        },
+        child: function(childId) {
+          return '/api/children/' + childId + '/';
+        },
+        childTimeline: function(childId, dateStr) {
+          return '/api/children/' + childId + '/timeline/' + dateStr + '/';
+        },
+        notification: function(notificationId) {
+          return '/api/notifications/' + notificationId + '/';
+        },
+        accounts: function() {
+          return '/api/accounts/';
+        },
+      }
+    };
     return BabyBuddy;
 }();
 

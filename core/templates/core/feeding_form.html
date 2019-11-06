@@ -29,13 +29,19 @@
 {% block javascript %}
 <script type="text/javascript">
   $(function () {
-    $('#datetimepicker_start').datetimepicker({
-      format: 'YYYY-MM-DD HH:mm',
-      defaultDate: 'now'
-    });
-    $('#datetimepicker_end').datetimepicker({
+    var $startPicker = $('#datetimepicker_start');
+    var $endPicker = $('#datetimepicker_end');
+    $startPicker.datetimepicker({
+      format: 'YYYY-MM-DD hh:mm',
       defaultDate: 'now',
-      format: 'YYYY-MM-DD HH:mm'
+    });
+    $startPicker.on('change.datetimepicker', function(evt){
+      $endPicker.datetimepicker('minDate', evt.date);
+    });
+
+    $endPicker.datetimepicker({
+      defaultDate: 'now',
+      format: 'YYYY-MM-DD hh:mm'
     });
   });
 </script>

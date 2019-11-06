@@ -22,6 +22,8 @@ urlpatterns = [
     path('api/accounts/', views.AccountsAPIView.as_view()),
     path('api/accounts/<int:pk>/', views.AccountAPIView.as_view()),
     path('api/children/', views.ChildrenAPIView.as_view()),
+    path('api/children/<int:pk>/', views.ChildAPIView.as_view()),
+    path('api/children/<int:child_id>/timeline/<str:date_str>/', views.ChildTimelineAPIView.as_view()),
     path('api/notifications/', views.NotificationsAPIView.as_view()),
     path('api/notifications/<int:pk>/', views.NotificationAPIView.as_view()),
     path('api/timers/', views.TimersAPIView.as_view()),
