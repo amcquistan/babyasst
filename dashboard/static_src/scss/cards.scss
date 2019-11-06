@@ -57,6 +57,10 @@
     .card-header {
         @extend .text-white, .bg-secondary;
     }
+
+    .card-body {
+      @extend .text-secondary;
+    }
 }
 
 .card-statistics {
@@ -100,7 +104,42 @@
     }
 }
 
-.card-feeding, .card-sleep, .card-tummytime {
+.card-weight {
+  @extend .border-info;
+  text-decoration: none !important;
+
+  .card-header {
+      @extend .text-white, .bg-info;
+  }
+
+  .card-body {
+      @extend .text-info;
+  }
+}
+
+.card-temperature {
+  @extend .border-warning;
+  text-decoration: none !important;
+
+  .card-header {
+      @extend .text-white, .bg-warning;
+  }
+
+  .card-body {
+      @extend .text-warning;
+  }
+}
+
+.card-timeline {
+  @extend .border-light;
+  text-decoration: none !important;
+
+  .card-header {
+      @extend .text-dark, .bg-light;
+  }
+}
+
+.card-feeding, .card-sleep, .card-tummytime, .card-weight, .card-temperature {
   .card-body {
     .card-selected-icon {
       display: none;

@@ -2,6 +2,7 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.paginator import Paginator
 from django.shortcuts import redirect, reverse, render
 from django.urls import reverse_lazy
 from django.utils import timezone
@@ -112,9 +113,15 @@ class ChildActivityAddListView(ChildActivityTestMixin, SuccessMessageMixin, Base
         return self.success_message % cleaned_data
 
     def get_context_data(self, **kwargs):
+        object_list = self.get_queryset()
+        if self.request.method == "GET":
+            page = self.request.GET.get('page', 1)
+            paginator = Paginator(object_list, 5)
+            object_list = paginator.get_page(page)
+
         context = {
           'child': kwargs.get('child', self.get_child()),
-          'object_list': self.get_queryset()
+          'object_list': object_list
         }
         if 'form' in kwargs:
             context['form'] = kwargs.get('form')

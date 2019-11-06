@@ -1,5 +1,5 @@
 {% extends 'babybuddy/page.html' %}
-{% load i18n static thumbnail %}
+{% load i18n static cards thumbnail %}
 
 {% block title %}{{ object }}{% endblock %}
 
@@ -25,7 +25,8 @@
       {% include 'dashboard/child_button_group.html' %}
     </div>
     <div class="col-lg-9 col-md-7">
-      <div class="card-deck">
+      <h2 class="text-center">{% trans "Activities" %}</h2>
+      <div class="card-deck mb-5">
         <a href="{% url 'core:diaperchange' slug=object.slug %}" class="card card-diaperchange">
           <div class="card-header text-center">
             <i class="icon icon-2x icon-diaperchange" aria-hidden="true"></i>
@@ -50,6 +51,16 @@
             <h3 class="card-title text-center">{% trans "Sleep" %}</h3>
           </div>
         </a>
+      </div>
+      <div class="card-deck mb-5">
+        <a href="{% url 'core:temperature' slug=child.slug %}" class="card card-temperature">
+          <div class="card-header text-center">
+            <i class="icon icon-2x icon-temperature" aria-hidden="true"></i>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title text-center">{% trans "Temperature" %}</h3>
+          </div>
+        </a>
         <a href="{% url 'core:tummytime' slug=child.slug %}" class="card card-tummytime">
           <div class="card-header text-center">
             <i class="icon icon-2x icon-tummytime" aria-hidden="true"></i>
@@ -58,42 +69,86 @@
             <h3 class="card-title text-center">{% trans "Tummy Time" %}</h3>
           </div>
         </a>
+        <a href="{% url 'core:weight' slug=child.slug %}" class="card card-weight">
+          <div class="card-header text-center">
+            <i class="icon icon-2x icon-weight" aria-hidden="true"></i>
+          </div>
+          <div class="card-body">
+            <h3 class="card-title text-center">{% trans "Weight" %}</h3>
+          </div>
+        </a>
       </div>
     </div>
   </div>
 
-    <div class="row">
-      <div class="col-lg-8 col-md-6">
-        <h3 class="text-center">
-          {% if date_previous %}
-            <a class="btn btn-sm btn-default" href="?date={{ date_previous|date:"Y-m-d" }}" aria-label="{% trans "Previous" %}">
+  <div class="row" id='child-detail'>
+    <div class="col-lg-7 col-md-7 col-sm-12">
+      <h2 class="text-center">{% trans "Summary" %}</h2>
+      <div id="dashboard-child" class="card-columns">
+        {% card_feeding_last object %}
+        {% card_feeding_last_method object %}
+        {% card_timer_list %}
+        {% card_statistics object %}
+        {% card_sleep_last object %}
+        {% card_sleep_day object %}
+        {% card_sleep_naps_day object %}
+        {% card_tummytime_day object %}
+        {% card_diaperchange_last object %}
+        {% card_diaperchange_types object %}
+      </div>
+    </div>
+    <div class="col-lg-5 col-md-5 col-sm-12">
+      <h2 class="text-center">{% trans "Timeline" %}</h2>
+      <div class="card card-timeline">
+        <div class="card-header text-center">
+          <h3 class="text-center">
+            <a class="btn btn-sm btn-dark" id="prev-timeline-day" href="#" aria-label='{% trans "Previous" %}'>
               <i class="icon icon-chevron-left" aria-hidden="true"></i>
               <span class="sr-only">{% trans "Previous" %}</span>
             </a>
-          {% endif %}
-          {{ date|date }}
-          {% if date_next %}
-            <a class="btn btn-sm btn-default" href="?date={{ date_next|date:"Y-m-d" }}" aria-label="{% trans "Next" %}">
+            <span id="timeline-current-date" style="margin: 5px 12px;"></span>
+            <a class="btn btn-sm btn-dark" id="next-timeline-day" href="" aria-label='{% trans "Next" %}'>
               <i class="icon icon-chevron-right" aria-hidden="true"></i>
               <span class="sr-only">{% trans "Next" %}</span>
             </a>
-          {% endif %}
-        </h3>
-        <ul class="timeline m-auto">
-          {% for object in timeline_objects %}
-            <li{% cycle "" ' class="timeline-inverted"' %}>
-              <div class="timeline-badge {% if object.type == "start" %}bg-success{% elif object.type == "end" %}bg-danger{% else %}bg-info{% endif %}">
-                <i class="icon icon-{{ object.model_name }}"></i>
-              </div>
-              <div class="card text-right">
-                <div class="card-body">{{ object.event }}</div>
-                <div class="card-footer text-muted">
-                  {% blocktrans with since=object.time|timesince time=object.time|time %}{{ since }} ago ({{ time }}){% endblocktrans %}
-                </div>
-              </div>
-            </li>
-          {% endfor %}
-        </ul>
+          </h3>
+        </div>
+        <div class="card-body" style="background-color: #292d31;">
+          <ul class="timeline m-auto" id="timeline-container"></ul>
+        </div>
       </div>
+      {% comment %}
+      <h2 class="text-center">{% trans "Timeline" %}</h2>
+      <h3 class="text-center">
+        <a class="btn btn-sm btn-default" id="prev-timeline-day" href="#" aria-label='{% trans "Previous" %}'>
+          <i class="icon icon-chevron-left" aria-hidden="true"></i>
+          <span class="sr-only">{% trans "Previous" %}</span>
+        </a>
+        <span id="timeline-current-date"></span>
+        <a class="btn btn-sm btn-default" id="next-timeline-day" href="" aria-label='{% trans "Next" %}'>
+          <i class="icon icon-chevron-right" aria-hidden="true"></i>
+          <span class="sr-only">{% trans "Next" %}</span>
+        </a>
+      </h3>
+      <ul class="timeline m-auto" id="timeline-container">
+          
+      </ul>
+      {% endcomment %}
     </div>
+  </div>
+{% endblock %}
+
+
+{% block javascript %}
+
+<script type="application/javascript">
+  var childId = {{ object.id }};
+  BabyBuddy.ChildDetail.init(childId, 'child-detail');
+
+{% if user.settings.dashboard_refresh_rate %}
+  BabyBuddy.Dashboard.watch('dashboard-child', {{ user.settings.dashboard_refresh_rate_milliseconds }});
+{% else %}
+  BabyBuddy.Dashboard.watch('dashboard-child', false);
+{% endif %}
+</script>
 {% endblock %}

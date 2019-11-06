@@ -252,21 +252,21 @@ BabyBuddy.Notification = function (root) {
         }
       },
       fetchNotification: function() {
-        return $.get('/api/notifications/' + notificationId + '/')
+        return $.get(BabyBuddy.ApiRoutes.notification(notificationId))
           .then(function(response){
             notification = response;
             return response;
           });
       },
       fetchAccounts: function() {
-        return $.get('/api/accounts/')
+        return $.get(BabyBuddy.ApiRoutes.accounts())
           .then(function(response){
             accounts = response;
             return response;
           });
       },
       fetchChildren: function() {
-        return $.get('/api/children/')
+        return $.get(BabyBuddy.ApiRoutes.children())
           .then(function(response){
             children = response;
             return response;

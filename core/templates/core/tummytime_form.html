@@ -32,16 +32,25 @@
 {% endblock %}
 
 {% block javascript %}
-  <script type="text/javascript">
-    $(function () {
-      $('#datetimepicker_start').datetimepicker({
-        format: 'YYYY-MM-DD HH:mm:ss',
-        defaultDate: 'now'
-      });
-      $('#datetimepicker_end').datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD HH:mm:ss'
-      });
+<script type="text/javascript">
+
+  $(function () {
+    var $startPicker = $('#datetimepicker_start');
+    var $endPicker = $('#datetimepicker_end');
+    $startPicker.datetimepicker({
+      format: 'YYYY-MM-DD hh:mm',
+      defaultDate: 'now',
     });
-  </script>
+    $startPicker.on('change.datetimepicker', function(evt){
+      debugger
+      console.log('start datetime changed', evt);
+      $endPicker.datetimepicker('minDate', evt.date);
+    });
+
+    $endPicker.datetimepicker({
+      defaultDate: 'now',
+      format: 'YYYY-MM-DD hh:mm'
+    });
+  });
+</script>
 {% endblock %}
