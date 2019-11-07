@@ -146,6 +146,7 @@ BabyBuddy.Account = function(root) {
 
       if (usersToAddBeforeIncurringCost > 0) {
         $inviteeStripeForm.submit();
+        return;
       }
 
       $paymentModal.find('#purchase-description').html('Adding account user for an additional $1 per month');

@@ -302,12 +302,13 @@ class UserAccountView(UserPassesTestMixin, View):
 
         is_premium, subscription = account.is_premium_subscriber()
 
-        users_to_add_before_incurring_cost = settings.PREMIUM_MEMBER_COUNT - len([am for am in account_users if am['is_active']])
+        users_to_add_before_incurring_cost = settings.PREMIUM_MEMBER_COUNT - len([am for am in account_users if am['is_active']]) - 1
         children = account.children.all()
         children_to_add_before_incurring_cost = settings.PREMIUM_CHILD_COUNT - len([c for c in children if c.is_active])
 
         return render(request, self.template_name, {
             'account_form': self.account_form(instance=account),
+            'account': account,
             'account_settings_form': self.account_settings_form(instance=user_acct_settings),
             'account_members': account_users,
             'children': children,
