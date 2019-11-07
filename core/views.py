@@ -637,7 +637,7 @@ class TimerCompleteView(UserPassesTestMixin, View):
                 duration=timer.duration,
                 end=timer.end
             )
-            return redirect(reverse('core:sleep-update', sleep.child.slug, sleep.id))
+            return redirect(reverse('core:child', args=(sleep.child.slug,)))
 
         elif timer.is_feeding:
             feeding = models.Feeding.objects.create(
@@ -646,7 +646,7 @@ class TimerCompleteView(UserPassesTestMixin, View):
                 duration=timer.duration,
                 end=timer.end
             )
-            return redirect(reverse('core:feeding-update', args=(feeding.child.slug, feeding.id)))
+            return redirect(reverse('core:feeding-update', args=(feeding.child.slug, feeding.id,)))
 
         elif timer.is_tummytime:
             tummytime = models.TummyTime.objects.create(
@@ -655,7 +655,7 @@ class TimerCompleteView(UserPassesTestMixin, View):
                 duration=timer.duration,
                 end=timer.end
             )
-            return redirect(reverse('core:tummytime-update', args=(tummytime.child.slug, tummytime.id)))
+            return redirect(reverse('core:child', args=(tummytime.child.slug,)))
         
         return redirect(reverse('core:timer-list'))
 

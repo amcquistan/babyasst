@@ -2,6 +2,7 @@
 BabyBuddy.Notification = function (root) {
   var $ = root.jQuery;
   var _ = root._;
+  var DurationFormHandler = root.BabyBuddy.DurationFormHandler;
   var runIntervalId = null,
       notificationId = null,
       $el = null,
@@ -15,6 +16,7 @@ BabyBuddy.Notification = function (root) {
       $hours = null,
       $minutes = null,
       $timerStatus = null,
+      $notificationForm = null,
       lastUpdate = moment(),
       hidden = null,
       children = [],
@@ -36,20 +38,21 @@ BabyBuddy.Notification = function (root) {
           $start = $el.find('#datetimepicker_start');
           $end = $el.find('#datetimepicker_end');
           $timerStatus = $el.find('#timer-status');
+          $notificationForm = $el.find('#notification-form');
           self = this;
 
-          var initialDate = $start.find('input').val() ? $start.find('input').val() : moment().format('YYYY-MM-DD HH:mm');
+          var initialDate = $start.find('input').val() ? $start.find('input').val() : moment().format('YYYY-MM-DD hh:mm a');
           $start.find('input').val(initialDate);
 
           $start.datetimepicker({
-            format: 'YYYY-MM-DD HH:mm',
+            format: 'YYYY-MM-DD hh:mm a',
             startDate: initialDate
           });
           $end.datetimepicker({
             format: 'YYYY-MM-DD HH:mm',
             onShow: function(ct) {
               var minDate = self.getMinEndDate();
-              minDate = minDate.format('YYYY-MM-DD HH:mm');
+              minDate = minDate.format('YYYY-MM-DD hh:mm a');
               this.setOptions({
                 minDate: minDate
               })
@@ -66,6 +69,8 @@ BabyBuddy.Notification = function (root) {
             // validate end date
 
           }, 1200));
+
+          DurationFormHandler($notificationForm, $start, $end);
 
           $frequencyInHours.change(_.debounce(function(evt){
             console.log('frequency changed', evt);
@@ -155,7 +160,7 @@ BabyBuddy.Notification = function (root) {
       },
       updateEndDate: function () {
         var endDT = self.getMinEndDate();
-        $end.find('input').val(endDT.format('YYYY-MM-DD HH:mm'));
+        $end.find('input').val(endDT.format('YYYY-MM-DD hh:mm a'));
       },
 
       fillChildOptions: function(availableChildren) {

@@ -35,20 +35,11 @@
 <script type="text/javascript">
 
   $(function () {
-    var $startPicker = $('#datetimepicker_start');
-    var $endPicker = $('#datetimepicker_end');
-    $startPicker.datetimepicker({
-      format: 'YYYY-MM-DD hh:mm',
-      defaultDate: 'now',
-    });
-    $startPicker.on('change.datetimepicker', function(evt){
-      $endPicker.datetimepicker('minDate', evt.date);
-    });
-
-    $endPicker.datetimepicker({
-      defaultDate: 'now',
-      format: 'YYYY-MM-DD hh:mm'
-    });
+    BabyBuddy.DurationFormHandler(
+      $('#babybuddy-form'),
+      $('#datetimepicker_start'),
+      $('#datetimepicker_end')
+    );
   });
 </script>
 {% endblock %}

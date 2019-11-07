@@ -12,7 +12,7 @@
 <div class="row" id="notification">
   <div class="col-md-10 offset-1">
     <h1 class="mb-5">{% trans "Add Notification" %}</h1>
-    <form action="{% url 'core:notification-add' %}" method="POST">
+    <form id='notification-form' action="{% url 'core:notification-add' %}" method="POST">
       {% include 'core/notification_form_fields.html' %}
     </form>
   </div>
