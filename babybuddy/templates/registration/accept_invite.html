@@ -86,15 +86,18 @@
               </label>
             </div>
           </div>
-  
-          <div class="input-group mb-3 fade-in">
+
+          <div class="input-group mb-1 fade-in">
             <div style='margin: 2px 5px;'>
-              <a id='terms-of-service-link' href="https://thecodinginterface.com/terms-of-service/" target="_BLANK">Terms of Service</a>
-            </div>
-            <div style='margin: 2px 5px;'>
-              <a id='privacy-policy-link' href="https://thecodinginterface.com/privacy-policy/" target="_BLANK">Privacy Statement</a>
+              <a id='terms-of-service-link' href="{% url 'babybuddy:tos' %}" target="_BLANK">Terms of Service</a>
             </div>
           </div>
+          <div class="input-group mb-1 fade-in">
+            <div style='margin: 2px 5px;'>
+              <a id='privacy-policy-link' href="{% url 'babybuddy:privacy' %}" target="_BLANK">Privacy Statement</a>
+            </div>
+          </div>
+
           <div class="input-group mb-3 fade-in">
             <p>
               * You must click, read, and agree the terms of service and privacy policy to signup and use this service.
