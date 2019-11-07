@@ -33,10 +33,7 @@
 {% block javascript %}
   <script type="text/javascript">
     $(function () {
-      $('#datetimepicker_time').datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD hh:mm'
-      });
+      BabyBuddy.TimeFormHandler($('#babybuddy-form'), $('#datetimepicker_time'));
     });
   </script>
 {% endblock %}

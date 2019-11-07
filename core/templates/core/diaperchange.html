@@ -40,7 +40,7 @@
                 <td class="text-center">{{ change.wet|bool_icon }}</td>
                 <td class="text-center">{{ change.solid|bool_icon }}</td>
                 <td>{{ change.color }}</td>
-                <td>{{ change.time|date:'n/j/y G:i' }}</td>
+                <td>{{ change.time|date:'n/j/y h:i a' }}</td>
                 <td class="text-center">
                   <div class="btn-group btn-group-sm" role="group" aria-label="{% trans "Actions" %}">
                     <a href="{% url 'core:diaperchange-update' slug=child.slug pk=change.id %}" class="btn btn-primary">
@@ -74,10 +74,7 @@
 {% block javascript %}
   <script type="text/javascript">
     $(function () {
-      $('#datetimepicker_time').datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD hh:mm'
-      });
+      BabyBuddy.TimeFormHandler($('#babybuddy-form'), $('#datetimepicker_time'));
     });
   </script>
 {% endblock %}
