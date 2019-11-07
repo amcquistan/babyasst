@@ -60,28 +60,27 @@ var BabyBuddy = function () {
       },
       DurationFormHandler: function($form, $startPicker, $endPicker){
         var $startInput = $startPicker.find('input');
-          if ($startInput && $startInput.val()) {
-            $startInput.val(moment($startInput.val()).format('YYYY-MM-DD hh:mm a'));
-          }
+        if ($startInput && $startInput.val()) {
+          $startInput.val(moment($startInput.val()).format('YYYY-MM-DD hh:mm a'));
+        }
 
-          var $endInput = $endPicker.find('input');
-          if ($endInput && $endInput.val()) {
-            $endInput.val(moment($endInput.val()).format('YYYY-MM-DD hh:mm a'));
-          }
+        var $endInput = $endPicker.find('input');
+        if ($endInput && $endInput.val()) {
+          $endInput.val(moment($endInput.val()).format('YYYY-MM-DD hh:mm a'));
+        }
+        $startPicker.datetimepicker({
+          format: 'YYYY-MM-DD hh:mm a',
+          defaultDate: 'now',
+        });
+        $startPicker.on('change.datetimepicker', function(evt){
+          $endPicker.datetimepicker('minDate', evt.date);
+        });
+    
+        $endPicker.datetimepicker({
+          defaultDate: 'now',
+          format: 'YYYY-MM-DD hh:mm a'
+        });
         $form.submit(function(evt){
-          $startPicker.datetimepicker({
-            format: 'YYYY-MM-DD hh:mm a',
-            defaultDate: 'now',
-          });
-          $startPicker.on('change.datetimepicker', function(evt){
-            $endPicker.datetimepicker('minDate', evt.date);
-          });
-      
-          $endPicker.datetimepicker({
-            defaultDate: 'now',
-            format: 'YYYY-MM-DD hh:mm a'
-          });
-
           if ($startInput && $startInput.val() && $endInput && $endInput.val()) {
             var start = moment($startInput.val(), 'YYYY-MM-DD hh:mm a');
             var end = moment($endInput.val(), 'YYYY-MM-DD hh:mm a');
@@ -97,6 +96,10 @@ var BabyBuddy = function () {
         if ($timeInput && $timeInput.val()) {
           $timeInput.val(moment($timeInput.val()).format('YYYY-MM-DD hh:mm a'));
         }
+        $timePicker.datetimepicker({
+          defaultDate: 'now',
+          format: 'YYYY-MM-DD hh:mm a'
+        });
         $form.submit(function(evt){
           if ($timeInput && $timeInput.val()) {
             var time = moment($timeInput.val(), 'YYYY-MM-DD hh:mm a');
