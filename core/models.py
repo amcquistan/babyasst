@@ -636,6 +636,10 @@ class Timer(models.Model):
     @classmethod
     def from_db(cls, db, field_names, values):
         instance = super(Timer, cls).from_db(db, field_names, values)
+        if not instance.name:
+            instance.name = str(instance)
+            instance.save()
+
         if instance.active and instance.start:
             instance.stop()
             instance.restart()
@@ -645,41 +649,28 @@ class Timer(models.Model):
         """Restart the timer."""
         self.start = timezone.now()
         self.end = None
-        # self.duration = None
         self.active = True
         self.save()
 
     def stop(self, end=None):
         """Stop the timer."""
-        if not end:
-            end = timezone.now()
-        self.end = end
-        self.active = False
-        if self.start and self.end:
-            delta = self.end - self.start
-            if self.duration is not None:
-                self.duration += delta
-            else:
-                self.duration = delta
-        self.save()
-
-    # def save(self, *args, **kwargs):
-    #     self.active = self.end is None
-    #     self.name = self.name or None
-    #     if self.start and self.end:
-    #         delta = self.end - self.start
-    #         if self.duration is not None:
-    #             self.duration += delta
-    #         else:
-    #             self.duration = delta
-
-    #     super(Timer, self).save(*args, **kwargs)
+        if self.active:
+            if not end:
+                end = timezone.now()
+            self.end = end
+            self.active = False
+            if self.start and self.end:
+                delta = self.end - self.start
+                if self.duration is not None:
+                    self.duration += delta
+                else:
+                    self.duration = delta
+            self.save()
 
     def clean(self):
         validate_time(self.start, 'start')
         if self.end:
             validate_time(self.end, 'end')
-        # validate_duration(self)
 
 
 class TummyTime(models.Model):
