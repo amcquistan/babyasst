@@ -25,7 +25,7 @@ def get_objects(child, date):
         elif instance.wet:
             change_type = 'wet'
         elif instance.solid:
-            change_type = 'sold'
+            change_type = 'solid'
 
         events.append({
             'time': timezone.localtime(instance.time),
@@ -33,8 +33,9 @@ def get_objects(child, date):
                 'child': child.first_name,
                 'change_type': change_type
             },
-            'detail': _('%(change_type)s') % {
-                'change_type': change_type
+            'detail': _('%(change_type)s (%(color)s)') % {
+                'change_type': change_type,
+                'color': instance.color if instance.color else ''
             },
             'model_name': instance.model_name,
         })
@@ -47,9 +48,9 @@ def get_objects(child, date):
             feeding_type = "{type} {method}".format(type=instance.type, method=instance.method)
         elif instance.type in ['formula', 'fortified breast milk']:
             if instance.amount:
-                feeding_type = "{type} {amount}".format(type.instance.type, amount=instance.amount)
+                feeding_type = "{type} ({amount})".format(type=instance.type, amount=instance.amount)
             else:
-                feeding_type = "{type}".format(type.instance.type)
+                feeding_type = "{type}".format(type=instance.type)
         if instance.duration and instance.duration.seconds:
             events.append({
                 'time': timezone.localtime(instance.start),

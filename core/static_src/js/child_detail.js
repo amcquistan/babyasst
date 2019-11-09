@@ -112,7 +112,7 @@ BabyBuddy.ChildDetail = function(root) {
             <div class="timeline-badge ${activityBG}"><i class="icon ${activityIcon}"></i></div>
             <div class="card text-center" style="border-color:#3c4248;">
               <div class="card-body">${item.event}</div>
-              <div class="card-footer text-muted text-center">${item.detail} ${timeSince}</div>
+              <div class="card-footer text-muted text-center">${item.detail} at ${timeSince}</div>
             </div>
           </li>
           `
