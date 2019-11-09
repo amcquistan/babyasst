@@ -343,7 +343,7 @@ BabyBuddy.Timer = function (root) {
               $endBtn.show();
               $startBtn.hide();
               $pauseBtn.show();
-              $endBtn.prop('href', `timer/${timerId}/stop/`);
+              $endBtn.prop('href', `${BabyBuddy.host()}/timer/${timerId}/stop/`);
               self.run();
               return response;
             });

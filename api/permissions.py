@@ -22,7 +22,7 @@ def can_create_obj_with_acct(request, obj_account=None):
     if request.user.id not in acct_users:
         return False
 
-    child_id = request.data.get('child')
+    child_id = int(request.data.get('child', 0))
     if child_id:
         children_in_acct = {child.id for child in acct.children.all()}
         if child_id not in children_in_acct:

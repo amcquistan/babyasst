@@ -152,7 +152,7 @@ class ChildActivityUpdateView(ChildActivityTestMixin, BaseChildActivityView):
         context = {
           'child': child,
           'obj': obj,
-          'form': self.form_class(obj, child=child)
+          'form': self.form_class(instance=obj, child=child)
         }
         return render(request, self.template_name, context)
 
@@ -178,38 +178,6 @@ class ChildActivityDeleteView(ChildActivityTestMixin, BaseChildActivityView):
         obj = self.model.objects.get(pk=pk)
         obj.delete()
         return redirect(reverse(self.success_url_name, args=(slug,)))
-
-# class CoreAddView(ActiveSubscriptionRequiredMixin, SuccessMessageMixin, CreateView):
-#     def get_success_message(self, cleaned_data):
-#         cleaned_data['model'] = self.model._meta.verbose_name.title()
-#         if 'child' in cleaned_data:
-#             self.success_message = _('%(model)s entry for %(child)s added!')
-#         else:
-#             self.success_message = _('%(model)s entry added!')
-#         return self.success_message % cleaned_data
-
-
-# class CoreUpdateView(ActiveSubscriptionRequiredMixin, SuccessMessageMixin,
-#                      UpdateView):
-#     def get_success_message(self, cleaned_data):
-#         cleaned_data['model'] = self.model._meta.verbose_name.title()
-#         if 'child' in cleaned_data:
-#             self.success_message = _('%(model)s entry for %(child)s updated.')
-#         else:
-#             self.success_message = _('%(model)s entry updated.')
-#         return self.success_message % cleaned_data
-
-
-# class CoreDeleteView(ActiveSubscriptionRequiredMixin, DeleteView):
-#     """
-#     SuccessMessageMixin is not compatible DeleteView.
-#     See: https://code.djangoproject.com/ticket/21936
-#     """
-#     def delete(self, request, *args, **kwargs):
-#         success_message = '{} entry deleted.'.format(
-#             self.model._meta.verbose_name.title())
-#         messages.success(request, success_message)
-#         return super(CoreDeleteView, self).delete(request, *args, **kwargs)
 
 
 class ChildAdd(LoginRequiredMixin, View):
@@ -624,7 +592,7 @@ class TimerCompleteView(UserPassesTestMixin, View):
                 duration=timer.duration,
                 end=timer.end
             )
-            return redirect(reverse('core:child', args=(sleep.child.slug,)))
+            return redirect(reverse('core:child', args=(timer.child.slug,)))
 
         elif timer.is_feeding:
             feeding = models.Feeding.objects.create(
@@ -633,7 +601,7 @@ class TimerCompleteView(UserPassesTestMixin, View):
                 duration=timer.duration,
                 end=timer.end
             )
-            return redirect(reverse('core:feeding-update', args=(feeding.child.slug, feeding.id,)))
+            return redirect(reverse('core:feeding-update', args=(timer.child.slug, feeding.id,)))
 
         elif timer.is_tummytime:
             tummytime = models.TummyTime.objects.create(
@@ -642,7 +610,7 @@ class TimerCompleteView(UserPassesTestMixin, View):
                 duration=timer.duration,
                 end=timer.end
             )
-            return redirect(reverse('core:child', args=(tummytime.child.slug,)))
+            return redirect(reverse('core:child', args=(timer.child.slug,)))
         
         return redirect(reverse('core:timer-list'))
 
