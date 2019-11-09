@@ -31,7 +31,6 @@ BabyBuddy.Notification = function (root) {
           $childrenSelect = $el.find('#id_child');
           $accountSelect = $el.find('#id_account');
           $frequencyInHours = $el.find('#id_frequency_hours');
-          // $days = $el.find('#notification-days');
           $hours = $el.find('#notification-hours');
           $minutes = $el.find('#notification-minutes');
           $intervals = $el.find('#id_intervals');
@@ -73,12 +72,10 @@ BabyBuddy.Notification = function (root) {
           DurationFormHandler($notificationForm, $start, $end);
 
           $frequencyInHours.change(_.debounce(function(evt){
-            console.log('frequency changed', evt);
             self.updateEndDate();
           }, 600));
 
           $intervals.change(_.debounce(function(evt){
-            console.log('intervals changed', evt);
             self.updateEndDate();
           }, 600));
 
@@ -105,8 +102,7 @@ BabyBuddy.Notification = function (root) {
           this.fetchChildren();
 
           $childrenSelect.change(function(evt){
-            var selectedChildId = $(this).val();
-            // notification.child = $(this).val();
+            var selectedChildId = $(evt.currentTarget).val();
             var selectedAcct = accounts.find(function(a){
               return a.id == selectedChildId;
             });
@@ -118,8 +114,7 @@ BabyBuddy.Notification = function (root) {
           });
 
           $accountSelect.change(function(evt){
-            var selectedAcctId = $(this).val();
-            // notification.account = $(this).val();
+            var selectedAcctId = $(evt.currentTarget).val();
             self.fillChildOptions(children.filter(function(c){
               return c.account == selectedAcctId;
             }));

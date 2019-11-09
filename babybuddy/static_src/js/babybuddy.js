@@ -41,6 +41,9 @@ function csrfSafeMethod (method) {
 
 var BabyBuddy = function () {
     var BabyBuddy = {
+      host: () => {
+        return `${window.location.protocol}//${window.location.host}`;
+      },
       ApiRoutes: {
         children: () => {
           return '/api/children/';
