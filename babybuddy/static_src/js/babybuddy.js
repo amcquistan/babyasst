@@ -42,21 +42,69 @@ function csrfSafeMethod (method) {
 var BabyBuddy = function () {
     var BabyBuddy = {
       ApiRoutes: {
-        children: function() {
+        children: () => {
           return '/api/children/';
         },
-        child: function(childId) {
-          return '/api/children/' + childId + '/';
+        child: (childId) => {
+          return `/api/children/${childId}/`;
         },
-        childTimeline: function(childId, dateStr) {
-          return '/api/children/' + childId + '/timeline/' + dateStr + '/';
+        childTimeline: (childId, dateStr) => {
+          return `/api/children/${childId}/timeline/${dateStr}/`;
         },
-        notification: function(notificationId) {
-          return '/api/notifications/' + notificationId + '/';
+        notification: (notificationId) => {
+          return `/api/notifications/${notificationId}/`;
         },
-        accounts: function() {
+        accounts: () => {
           return '/api/accounts/';
         },
+        diaperChanges: (childId) => {
+          return `/api/children/${childId}/changes/`;
+        },
+        diaperChangeDetail: (childId, changeId) => {
+          return `/api/children/${childId}/changes/${changeId}/`;
+        },
+        feedings: (childId) => {
+          return `/api/children/${childId}/feeding/`;
+        },
+        feedingDetail: (childId, feedingId) => {
+          return `/api/children/${childId}/feeding/${feedingId}/`;
+        },
+        notes: (childId) => {
+          return `/api/children/${childId}/notes/`;
+        },
+        noteDetail: (childId, noteId) => {
+          return `/api/children/${childId}/notes/${noteId}/`;
+        },
+        sleeping: (childId) => {
+          return `/api/children/${childId}/sleep/`;
+        },
+        sleepingDetail: (childId, sleepId) => {
+          return `/api/children/${childId}/sleep/${sleepId}/`;
+        },
+        temperatures: (childId) => {
+          return `/api/children/${childId}/temperature/`;
+        },
+        temperatureDetail: (childId, temperatureId) => {
+          return `/api/children/${childId}/temperature/${temperatureId}/`;
+        },
+        tummyTime: (childId) => {
+          return `/api/children/${childId}/tummy-time/`;
+        },
+        tummyTimeDetail: (childId, tummyTimeId) => {
+          return `/api/children/${childId}/tummy-time/${tummyTimeId}/`;
+        },
+        weight: (childId) => {
+          return `/api/children/${childId}/weight/`;
+        },
+        weightDetail: (childId, weightId) => {
+          return `/api/children/${childId}/weight/${weightId}/`;
+        },
+        timers: () => {
+          return `/api/timers/`;
+        },
+        timerDetail: (timerId) => {
+          return `/api/timers/${timerId}/`;
+        }
       },
       DurationFormHandler: function($form, $startPicker, $endPicker){
         var $startInput = $startPicker.find('input');

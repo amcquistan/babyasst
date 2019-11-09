@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator
-from django.shortcuts import redirect, reverse, render
+from django.shortcuts import redirect, reverse, render, get_object_or_404
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.http import Http404
@@ -148,20 +148,24 @@ class ChildActivityUpdateView(ChildActivityTestMixin, BaseChildActivityView):
 
     def get(self, request, slug, pk):
         child = self.get_child()
+        obj = get_object_or_404(self.model, pk=pk)
         context = {
           'child': child,
-          'form': self.form_class(instance=self.model.objects.get(pk=pk), child=child)
+          'obj': obj,
+          'form': self.form_class(obj, child=child)
         }
         return render(request, self.template_name, context)
 
     def post(self, request, slug, pk):
-        form = self.form_class(request.POST, instance=self.model.objects.get(pk=pk))
+        obj = get_object_or_404(self.model, pk=pk)
+        form = self.form_class(request.POST, instance=obj)
         if form.is_valid():
             form.save()
             return redirect(reverse(self.success_url_name, args=(slug,)))
 
         context = {
           'child': self.get_child(),
+          'obj': obj,
           'form': form
         }
         return render(request, self.template_name, context)
@@ -331,12 +335,12 @@ class DiaperChangeUpdateView(ChildActivityUpdateView):
     model = models.DiaperChange
     template_name = 'core/diaperchange_form.html'
     form_class = forms.DiaperChangeForm
-    success_url_name = 'core:diaperchange'
+    success_url_name = 'core:child'
 
 
 class DiaperChangeDeleteView(ChildActivityDeleteView):
     model = models.DiaperChange
-    success_url_name = 'core:diaperchange'
+    success_url_name = 'core:child'
 
 
 class FeedingQuickAddView(ChildActivityQuickAddView):
@@ -360,12 +364,12 @@ class FeedingUpdateView(ChildActivityUpdateView):
     form_class = forms.FeedingForm
     # success_url = reverse_lazy('core:feeding-list')
     template_name = 'core/feeding_form.html'
-    success_url_name = 'core:feeding'
+    success_url_name = 'core:child'
 
 
 class FeedingDeleteView(ChildActivityDeleteView):
     model = models.Feeding
-    success_url_name = 'core:feeding'
+    success_url_name = 'core:child'
 
 
 class NoteQuickAddView(ChildActivityQuickAddView):
@@ -385,12 +389,12 @@ class NoteUpdateView(ChildActivityUpdateView):
     model = models.Note
     template_name = 'core/note_form.html'
     form_class = forms.NoteForm
-    success_url_name = 'core:note'
+    success_url_name = 'core:child'
 
 
 class NoteDeleteView(ChildActivityDeleteView):
     model = models.Note
-    success_url_name = 'core:note'
+    success_url_name = 'core:child'
 
 
 class NotificationAddView(LoginRequiredMixin, View):
@@ -509,7 +513,7 @@ class SleepUpdateView(ChildActivityUpdateView):
 
 class SleepDeleteView(ChildActivityDeleteView):
     model = models.Sleep
-    success_url_name = 'core:sleep'
+    success_url_name = 'core:child'
 
 
 class TemperatureQuickAddView(ChildActivityQuickAddView):
@@ -534,7 +538,7 @@ class TemperatureUpdateView(ChildActivityUpdateView):
 
 class TemperatureDeleteView(ChildActivityDeleteView):
     model = models.Temperature
-    success_url_name = 'core:temperature'
+    success_url_name = 'core:child'
 
 
 class TimerDetailView(LoginRequiredMixin, View):
@@ -567,13 +571,13 @@ class TimerAddListView(ChildActivityAddListView):
 class TimerUpdateView(ChildActivityUpdateView):
     model = models.Timer
     form_class = forms.TimerForm
-    success_url_name = 'core:timer'
+    success_url_name = 'core:child'
     template_name = 'core/timer_form.html'
 
 
 class TimerDeleteView(ChildActivityDeleteView):
     model = models.Timer
-    success_url_name = 'core:timer'
+    success_url_name = 'core:child'
 
 
 class TimerListView(LoginRequiredMixin, View):
@@ -586,32 +590,15 @@ class TimerListView(LoginRequiredMixin, View):
 
 class TimerQuickAddView(LoginRequiredMixin, View):
     model = models.Timer
-    success_url_name = 'core:timer-list'
     template_name = 'core/timer_detail.html'
 
     def get(self, request, *args, **kwargs):
-        timer = models.Timer.objects.create(user=request.user, account=request.user.account)
         accounts = request.user.accounts.all()
         can_start_timer = True
         return render(request, self.template_name, {
-          'timer': timer,
           'children': models.Child.objects.filter(account__in=accounts),
           'accounts': accounts
         })
-
-
-# class TimerRestartView(UserPassesTestMixin, View):
-#     def test_func(self):
-#         timer = models.Timer.objects.get(id=self.kwargs['pk'])
-#         return timer.user.id == self.request.user.id
-
-#     def get(self, request, *args, **kwargs):
-#         timer = models.Timer.objects.get(id=kwargs['pk'])
-#         timer.restart()
-#         messages.success(request, '{} restarted.'.format(timer))
-#         return render(request, self.template_name, {
-#           'object': timer
-#         })
 
 
 class TimerCompleteView(UserPassesTestMixin, View):
@@ -694,13 +681,13 @@ class TummyTimeAddListView(ChildActivityAddListView):
 class TummyTimeUpdateView(ChildActivityUpdateView):
     model = models.TummyTime
     form_class = forms.TummyTimeForm
-    success_url_name = 'core:tummytime-update'
+    success_url_name = 'core:child'
     template_name = 'core/tummytime_form.html'
 
 
 class TummyTimeDeleteView(ChildActivityDeleteView):
     model = models.TummyTime
-    success_url_name = 'core:tummytime'
+    success_url_name = 'core:child'
 
 
 class WeightQuickAddView(ChildActivityQuickAddView):
@@ -719,7 +706,7 @@ class WeightAddListView(ChildActivityAddListView):
 class WeightUpdateView(ChildActivityUpdateView):
     model = models.Weight
     form_class = forms.WeightForm
-    success_url_name = 'core:weight-update'
+    success_url_name = 'core:child'
     template_name = 'core/weight_form.html'
 
 

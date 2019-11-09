@@ -15,12 +15,8 @@ class BabyBuddyDjangoModelPermissions(DjangoModelPermissions):
     }
 
 
-def account_in_good_standing(acct):
-    return True
-
-
-def can_create_obj_with_acct(request):
-    acct = request.data.get('account', request.user.account)
+def can_create_obj_with_acct(request, obj_account=None):
+    acct = obj_account if obj_account else request.user.account
 
     acct_users = {u.id for u in acct.users.all()}
     if request.user.id not in acct_users:
@@ -32,7 +28,7 @@ def can_create_obj_with_acct(request):
         if child_id not in children_in_acct:
             return False
 
-    return account_in_good_standing(acct)
+    return True
 
 
 def can_view_update_obj_with_acct(request, obj):
@@ -45,15 +41,5 @@ def can_view_update_obj_with_acct(request, obj):
         if obj.account.id not in user_accounts:
             return False
 
-    if request.method in SAFE_METHODS:
-        return True
-
-    if request.method == 'DELETE':
-        return obj.user.id == request.user.id
-        
-    if request.method in ['POST', 'PUT']:
-        account = obj.account or request.user.account
-        return account_in_good_standing(account)
-
-    return False
+    return True
 

@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from core.models import DiaperChange, Feeding, Sleep, TummyTime
-
+from core.utils import duration_parts, duration_string
 
 def get_objects(child, date):
     """
@@ -19,10 +19,22 @@ def get_objects(child, date):
     instances = DiaperChange.objects.filter(child=child).filter(
         time__range=(min_date, max_date)).order_by('-time')
     for instance in instances:
+        change_type = ''
+        if instance.wet and instance.solid:
+            change_type = 'wet and solid'
+        elif instance.wet:
+            change_type = 'wet'
+        elif instance.solid:
+            change_type = 'sold'
+
         events.append({
             'time': timezone.localtime(instance.time),
             'event': _('%(child)s had a diaper change.') % {
-                'child': child.first_name
+                'child': child.first_name,
+                'change_type': change_type
+            },
+            'detail': _('%(change_type)s') % {
+                'change_type': change_type
             },
             'model_name': instance.model_name,
         })
@@ -30,18 +42,33 @@ def get_objects(child, date):
     instances = Feeding.objects.filter(child=child).filter(
         start__range=(min_date, max_date)).order_by('-start')
     for instance in instances:
-        events.append({
-            'time': timezone.localtime(instance.start),
-            'event': _('%(child)s started feeding.') % {
-                'child': instance.child.first_name
-            },
-            'model_name': instance.model_name,
-            'type': 'start'
-        })
+        feeding_type = ''
+        if instance.type == 'breast milk':
+            feeding_type = "{type} {method}".format(type=instance.type, method=instance.method)
+        elif instance.type in ['formula', 'fortified breast milk']:
+            if instance.amount:
+                feeding_type = "{type} {amount}".format(type.instance.type, amount=instance.amount)
+            else:
+                feeding_type = "{type}".format(type.instance.type)
+        if instance.duration and instance.duration.seconds:
+            events.append({
+                'time': timezone.localtime(instance.start),
+                'event': _('%(child)s started feeding.') % {
+                    'child': instance.child.first_name
+                },
+                'detail': _('%(feeding_type)s') % {
+                    'feeding_type': feeding_type
+                },
+                'model_name': instance.model_name,
+                'type': 'start'
+            })
         events.append({
             'time': timezone.localtime(instance.end),
             'event': _('%(child)s finished feeding.') % {
                 'child': instance.child.first_name
+            },
+            'detail': _('%(feeding_type)s') % {
+                'feeding_type': feeding_type
             },
             'model_name': instance.model_name,
             'type': 'end'
@@ -50,18 +77,25 @@ def get_objects(child, date):
     instances = Sleep.objects.filter(child=child).filter(
         start__range=(min_date, max_date)).order_by('-start')
     for instance in instances:
-        events.append({
-            'time': timezone.localtime(instance.start),
-            'event': _('%(child)s fell asleep.') % {
-                'child': instance.child.first_name
-            },
-            'model_name': instance.model_name,
-            'type': 'start'
-        })
+        if instance.duration and instance.duration.seconds:
+            events.append({
+                'time': timezone.localtime(instance.start),
+                'event': _('%(child)s fell asleep.') % {
+                    'child': instance.child.first_name
+                },
+                'detail': _('%(duration)s') % {
+                    'duration': ''
+                },
+                'model_name': instance.model_name,
+                'type': 'start'
+            })
         events.append({
             'time': timezone.localtime(instance.end),
             'event': _('%(child)s woke up.') % {
                 'child': instance.child.first_name
+            },
+            'detail': _('%(duration)s') % {
+                'duration': duration_string(instance.duration)
             },
             'model_name': instance.model_name,
             'type': 'end'
@@ -70,18 +104,25 @@ def get_objects(child, date):
     instances = TummyTime.objects.filter(child=child).filter(
         start__range=(min_date, max_date)).order_by('-start')
     for instance in instances:
-        events.append({
-            'time': timezone.localtime(instance.start),
-            'event': _('%(child)s started tummy time!') % {
-                'child': instance.child.first_name
-            },
-            'model_name': instance.model_name,
-            'type': 'start'
-        })
+        if instance.duration and instance.duration.seconds:
+            events.append({
+                'time': timezone.localtime(instance.start),
+                'event': _('%(child)s started tummy time!') % {
+                    'child': instance.child.first_name
+                },
+                'detail': _('%(duration)s') % {
+                    'duration': ''
+                },
+                'model_name': instance.model_name,
+                'type': 'start'
+            })
         events.append({
             'time': timezone.localtime(instance.end),
             'event': _('%(child)s finished tummy time.') % {
                 'child': instance.child.first_name
+            },
+            'detail': _('%(duration)s') % {
+                'duration': duration_string(instance.duration)
             },
             'model_name': instance.model_name,
             'type': 'end'
