@@ -5,7 +5,7 @@
 
 {% block breadcrumbs %}
   <li class="breadcrumb-item"><a href="{% url 'core:timer-list' %}">{% trans "Timers" %}</a></li>
-  <li class="breadcrumb-item font-weight-bold">{% if timer.name %}{{ timer.name }}{% else %}{{ timer }}{% endif %}</li>
+  <li class="breadcrumb-item font-weight-bold">{% if timer and timer.name %}{{ timer.name }}{% else %}{{ timer }}{% endif %}</li>
 {% endblock %}
 
 {% block content %}
@@ -17,15 +17,12 @@
       <span id="timer-seconds" class="timer-seconds">{{ timer.duration|seconds }}</span>s
     </div>
     
-    <p class="lead text-secondary">
-      {% if not timer.active and not timer.complete and timer.end %}
-        {% trans "Stopped" %} {{ timer.end }}
-      {% elif timer.complete %}
-        {% trans "Finished" %} {{ timer.end }}
-      {% endif %}
-    </p>
+    <p class="lead text-secondary" id="timer-status-message"></p>
+
     <p class="text-muted">
-      {% if timer.name %}{{ timer.name }}{% else %}{{ timer }}{% endif %} {% trans "created by" %} {{ timer.user.first_name }} {{ timer.user.last_name }}
+      {% if timer %}
+          {% if timer.name %}{{ timer.name }}{% else %}{{ timer }}{% endif %} {% trans "created by" %} {{ timer.user.first_name }} {{ timer.user.last_name }}
+      {% endif %}
     </p>
 
     <div class="row">
@@ -34,7 +31,7 @@
         <fieldset>
           <div class="form-group row justify-content-center mb-5">
             <div class="card-deck">
-              <a id="card-feeding" href="#" class="card card-feeding {% if timer.is_feeding %}card-active{% endif %}">
+              <a id="card-feeding" href="#" class="card card-feeding {% if timer and timer.is_feeding %}card-active{% endif %}">
                 <div class="card-header text-center">
                   <i class="icon icon-2x icon-feeding" aria-hidden="true"></i>
                 </div>
@@ -43,7 +40,7 @@
                   <i class="card-selected-icon icon icon-true icon-2x"></i>
                 </div>
               </a>
-              <a id="card-sleep" href="#" class="card card-sleep {% if timer.is_sleeping %}card-active{% endif %}">
+              <a id="card-sleep" href="#" class="card card-sleep {% if timer and timer.is_sleeping %}card-active{% endif %}">
                 <div class="card-header text-center">
                   <i class="icon icon-2x icon-sleep" aria-hidden="true"></i>
                 </div>
@@ -52,7 +49,7 @@
                   <i class="card-selected-icon icon icon-true icon-2x"></i>
                 </div>
               </a>
-              <a id="card-tummytime" href="#" class="card card-tummytime {% if timer.is_tummytime %}card-active{% endif %}">
+              <a id="card-tummytime" href="#" class="card card-tummytime {% if timer and timer.is_tummytime %}card-active{% endif %}">
                 <div class="card-header text-center">
                   <i class="icon icon-2x icon-tummytime" aria-hidden="true"></i>
                 </div>
@@ -65,31 +62,31 @@
           </div>
 
           <div class="form-group row mb-4">
-            <label for="name" class="col-1 offset-2 mb-0 mt-1">Name</label>
+            <label for="name" class="col-2 offset-1 mb-0 mt-1">Name</label>
             <div class="col-7">
-              <input name="name" id="name" type="text" placeholder="Timer name" value="{% if timer.name %}{{ timer.name }}{% endif %}" class="form-control">
+              <input name="name" id="name" type="text" placeholder="Timer name" value="{% if timer and timer.name %}{{ timer.name }}{% endif %}" class="form-control">
             </div>
           </div>
 
           <div class="form-group row mb-4">
-            <label for="account" class="col-1 offset-2 mb-0 mt-1">Account</label>
+            <label for="account" class="col-2 offset-1 mb-0 mt-1">Account</label>
             <div class="col-7">
               <select name="account" id="account" class="form-control">
                 <option value="" selected disabled>Account</option>
                 {% for acct in accounts %}
-                  <option {% if timer.account == user.acccount %}selected{% endif %} value="{{ acct.id }}">{{ acct }}</option>
+                  <option {% if timer and timer.account == user.acccount %}selected{% endif %} value="{{ acct.id }}">{{ acct }}</option>
                 {% endfor %}
               </select>
             </div>
           </div>
 
           <div class="form-group row mb-4">
-            <label for="child" class="col-1 offset-2 mb-0 mt-1">Child</label>
+            <label for="child" class="col-2 offset-1 mb-0 mt-1">Child</label>
             <div class="col-7">
               <select name="child" id="child" class="form-control">
                 <option value="" selected disabled>Child</option>
                 {% for child in children %}
-                  <option {% if timer.child == child %}selected{% endif %} value="{{ child.id }}">{{ child }}</option>
+                  <option {% if timer and timer.child == child %}selected{% endif %} value="{{ child.id }}">{{ child }}</option>
                 {% endfor %}
               </select>
             </div>
@@ -100,7 +97,7 @@
       </div>
     </div>
 
-    {% if not timer.complete %}
+    {% if not timer or not timer.complete %}
     <div class="form-group row justify-content-center" role="group" aria-label="{% trans "Timer actions" %}">
       <a id='pause-timer' class="btn btn-primary btn-lg" href="#" role="button">
         <i class="icon icon-pause" aria-hidden="true"></i>
@@ -110,7 +107,7 @@
         <i class="icon icon-play" aria-hidden="true"></i>
       </a>
 
-      <a id='end-timer' class="btn btn-warning btn-lg" href="{% url 'core:timer-complete' timer.id %}" role="button">
+      <a id='end-timer' class="btn btn-warning btn-lg" href="{% if timer %}{% url 'core:timer-complete' timer.id %}{% endif %}" role="button">
         <i class="icon icon-stop" aria-hidden="true"></i>
       </a>
       {% endif %}
@@ -153,7 +150,8 @@
 
 {% block javascript %}
 <script type="application/javascript">
-  var timerId = {{ timer.id }};
-  BabyBuddy.Timer.init(timerId, 'timer');
+  var timerId = {% if timer %} {{ timer.id }} {% else %} null {% endif %};
+  var userId = {{ user.id }};
+  BabyBuddy.Timer.init(timerId, userId, 'timer');
 </script>
 {% endblock %}

@@ -13,6 +13,7 @@
     <a class="text-success mr-2" href="{% url 'core:timer-quick-add' %}">
       <i class="icon icon-2x icon-timer" aria-hidden="true"></i>
     </a>
+    {% comment %}
     <div class="dropdown show d-inline">
       <a class="text-success"
           href="#"
@@ -54,6 +55,7 @@
         </a>
       </div>
     </div>
+    {% endcomment %}
   </div>
   {% endif %}
 
@@ -105,6 +107,7 @@
           {% endif %}
         </li>
 
+        {% comment %}
         <li class="nav-item dropdown">
           <a id="nav-activity-menu-link"
               class="nav-link dropdown-toggle"
@@ -148,6 +151,7 @@
             </div>
           {% endif %}
         </li>
+        {% endcomment %}
 
         {% if user.is_authenticated %}
           {% timer_nav %}

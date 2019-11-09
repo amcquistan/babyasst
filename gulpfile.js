@@ -1,5 +1,6 @@
 var gulp = require('gulp');
-
+var sourcemaps = require('gulp-sourcemaps');
+var babel = require('gulp-babel');
 var concat = require('gulp-concat');
 var del = require('del');
 var flatten = require('gulp-flatten');
@@ -52,7 +53,10 @@ function scripts(cb) {
 
     pump([
         gulp.src(config.scriptsConfig.app),
+        sourcemaps.init(),
+        babel(),
         concat('app.js'),
+        sourcemaps.write('.'),
         gulp.dest(config.scriptsConfig.dest)
     ], cb);
 }

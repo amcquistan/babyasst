@@ -1,7 +1,10 @@
 
-BabyBuddy.Timer = function ($) {
+BabyBuddy.Timer = function (root) {
+    var $ = root.$;
+    var _ = root._;
     var runIntervalId = null,
         timerId = null,
+        userId = null,
         $el = null,
         $errorModal = null,
         $childrenSelect = null,
@@ -17,6 +20,7 @@ BabyBuddy.Timer = function ($) {
         $minutes = null,
         $seconds = null,
         $timerStatus = null,
+        $timerStatusMsg = null,
         debounceTimer = null,
         lastUpdate = moment(),
         hidden = null,
@@ -26,8 +30,9 @@ BabyBuddy.Timer = function ($) {
         self = null;
 
     var Timer = {
-        init: function(id, el) {
+        init: function(id, user, el) {
             timerId = id;
+            userId = user;
             $el = $('#' + el);
             $errorModal = $el.find('#timer-msg-modal');
             $name = $el.find('#name');
@@ -43,11 +48,13 @@ BabyBuddy.Timer = function ($) {
             $minutes = $el.find('#timer-minutes');
             $seconds = $el.find('#timer-seconds');
             $timerStatus = $el.find('#timer-status');
+            $timerStatusMsg = $el.find('#timer-status-message');
             self = this;
 
-            this.fetchTimer()
-              .then(function(response){
-                if (timer.active) {
+            if (timerId) {
+              this.fetchTimer()
+              .then((response) => {
+                if (!_.isEmpty(timer) && timer.active) {
                   self.run();
                   $startBtn.hide();
                   $pauseBtn.show();
@@ -56,107 +63,124 @@ BabyBuddy.Timer = function ($) {
                   $pauseBtn.hide();
                 }
               });
+            } else {
+              $endBtn.hide();
+              $pauseBtn.hide();
+            }
 
-            $startBtn.click(function(evt){
+            $startBtn.click((evt) => {
               evt.preventDefault();
-              timer.active = true;
-              self.save().then(function(response){
-                self.run();
-                $startBtn.hide();
-                $pauseBtn.show();
-              }).catch(function(err){
-                $errorModal.find('#modal-error-message').html(
-                  'Your monthly allocation of timers as been reached. Please upgrade your account to gain access to additional timers.'
-                );
-                $errorModal.modal('show');
-              });
+              if (_.isEmpty(timer) || !timerId) {
+                self.createTimer().catch((err) => {
+                  $errorModal.find('#modal-error-message').html(
+                    'Your monthly allocation of timers as been reached. Please upgrade your account to gain access to additional timers.'
+                  );
+                  $errorModal.modal('show');
+                });
+              } else {
+                timer.active = true;
+                self.save().then((response) => {
+                  self.run();
+                  $startBtn.hide();
+                  $pauseBtn.show();
+                }).catch((err) => {
+                  $errorModal.find('#modal-error-message').html(
+                    'Your monthly allocation of timers as been reached. Please upgrade your account to gain access to additional timers.'
+                  );
+                  $errorModal.modal('show');
+                });
+              }
             });
-            $pauseBtn.click(function(evt){
+            $pauseBtn.click((evt) => {
               evt.preventDefault();
               timer.active = false;
-              self.save().then(function(response){
+              self.save().then((response) => {
                 self.updateTimerDisplay();
+                $startBtn.show();
+                $pauseBtn.hide();
               });
-              $startBtn.show();
-              $pauseBtn.hide();
             });
-            $endBtn.click(function(evt){
+            $endBtn.click((evt) => {
               timer.active = false;
               timer.complete = true;
               self.save();
             });
 
-            $name.change(function(evt){
-              if (!debounceTimer) {
-                debounceTimer = setTimeout(function(){
-                  clearTimeout(debounceTimer);
-                  debounceTimer = null;
-                  if (timer.name !== $name.val()) {
-                    timer.name = $name.val();
-                    self.save();
-                  }
-                }, 900);
+            $name.change(_.debounce((evt) => {
+              if (!_.isEmpty(timer) && timer.name !== $name.val()) {
+                timer.name = $name.val();
+                self.save();
+              }
+            }, 800));
+
+            $childrenSelect.change((evt) => {
+              if (!_.isEmpty(timer)) {
+                timer.child = $(this).val();
+                const selectedAcct = accounts.find((a) => a.id == timer.child);
+                if (selectedAcct) {
+                  timer.account = selectedAcct.id;
+                }
+                $accountSelect.val(timer.account);
+                $accountSelect.change();
+                self.save();
               }
             });
 
-            $childrenSelect.change(function(evt){
-              timer.child = $(this).val();
-              var selectedAcct = accounts.find(function(a){
-                return a.id == timer.child;
-              });
-              if (selectedAcct) {
-                timer.account = selectedAcct.id;
+            $accountSelect.change((evt) => {
+              if (!_.isEmpty(timer)) {
+                timer.account = $(this).val();
+                self.fillChildOptions(children.filter((c) => c.account == timer.account));
+                self.save();
+              } else {
+                self.fillChildOptions(children);
               }
-              $accountSelect.val(timer.account);
-              $accountSelect.change();
-              self.save();
             });
 
-            $accountSelect.change(function(evt){
-              timer.account = $(this).val();
-              self.fillChildOptions(children.filter(function(c){
-                return c.account == timer.account;
-              }));
-              self.save();
-            });
-
-            $feedingCard.click(function(evt){
+            $feedingCard.click((evt) => {
               evt.preventDefault();
               $feedingCard.toggleClass('card-active');
               $sleepCard.removeClass('card-active');
               $tummytimeCard.removeClass('card-active');
-              self.save();  
+              if (!_.isEmpty(timer)) {
+                self.save();  
+              }
             });
 
-            $sleepCard.click(function(evt){
+            $sleepCard.click((evt) => {
               evt.preventDefault();
               $sleepCard.toggleClass('card-active');
               $feedingCard.removeClass('card-active');
               $tummytimeCard.removeClass('card-active');
-              self.save();
+              if (!_.isEmpty(timer)) {
+                self.save();  
+              }
             });
 
-            $tummytimeCard.click(function(evt){
+            $tummytimeCard.click((evt) => {
               evt.preventDefault();
               $tummytimeCard.toggleClass('card-active');
               $feedingCard.removeClass('card-active');
               $sleepCard.removeClass('card-active');
-              self.save();
+              if (!_.isEmpty(timer)) {
+                self.save();  
+              }
             });
 
-            this.fetchChildren().then(function(response){
+            this.fetchChildren().then((response) => {
               return self.fetchAccounts();
             })
 
-            window.addEventListener('beforeunload', function(){
-              self.save();
+            window.addEventListener('beforeunload', () => {
+              if (!_.isEmpty(timer)) {
+                self.save();
+              }
             });
         },
 
         fillChildOptions: function(availableChildren) {
           $childrenSelect.empty();
-          var options = availableChildren.map(function(c){
-            var selected = timer.child == c.id ? 'selected' : '';
+          var options = availableChildren.map((c) => {
+            var selected = !_.isEmpty(timer) && timer.child == c.id ? 'selected' : '';
             var name = c.first_name + ' ' + c.last_name;
             return '<option value="' + c.id + '" ' + selected + '>' + name + '</option>';
           });
@@ -227,32 +251,36 @@ BabyBuddy.Timer = function ($) {
           var hours = Number($hours.text());
           $hours.text(hours + 1);
         },
-
         updateTimerDisplay: function() {
-          self.save().then(function(response){
-            if (timer && timer.duration) {
-              clearInterval(runIntervalId);
-              var duration = moment.duration(timer.duration);
-              $hours.text(duration.hours());
-              $minutes.text(duration.minutes());
-              $seconds.text(duration.seconds());
-              lastUpdate = moment();
-  
-              if (timer.active) {
-                runIntervalId = setInterval(Timer.tick, 1000);
-                $timerStatus.removeClass('timer-stopped');
-              } else {
-                $timerStatus.addClass('timer-stopped');
+          if (!_.isEmpty(timer)) {
+            self.save().then((response) => {
+              if (!_.isEmpty(timer) && timer.duration) {
+                clearInterval(runIntervalId);
+                var duration = moment.duration(timer.duration);
+                $hours.text(duration.hours());
+                $minutes.text(duration.minutes());
+                $seconds.text(duration.seconds());
+                lastUpdate = moment();
+    
+                if (timer.active) {
+                  runIntervalId = setInterval(Timer.tick, 1000);
+                  $timerStatus.removeClass('timer-stopped');
+                } else {
+                  $timerStatus.addClass('timer-stopped');
+                }
               }
-            }
-          });
+            });
+          }
         },
         fetchTimer: function() {
-          return $.get('/api/timers/' + timerId + '/')
+          if (timerId) {
+            return $.get(BabyBuddy.ApiRoutes.timerDetail(timerId))
             .then(function(response){
               timer = response;
+              self.reportTimerStatusMessage();
               return response;
             });
+          }
         },
         fetchAccounts: function() {
           return $.get('/api/accounts/')
@@ -269,22 +297,58 @@ BabyBuddy.Timer = function ($) {
           return $.get('/api/children/')
             .then(function(response){
               children = response;
+              self.fillChildOptions(children);
               return response;
             });
+        },
+        reportTimerStatusMessage: function() {
+          $timerStatusMsg.empty();
+          if (!_.isEmpty(timer) && timer.end) {
+            const endedAt = moment(timer.end).format('YYYY-MM-DD hh:mm a');
+            if (!timer.active && !timer.complete && timer.end) {
+              $timerStatusMsg.html(`Paused at ${endedAt}`);
+            } else if (timer.complete) {
+              $timerStatusMsg.html(`Completed at ${endedAt}`);
+            }
+          }
         },
         save: function() {
           timer.is_feeding = $feedingCard.is('.card-active');
           timer.is_sleeping = $sleepCard.is('.card-active');
           timer.is_tummytime = $tummytimeCard.is('.card-active');
+          timer.name = $name.val();
           timer.child = $childrenSelect.val();
           timer.account = $accountSelect.val();
-          return $.post('/api/timers/' + timerId + '/', timer)
-            .then(function(response){
+          return $.post(BabyBuddy.ApiRoutes.timerDetail(timerId), timer)
+            .then((response) => {
               timer = response;
+              self.reportTimerStatusMessage();
+              return response;
+            });
+        },
+        createTimer: function() {
+          timer = {
+            name: $name.val(),
+            user: userId,
+            child: $childrenSelect.val(),
+            account: $accountSelect.val(),
+            is_feeding: $feedingCard.is('.card-active'),
+            is_sleeping: $sleepCard.is('.card-active'),
+            is_tummytime: $tummytimeCard.is('.card-active')
+          }
+          return $.post(BabyBuddy.ApiRoutes.timers(), timer)
+            .then((response) => {
+              timer = response;
+              timerId = timer.id;
+              $endBtn.show();
+              $startBtn.hide();
+              $pauseBtn.show();
+              $endBtn.prop('href', `timer/${timerId}/stop/`);
+              self.run();
               return response;
             });
         }
     };
 
     return Timer;
-}(jQuery);
+}(window);

@@ -79,28 +79,6 @@ class ChildSerializer(serializers.ModelSerializer):
         lookup_field = 'slug'
 
 
-class TimeLineSerializer(serializers.Serializer):
-    child = None
-    date = serializers.DateTimeField()
-    items = serializers.SerializerMethodField()
-
-    def __init__(self, **kwargs):
-        self.child = kwargs.pop('child')
-        super(TimeLineSerializer, self).__init__(**kwargs)
-
-    def get_items(self, instance):
-        items = []
-        date = instance['date']
-        for item in timeline.get_objects(self.child, date):
-            items.append({
-              'time': str(item['time']),
-              'event': item['event'],
-              'model_name': item['model_name'],
-              'type': item.get('type')
-            })
-        return items
-
-
 class DiaperChangeSerializer(CoreModelSerializer):
     class Meta:
         model = models.DiaperChange
@@ -138,6 +116,29 @@ class TemperatureSerializer(CoreModelSerializer):
         fields = ('id', 'child', 'temperature', 'time')
 
 
+class TimeLineSerializer(serializers.Serializer):
+    child = None
+    date = serializers.DateTimeField()
+    items = serializers.SerializerMethodField()
+
+    def __init__(self, **kwargs):
+        self.child = kwargs.pop('child')
+        super(TimeLineSerializer, self).__init__(**kwargs)
+
+    def get_items(self, instance):
+        items = []
+        date = instance['date']
+        for item in timeline.get_objects(self.child, date):
+            items.append({
+              'time': str(item['time']),
+              'event': item['event'],
+              'model_name': item['model_name'],
+              'detail': item['detail'],
+              'type': item.get('type')
+            })
+        return items
+
+
 class TimerSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     
@@ -159,6 +160,11 @@ class TimerSerializer(serializers.ModelSerializer):
             'child'
         )
     
+    def create(self, validated_data):
+        timer = models.Timer.objects.create(**validated_data)
+        timer.restart()
+        return timer
+
     def update(self, instance, validated_data):
         instance.name = validated_data.get('name')
         instance.is_sleeping = validated_data.get('is_sleeping', instance.is_sleeping)

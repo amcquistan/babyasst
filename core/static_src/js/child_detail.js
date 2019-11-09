@@ -102,16 +102,20 @@ BabyBuddy.ChildDetail = function(root) {
         + '</div>'
         + '</li>';
       if (!_.isEmpty(currentTimeline) && currentTimeline.items.length) {
-        var tlHTML = currentTimeline.items.map(function(item, i){
-          var liClass = i % 2 === 0 ? 'timeline-inverted' : '';
-          var activityBG = item.type === 'start' ? 'bg-success' : item.type === 'end' ? 'bg-danger' : 'bg-info';
-          var icon = 'icon-' + item.model_name;
-          itemHtml = html.replace('${li-timeline-class}', liClass);
-          itemHtml = itemHtml.replace('${activity-bg}', activityBG);
-          itemHtml = itemHtml.replace('${activity-icon}', icon);
-          itemHtml = itemHtml.replace('${event}', item.event);
-          itemHtml = itemHtml.replace('${times-since}', moment(item.time).format('LT'));
-          return itemHtml;
+        let tlHTML = currentTimeline.items.map(function(item, i){
+          const liClass = i % 2 === 0 ? 'timeline-inverted' : '';
+          const activityBG = item.type === 'start' ? 'bg-success' : item.type === 'end' ? 'bg-danger' : 'bg-info';
+          const activityIcon = 'icon-' + item.model_name;
+          const timeSince = moment(item.time).format('LT');
+          return `
+          <li class="${liClass}">
+            <div class="timeline-badge ${activityBG}"><i class="icon ${activityIcon}"></i></div>
+            <div class="card text-center" style="border-color:#3c4248;">
+              <div class="card-body">${item.event}</div>
+              <div class="card-footer text-muted text-center">${item.detail} at ${timeSince}</div>
+            </div>
+          </li>
+          `
         }).join('\n');
         $timelineContainer.html(tlHTML);
       } else {
