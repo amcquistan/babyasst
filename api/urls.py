@@ -71,13 +71,13 @@ urlpatterns = [
     
     path(
         'api/children/<int:child_id>/sleep/',
-        views.ChildTimelineAPIView.as_view()
+        views.SleepListOrCreateAPIView.as_view()
     ),
     path(
         'api/children/<int:child_id>/sleep/<int:pk>/',
-        views.ChildTimelineAPIView.as_view()
+        views.SleepViewOrUpdateAPIView.as_view()
     ),
-    
+
     path(
         'api/children/<int:child_id>/temperature/',
         views.TemperatureListOrCreateAPIView.as_view()
