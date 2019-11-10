@@ -808,7 +808,6 @@ BabyBuddy.Timer = function ($) {
         fetchAccounts: function() {
           return $.get('/api/accounts/')
             .then(function(response){
-              debugger
               accounts = response;
               if (!$accountSelect.val() && accounts.length) {
                 $accountSelect.val(accounts[0].id);

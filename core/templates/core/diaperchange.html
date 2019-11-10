@@ -18,7 +18,7 @@
 {% block content %}
   <div class="row" id="diaper-change">
     <div class="col-md-10 offset-1">
-      <h1 class='mb-5'>{% trans "Diaper Changes" %}</h1>
+      <h1 class='mb-5'>{% trans "Diaper Changes for" %} <span class="text-info">{{ child }}</span></h1>
       <div class="mb-5 container-fluid">
         <div class="form-group">
           <label for="time">{% trans "Time" %}</label>
@@ -86,7 +86,6 @@
             </tr>
           </tbody>
         </table>
-
       </div>
 
       <div class="row justify-content-center">
@@ -113,7 +112,13 @@
       var successUrl = "{% url 'core:child' child.slug %}";
       var childId = {{ child.id }};
       var diaperId = {% if obj %} obj.id {% else %} null {% endif %};
-      BabyBuddy.DiaperChange.init('#diaper-change', userId, successUrl, childId, diaperId);
+      BabyBuddy.DiaperChange.init(
+        '#diaper-change',
+        userId,
+        successUrl,
+        childId,
+        diaperId
+      );
     });
   </script>
 {% endblock %}
