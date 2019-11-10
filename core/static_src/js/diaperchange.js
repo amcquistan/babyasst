@@ -14,12 +14,9 @@ BabyBuddy.DiaperChange = function(root) {
   let $solid;
   let $color;
   let $tableBody;
-  let $updateChangeBtn;
-  let $deleteChangeBtn;
   let $saveBtn;
   let $prevBtn;
   let $nextBtn;
-  let page = 1;
   let self;
 
   const DiaperChange = {
@@ -121,6 +118,7 @@ BabyBuddy.DiaperChange = function(root) {
           const $target = $(evt.currentTarget);
           let id = parseInt($target.data('change'));
           console.log('clicked update change ' + id);
+          diaperChangeId = id;
           diaperChange = diaperChanges.find(c => c.id === id);
           self.syncInputs();
         });
@@ -191,6 +189,5 @@ BabyBuddy.DiaperChange = function(root) {
   };
 
   self = DiaperChange;
-  return DiaperChange;
-
+  return self;
 }(window);
