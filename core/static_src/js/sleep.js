@@ -1,45 +1,39 @@
 
-BabyBuddy.Feeding = function(root) {
+BabyBuddy.Sleep = function(root) {
   let $el;
   let successUrl;
   let userId;
   let childId;
-  let feedingId;
-  let feeding;
-  let feedings = [];
+  let sleepId;
+  let sleep;
+  let sleeps = [];
   let $startPicker;
   let $endPicker;
   let $start;
   let $end;
-  let $type;
-  let $method;
-  let $amount;
   let $tableBody;
   let $saveBtn;
   let $prevBtn;
   let $nextBtn;
   let self;
 
-  const Feeding = {
-    init: (el, uId, url, cId, fId=null) => {
+  const Sleep = {
+    init: (el, uId, url, cId, sId=null) => {
       $el = $(el);
       userId = uId;
       successUrl = url;
       childId = cId;
-      feedingId = fId;
+      sleepId = sId;
       $startPicker = $el.find('#datetimepicker_start');
       $endPicker = $el.find('#datetimepicker_end');
       $start = $el.find('#start');
       $end = $el.find('#end');
-      $type = $el.find('#type');
-      $method = $el.find('#method');
-      $amount = $el.find('#amount');
       $tableBody = $el.find('tbody');
       $saveBtn = $el.find('#save-btn');
       $prevBtn = $el.find('#prev-btn');
       $nextBtn = $el.find('#next-btn');
 
-      if (childId && feedingId) {
+      if (childId && sleepId) {
         self.fetch();
       }
 
@@ -60,7 +54,7 @@ BabyBuddy.Feeding = function(root) {
       $saveBtn.click((evt) => {
         if (self.isValidInputs()) {
           self.syncModel();
-          if (!feedingId) {
+          if (!sleepId) {
             self.create();
           } else {
             self.update();
@@ -78,28 +72,26 @@ BabyBuddy.Feeding = function(root) {
         self.fetchAll($nextBtn.prop('href'));
       });
 
-      const fetchAllUrl = BabyBuddy.ApiRoutes.feedings(childId);
+      const fetchAllUrl = BabyBuddy.ApiRoutes.sleeping(childId);
       self.fetchAll(`${fetchAllUrl}?limit=10`);
     },
     syncInputs: () => {
-      if (!_.isEmpty(feeding)) {
-        if (feeding.start) {
-          $start.val(moment(feeding.start).format('YYYY-MM-DD hh:mm a'));
+      if (!_.isEmpty(sleep)) {
+        if (sleep.start) {
+          $start.val(moment(sleep.start).format('YYYY-MM-DD hh:mm a'));
         }
-        if (feeding.end) {
-          $end.val(moment(feeding.end).format('YYYY-MM-DD hh:mm a'));
+        if (sleep.end) {
+          $end.val(moment(sleep.end).format('YYYY-MM-DD hh:mm a'));
         }
-        $type.val(feeding.type);
-        $method.val(feeding.method);
-        $amount.val(feeding.amount);
       }
     },
     syncTable: () => {
-      if (!_.isEmpty(feedings)) {
+      if (!_.isEmpty(sleeps)){
         $tableBody.empty();
-        let html = feedings.map(f => {
-          const ended = moment(f.end).format('YYYY-MM-DD hh:mm a');
-          let duration = moment.duration(f.duration);
+        let html = sleeps.map(s => {
+          const start = moment(s.start).format('YYYY-MM-DD hh:mm a');
+          const end = moment(s.end).format('YYYY-MM-DD hh:mm a');
+          let duration = moment.duration(s.duration);
           let durationStr = '';
           if (duration.hours()) {
             if (duration.minutes()) {
@@ -110,22 +102,22 @@ BabyBuddy.Feeding = function(root) {
           } else if (duration.minutes()) {
             durationStr = `${duration.minutes()} mins`;
           }
-
-          const amount = f.amount || '';
+          const napIconClasses = s.nap ? 'icon-true text-success' : 'icon-false text-danger';
           return `
             <tr>
-              <td class="text-center">${_.capitalize(f.method)}</td>
-              <td class="text-center">${_.capitalize(f.type)}</td>
-              <td class="text-center">${amount}</td>
+              <td class="text-center">${start}</td>
+              <td class="text-center">${end}</td>
               <td class="text-center">${durationStr}</td>
-              <td class="text-center">${ended}</td>
+              <td class="text-center">
+                <i class="icon ${napIconClasses}" aria-hidden="true"></i>
+              </td>
               <td class="text-center">
                 <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
-                  <a class="btn btn-primary update-btn" data-feeding="${f.id}">
+                  <a class="btn btn-primary update-btn" data-sleep="${s.id}">
                     <i class="icon icon-update" aria-hidden="true"></i>
                   </a>
                   <!--
-                  <a class="btn btn-danger delete-btn" data-feeding="${f.id}">
+                  <a class="btn btn-danger delete-btn" data-sleep="${s.id}">
                     <i class="icon icon-delete" aria-hidden="true"></i>
                   </a>
                   -->
@@ -138,33 +130,30 @@ BabyBuddy.Feeding = function(root) {
         $el.find('.update-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('feeding'));
-          feedingId = id;
-          console.log('clicked update feeding ' + id);
-          feeding = feedings.find(c => c.id === id);
+          let id = parseInt($target.data('sleep'));
+          sleepId = id;
+          console.log('clicked update sleep ' + id);
+          sleep = sleeps.find(c => c.id === id);
           self.syncInputs();
         });
         /*
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('feeding'));
-          console.log('clicked delete feeding ' + id);
+          let id = parseInt($target.data('sleep'));
+          console.log('clicked delete sleep ' + id);
         });
         */
       }
     },
     syncModel: () => {
       if (self.isValidInputs()) {
-        if (_.isEmpty(feeding)) {
-          feeding = {};
+        if (_.isEmpty(sleep)) {
+          sleep = {};
         }
-        feeding.child = childId;
-        feeding.start = moment($start.val(), 'YYYY-MM-DD hh:mm a').toISOString();
-        feeding.end = moment($end.val(), 'YYYY-MM-DD hh:mm a').toISOString();
-        feeding.type = $type.val();
-        feeding.method = $method.val();
-        feeding.amount = $amount.val();
+        sleep.child = childId;
+        sleep.start = moment($start.val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        sleep.end = moment($end.val(), 'YYYY-MM-DD hh:mm a').toISOString();
       }
     },
     isValidInputs: () => {
@@ -175,33 +164,12 @@ BabyBuddy.Feeding = function(root) {
         datesValid = startDate.isSame(endDate) || startDate.isBefore(endDate);
       }
 
-      if (!datesValid || !$type.val() || !$method.val()) {
-        return false;
-      }
-
-      if ($type.val() !== 'breast milk') {
-        try {
-          const amt = parseFloat($amount.val());
-          if (amt <= 0) {
-            return false;
-          }
-        } catch (err) {
-          return false;
-        }
-
-        if ($method === 'bottle') {
-          return false;
-        }
-      } else if (!['left breast', 'right breast', 'both breasts'].includes($method.val())) {
-        return false;
-      }
-
-      return true;
+      return datesValid;
     },
     fetch: () => {
-      $.get(BabyBuddy.ApiRoutes.feedingDetail(childId, feedingId))
+      $.get(BabyBuddy.ApiRoutes.sleeping(childId, sleepId))
         .then((response) => {
-          feeding = response;
+          sleep = response;
           self.syncInputs();
           return response;
         });
@@ -209,38 +177,40 @@ BabyBuddy.Feeding = function(root) {
     fetchAll: (url) => {
       if (!_.isEmpty(url)) {
         $.get(url)
-        .then((response) => {
-          feedings = response.results;
-          self.syncTable();
-          $prevBtn.prop('href', response.previous || '#');
-          $nextBtn.prop('href', response.next || '#');
-          $prevBtn.toggleClass('disabled', !Boolean(response.previous));
-          $nextBtn.toggleClass('disabled', !Boolean(response.next));
-          self.syncTable();
-          return response;
-        });
+          .then((response) => {
+            sleeps = response.results;
+            self.syncTable();
+            $prevBtn.prop('href', response.previous || '#');
+            $nextBtn.prop('href', response.next || '#');
+            $prevBtn.toggleClass('disabled', !Boolean(response.previous));
+            $nextBtn.toggleClass('disabled', !Boolean(response.next));
+            self.syncTable();
+            return response;
+          });
       }
     },
     create: () => {
-      $.post(BabyBuddy.ApiRoutes.feedings(childId), feeding)
+      $.post(BabyBuddy.ApiRoutes.sleeping(childId), sleep)
         .then((response) => {
-          feeding = response;
-          feedingId = response.id;
+          sleep = response;
+          sleepId = response.id;
           root.location.href = successUrl;
           return response;
         });
     },
     update: () => {
-      $.post(BabyBuddy.ApiRoutes.feedingDetail(childId, feedingId), feeding)
+      $.post(BabyBuddy.ApiRoutes.sleepingDetail(childId, sleepId), sleep)
         .then((response) => {
-          feeding = response;
+          sleep = response;
           self.syncInputs();
           root.location.href = successUrl;
           return response;
         });
     }
+
   };
 
-  self = Feeding;
+  self = Sleep;
   return self;
 }(window);
+

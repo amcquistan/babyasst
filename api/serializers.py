@@ -107,7 +107,8 @@ class NotificationSerializer(serializers.ModelSerializer):
 class SleepSerializer(CoreModelSerializer):
     class Meta:
         model = models.Sleep
-        fields = ('id', 'child', 'start', 'end', 'duration')
+        fields = ('id', 'child', 'start', 'end', 'duration', 'nap')
+        read_only_fields = ('nap',)
 
 
 class TemperatureSerializer(CoreModelSerializer):

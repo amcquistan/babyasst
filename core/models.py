@@ -481,7 +481,7 @@ class Sleep(models.Model):
         validate_time(self.start, 'start')
         validate_time(self.end, 'end')
         validate_duration(self)
-        validate_unique_period(Sleep.objects.filter(child=self.child), self)
+        # validate_unique_period(Sleep.objects.filter(child=self.child), self)
 
 
 class Suggestion(models.Model):
@@ -723,8 +723,8 @@ class TummyTime(models.Model):
         validate_time(self.start, 'start')
         validate_time(self.end, 'end')
         validate_duration(self)
-        validate_unique_period(
-            TummyTime.objects.filter(child=self.child), self)
+        # validate_unique_period(
+        #     TummyTime.objects.filter(child=self.child), self)
 
 
 class Weight(models.Model):

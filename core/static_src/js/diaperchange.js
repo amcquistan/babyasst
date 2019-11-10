@@ -1,7 +1,5 @@
 
 BabyBuddy.DiaperChange = function(root) {
-  const $ = root.$;
-  const _ = root._;
   let $el;
   let successUrl;
   let userId;
@@ -96,7 +94,7 @@ BabyBuddy.DiaperChange = function(root) {
               <td class="text-center">
                 <i class="icon ${solidIconClasses}" aria-hidden="true"></i>
               </td>
-              <td class="text-center">${change.color}</td>
+              <td class="text-center">${_.capitalize(change.color)}</td>
               <td class="text-center">
                 <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
                   <a class="btn btn-primary update-btn" data-change="${change.id}">
