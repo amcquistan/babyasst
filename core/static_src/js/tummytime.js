@@ -1,16 +1,17 @@
 
-BabyBuddy.Sleep = function(root) {
+BabyBuddy.TummyTime = function(root) {
   let $el;
   let successUrl;
   let userId;
   let childId;
-  let sleepId;
-  let sleep;
-  let sleeps = [];
+  let tummyTimeId;
+  let tummyTime;
+  let tummyTimes = [];
   let $startPicker;
   let $endPicker;
   let $start;
   let $end;
+  let $milestone;
   let $tableBody;
   let $saveBtn;
   let $prevBtn;
@@ -19,17 +20,18 @@ BabyBuddy.Sleep = function(root) {
   let $confirmDeleteBtn;
   let self;
 
-  const Sleep = {
-    init: (el, uId, url, cId, sId=null) => {
+  const TummyTime = {
+    init: (el, uId, url, cId, tId=null) => {
       $el = $(el);
       userId = uId;
       successUrl = url;
       childId = cId;
-      sleepId = sId;
+      tummyTimeId = tId;
       $startPicker = $el.find('#datetimepicker_start');
       $endPicker = $el.find('#datetimepicker_end');
       $start = $el.find('#start');
       $end = $el.find('#end');
+      $milestone = $el.find('#milestone');
       $tableBody = $el.find('tbody');
       $saveBtn = $el.find('#save-btn');
       $prevBtn = $el.find('#prev-btn');
@@ -38,9 +40,9 @@ BabyBuddy.Sleep = function(root) {
       $confirmDeleteBtn = $el.find('#confirm-delete-btn');
 
       $confirmDeleteBtn.click((evt) => {
-        if (childId && sleepId) {
+        if (childId && tummyTimeId) {
           $.ajax({
-            url: BabyBuddy.ApiRoutes.sleepingDetail(childId, sleepId),
+            url: BabyBuddy.ApiRoutes.tummyTimeDetail(childId, tummyTimeId),
             type: 'DELETE'
           }).then((response) => {
             self.clear();
@@ -50,7 +52,7 @@ BabyBuddy.Sleep = function(root) {
         }
       });
 
-      if (childId && sleepId) {
+      if (childId && tummyTimeId) {
         self.fetch();
       }
 
@@ -71,7 +73,7 @@ BabyBuddy.Sleep = function(root) {
       $saveBtn.click((evt) => {
         if (self.isValidInputs()) {
           self.syncModel();
-          if (!sleepId) {
+          if (!tummyTimeId) {
             self.create();
           } else {
             self.update();
@@ -89,26 +91,27 @@ BabyBuddy.Sleep = function(root) {
         self.fetchAll($nextBtn.prop('href'));
       });
 
-      const fetchAllUrl = BabyBuddy.ApiRoutes.sleeping(childId);
+      const fetchAllUrl = BabyBuddy.ApiRoutes.tummyTime(childId);
       self.fetchAll(`${fetchAllUrl}?limit=10`);
     },
     syncInputs: () => {
-      if (!_.isEmpty(sleep)) {
-        if (sleep.start) {
-          $start.val(moment(sleep.start).format('YYYY-MM-DD hh:mm a'));
+      if (!_.isEmpty(tummyTime)) {
+        if (tummyTime.start) {
+          $start.val(moment(tummyTime.start).format('YYYY-MM-DD hh:mm a'));
         }
-        if (sleep.end) {
-          $end.val(moment(sleep.end).format('YYYY-MM-DD hh:mm a'));
+        if (tummyTime.end) {
+          $end.val(moment(tummyTime.end).format('YYYY-MM-DD hh:mm a'));
         }
+        $milestone.val(tummyTime.milestone);
       }
     },
     syncTable: () => {
-      if (!_.isEmpty(sleeps)){
+      if (!_.isEmpty(tummyTimes)) {
         $tableBody.empty();
-        let html = sleeps.map(s => {
-          const start = moment(s.start).format('YYYY-MM-DD hh:mm a');
-          const end = moment(s.end).format('YYYY-MM-DD hh:mm a');
-          let duration = moment.duration(s.duration);
+        let html = tummyTimes.map(t => {
+          const start = moment(t.start).format('YYYY-MM-DD hh:mm a');
+          const end = moment(t.end).format('YYYY-MM-DD hh:mm a');
+          let duration = moment.duration(t.duration);
           let durationStr = '';
           if (duration.hours()) {
             if (duration.minutes()) {
@@ -119,21 +122,19 @@ BabyBuddy.Sleep = function(root) {
           } else if (duration.minutes()) {
             durationStr = `${duration.minutes()} mins`;
           }
-          const napIconClasses = s.nap ? 'icon-true text-success' : 'icon-false text-danger';
+          const milestone = t.milestone || '';
           return `
             <tr>
+              <td class="text-center">${durationStr}</td>
               <td class="text-center">${start}</td>
               <td class="text-center">${end}</td>
-              <td class="text-center">${durationStr}</td>
-              <td class="text-center">
-                <i class="icon ${napIconClasses}" aria-hidden="true"></i>
-              </td>
+              <td class="text-center">${milestone}</td>
               <td class="text-center">
                 <div class="btn-group btn-group-sm" role="group" aria-label="Actions">
-                  <a class="btn btn-primary update-btn" data-sleep="${s.id}">
+                  <a class="btn btn-primary update-btn" data-tummytime="${t.id}">
                     <i class="icon icon-update" aria-hidden="true"></i>
                   </a>
-                  <a class="btn btn-danger delete-btn" data-sleep="${s.id}">
+                  <a class="btn btn-danger delete-btn" data-tummytime="${t.id}">
                     <i class="icon icon-delete" aria-hidden="true"></i>
                   </a>
                 </div>
@@ -145,30 +146,33 @@ BabyBuddy.Sleep = function(root) {
         $el.find('.update-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('sleep'));
-          sleepId = id;
-          sleep = sleeps.find(c => c.id === id);
+          let id = parseInt($target.data('tummytime'));
+          tummyTimeId = id;
+          console.log('clicked update tummytime ' + id);
+          tummyTime = tummyTimes.find(c => c.id === id);
           self.syncInputs();
-          root.window.scrollTo(0, 0);
+          root.scrollTo(0, 0);
         });
 
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('sleep'));
-          sleepId = id;
+          let id = parseInt($target.data('tummytime'));
+          tummyTimeId = id;
+          console.log('clicked delete tummytime ' + id);
           $modal.modal('show');
         });
       }
     },
     syncModel: () => {
       if (self.isValidInputs()) {
-        if (_.isEmpty(sleep)) {
-          sleep = {};
+        if (_.isEmpty(tummyTime)) {
+          tummyTime = {};
         }
-        sleep.child = childId;
-        sleep.start = moment($start.val(), 'YYYY-MM-DD hh:mm a').toISOString();
-        sleep.end = moment($end.val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        tummyTime.child = childId;
+        tummyTime.start = moment($start.val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        tummyTime.end = moment($end.val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        tummyTime.milestone = $milestone.val();
       }
     },
     isValidInputs: () => {
@@ -182,9 +186,9 @@ BabyBuddy.Sleep = function(root) {
       return datesValid;
     },
     fetch: () => {
-      $.get(BabyBuddy.ApiRoutes.sleeping(childId, sleepId))
+      $.get(BabyBuddy.ApiRoutes.tummyTime(childId, tummyTimeId))
         .then((response) => {
-          sleep = response;
+          tummyTime = response;
           self.syncInputs();
           return response;
         });
@@ -193,7 +197,7 @@ BabyBuddy.Sleep = function(root) {
       if (!_.isEmpty(url)) {
         $.get(url)
           .then((response) => {
-            sleeps = response.results;
+            tummyTimes = response.results;
             self.syncTable();
             $prevBtn.prop('href', response.previous || '#');
             $nextBtn.prop('href', response.next || '#');
@@ -205,30 +209,29 @@ BabyBuddy.Sleep = function(root) {
       }
     },
     create: () => {
-      $.post(BabyBuddy.ApiRoutes.sleeping(childId), sleep)
+      $.post(BabyBuddy.ApiRoutes.tummyTime(childId), tummyTime)
         .then((response) => {
-          sleep = response;
-          sleepId = response.id;
+          tummyTime = response;
+          tummyTimeId = response.id;
           root.location.href = successUrl;
           return response;
         });
     },
     update: () => {
-      $.post(BabyBuddy.ApiRoutes.sleepingDetail(childId, sleepId), sleep)
+      $.post(BabyBuddy.ApiRoutes.tummyTimeDetail(childId, tummyTimeId), tummyTime)
         .then((response) => {
-          sleep = response;
+          tummyTime = response;
           self.syncInputs();
           root.location.href = successUrl;
           return response;
         });
     },
     clear: () => {
-      sleepId = null;
-      sleep = {};
+      tummyTime = {};
+      tummyTimeId = null;
     }
   };
 
-  self = Sleep;
+  self = TummyTime;
   return self;
 }(window);
-

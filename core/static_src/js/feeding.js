@@ -18,6 +18,8 @@ BabyBuddy.Feeding = function(root) {
   let $saveBtn;
   let $prevBtn;
   let $nextBtn;
+  let $modal;
+  let $confirmDeleteBtn;
   let self;
 
   const Feeding = {
@@ -38,6 +40,44 @@ BabyBuddy.Feeding = function(root) {
       $saveBtn = $el.find('#save-btn');
       $prevBtn = $el.find('#prev-btn');
       $nextBtn = $el.find('#next-btn');
+      $modal = $el.find('#confirm-delete-modal');
+      $confirmDeleteBtn = $el.find('#confirm-delete-btn');
+
+      $confirmDeleteBtn.click((evt) => {
+        if (childId && feedingId) {
+          $.ajax({
+            url: BabyBuddy.ApiRoutes.feedingDetail(childId, feedingId),
+            type: 'DELETE'
+          }).then((response) => {
+            self.clear();
+            $modal.modal('hide');
+            root.location.reload();
+          });
+        }
+      });
+
+      $type.change((evt) => {
+        if (!$type.val()) {
+          $method.find('option').each((i, el) => {
+            const $this = $(el);
+            $this.prop('disabled', false);
+            $this.prop('selected', i === 0);
+          });
+        } else if ($type.val() === 'breast milk') {
+          const validOptions = ['left breast', 'right breast', 'both breasts'];
+          $method.find('option').each((i, el) => {
+            const $this = $(el);
+            $this.prop('disabled', !validOptions.includes($this.prop('value')));
+            $this.prop('selected', false);
+          });
+        } else {
+          $method.find('option').each((i, el) => {
+            const $this = $(el);
+            $this.prop('disabled', $this.prop('value') !== 'bottle');
+            $this.prop('selected', $this.prop('value') === 'bottle');
+          });
+        }
+      });
 
       if (childId && feedingId) {
         self.fetch();
@@ -124,11 +164,9 @@ BabyBuddy.Feeding = function(root) {
                   <a class="btn btn-primary update-btn" data-feeding="${f.id}">
                     <i class="icon icon-update" aria-hidden="true"></i>
                   </a>
-                  <!--
                   <a class="btn btn-danger delete-btn" data-feeding="${f.id}">
                     <i class="icon icon-delete" aria-hidden="true"></i>
                   </a>
-                  -->
                 </div>
               </td>
             </tr>
@@ -143,15 +181,18 @@ BabyBuddy.Feeding = function(root) {
           console.log('clicked update feeding ' + id);
           feeding = feedings.find(c => c.id === id);
           self.syncInputs();
+          root.window.scrollTo(0, 0);
         });
-        /*
+
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
           let id = parseInt($target.data('feeding'));
+          feedingId = id;
+          $modal.modal('show');
           console.log('clicked delete feeding ' + id);
         });
-        */
+
       }
     },
     syncModel: () => {
@@ -238,6 +279,13 @@ BabyBuddy.Feeding = function(root) {
           root.location.href = successUrl;
           return response;
         });
+    },
+    clear: () => {
+      feeding = {};
+      feedingId = null;
+      $type.val('');
+      $method.val('');
+      $amount.val('');
     }
   };
 

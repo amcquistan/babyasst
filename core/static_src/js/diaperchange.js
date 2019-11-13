@@ -15,6 +15,8 @@ BabyBuddy.DiaperChange = function(root) {
   let $saveBtn;
   let $prevBtn;
   let $nextBtn;
+  let $modal;
+  let $confirmDeleteBtn;
   let self;
 
   const DiaperChange = {
@@ -32,6 +34,21 @@ BabyBuddy.DiaperChange = function(root) {
       $saveBtn = $el.find('#save-btn');
       $prevBtn = $el.find('#prev-btn');
       $nextBtn = $el.find('#next-btn');
+      $modal = $el.find('#confirm-delete-modal');
+      $confirmDeleteBtn = $el.find('#confirm-delete-btn');
+
+      $confirmDeleteBtn.click((evt) => {
+        if (childId && diaperChangeId) {
+          $.ajax({
+            url: BabyBuddy.ApiRoutes.diaperChangeDetail(childId, diaperChangeId),
+            type: 'DELETE'
+          }).then((response) => {
+            self.clear();
+            $modal.modal('hide');
+            root.location.reload();
+          });
+        }
+      });
 
       if (childId && diaperChangeId) {
         self.fetch();
@@ -100,11 +117,9 @@ BabyBuddy.DiaperChange = function(root) {
                   <a class="btn btn-primary update-btn" data-change="${change.id}">
                     <i class="icon icon-update" aria-hidden="true"></i>
                   </a>
-                  <!--
                   <a class="btn btn-danger delete-btn" data-change="${change.id}">
                     <i class="icon icon-delete" aria-hidden="true"></i>
                   </a>
-                  -->
                 </div>
               </td>
             </tr>
@@ -119,12 +134,15 @@ BabyBuddy.DiaperChange = function(root) {
           diaperChangeId = id;
           diaperChange = diaperChanges.find(c => c.id === id);
           self.syncInputs();
+          root.window.scrollTo(0, 0);
         });
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
           let id = parseInt($target.data('change'));
+          diaperChangeId = id;
           console.log('clicked delete change ' + id);
+          $modal.modal('show');
         });
       }
     },
@@ -183,6 +201,10 @@ BabyBuddy.DiaperChange = function(root) {
           root.location.href = successUrl;
           return response;
         });
+    },
+    clear: () => {
+      diaperChange = {};
+      diaperChangeId = null;
     }
   };
 
