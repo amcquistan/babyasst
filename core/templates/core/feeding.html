@@ -20,9 +20,6 @@
     <div class="col-md-10 offset-1">
       <h1 class='mb-5'>{% trans "Feedings for" %} <span class="text-info">{{ child }}</span></h1>
       <div class="mb-5 container-fluid">
-        {% comment %}
-        {% include 'babybuddy/form.html' %}
-        {% endcomment %}
 
         <div class="form-group">
           <label for="start">{% trans "Start" %}</label>
@@ -47,6 +44,7 @@
         <div class="form-group">
           <label for="type">{% trans "Type" %}</label>
           <select class="form-control" id="type">
+            <option value="" selected></option>
             <option value="breast milk">{% trans "Breast milk" %}</option>
             <option value="formula">{% trans "Formula" %}</option>
             <option value="fortified breast milk">{% trans "Fortified breast milk" %}</option>
@@ -56,6 +54,7 @@
         <div class="form-group">
           <label for="method">{% trans "Method" %}</label>
           <select class="form-control" id="method">
+            <option value="" selected></option>
             <option value="bottle">{% trans "Bottle" %}</option>
             <option value="left breast">{% trans "Left breast" %}</option>
             <option value="right breast">{% trans "Right breast" %}</option>
@@ -105,6 +104,20 @@
           <a id='next-btn' class="btn btn-info pull-right" aria-label="Previous">
             <i class="icon icon-chevron-right" aria-hidden="true"></i>
           </a>
+        </div>
+      </div>
+
+      <div id='confirm-delete-modal' class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-body">
+              <p class="text-center text-dark">{% trans "Are you sure you want to delete?" %}</p>
+              <p class="text-center">
+                <button id="confirm-delete-btn" class="btn btn-primary">Yes</button>
+                <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+              </p>
+            </div>
+          </div>
         </div>
       </div>
 

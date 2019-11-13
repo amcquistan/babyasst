@@ -101,6 +101,20 @@
         </div>
       </div>
 
+      <div id='confirm-delete-modal' class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+          <div class="modal-content">
+            <div class="modal-body">
+              <p class="text-center text-dark">{% trans "Are you sure you want to delete?" %}</p>
+              <p class="text-center">
+                <button id="confirm-delete-btn" class="btn btn-primary">Yes</button>
+                <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 {% endblock %}

@@ -139,6 +139,17 @@ class ViewOrUpdateChildActivityAPIView(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def delete(self, request, child_id, pk, format=None):
+        child = get_object_or_404(models.Child, pk=child_id)
+
+        if not api_permissions.can_view_update_obj_with_acct(request, child):
+            return Response(None, status=status.HTTP_403_FORBIDDEN)
+
+        obj = get_object_or_404(self.model, pk=pk)
+        obj.delete()
+
+        return Response({}, status=status.HTTP_202_ACCEPTED)
+
 
 class ChildrenAPIView(ListOrCreateModelWithAccountAPIView):
     model = models.Child
