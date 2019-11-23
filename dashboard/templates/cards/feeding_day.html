@@ -1,0 +1,24 @@
+{% extends 'cards/base.html' %}
+{% load duration i18n %}
+
+{% block header %}{% trans "Today's Feeding" %}{% endblock %}
+
+{% block title %}
+    {% if total_duration and total_amount %}
+        {{ total_duration|duration_string }} / {{ total_amount }} oz
+    {% elif total_amount %}
+        {{ total_amount }} oz
+    {% elif total_duration %}
+       {{ total_duration|duration_string }}
+    {% else %}
+        <i class="icon icon-sad" aria-hidden="true"></i>
+        {% trans "None yet today" %}
+        <i class="icon icon-sad" aria-hidden="true"></i>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+    {% if count %}
+        total feeds: {{ count }}
+    {% endif %}
+{% endblock %}

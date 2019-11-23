@@ -18,54 +18,21 @@
 {% block content %}
   <div class="row" id="diaper-change">
     <div class="col-md-10 offset-1">
-      <h1 class='mb-5'>{% trans "Diaper Changes for" %} <span class="text-info">{{ child }}</span></h1>
-      <div class="mb-5 container-fluid">
-        <div class="form-group">
-          <label for="time">{% trans "Time" %}</label>
-          <div class="input-group date" id="datetimepicker_time" data-target-input="nearest">
-            <div class="input-group-prepend" data-target="#datetimepicker_time" data-toggle="datetimepicker">
-              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
-            </div>
-            <input type="text" class="form-control datetimepicker-input" id="time" data-target="#datetimepicker_time">
-          </div>
+      <div class="row">
+        <div class="col-lg-10 col-sm-12">
+          <h2 class='mb-3'>{% trans "Diaper Changes" %}</h2>
         </div>
-
-        <div class="form-group">
-          <label>{% trans "Type" %}</label>
-          <div class="input-group">
-            <div class="mr-2">
-              <div class="btn-group-toggle" data-toggle="buttons">
-                <label for="wet" class="btn btn-outline-light btn-no-hover">
-                  <input type="checkbox" id="wet">
-                  {% trans "Wet" %}
-                </label>
-              </div>
-            </div>
-            <div class="mr-2">
-              <div class="btn-group-toggle" data-toggle="buttons">
-                <label for="solid" class="btn btn-outline-light btn-no-hover">
-                  <input type="checkbox" id="solid">
-                  {% trans "Solid" %}
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="color">{% trans "Color" %}</label>
-          <select class="form-control" id="color">
-            <option value="black">{% trans "Black" %}</option>
-            <option value="brown">{% trans "Brown" %}</option>
-            <option value="green">{% trans "Green" %}</option>
-            <option value="yellow">{% trans "Yellow" %}</option>
-          </select>
-        </div>
-
-        <div class="form-group mb-5">
-          <button id="save-btn" class="btn btn-primary btn-lg pull-right">{% trans "Save" %}</button>
+        <div class="col-lg-2 col-sm-12">
+          <h2 class="text-center">
+            <a id="diaperchange-add-btn" class="btn add-activity">
+              <i class="icon icon-5x icon-add-circle text-info"></i>
+              {% trans "Add" %}
+            </a>
+          </h2>
         </div>
       </div>
+      
+      {% include 'core/diaperchange_modal.html' %}
 
       <p class="mt-5 mb-5 clearfix"></p>
 

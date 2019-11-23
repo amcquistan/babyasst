@@ -27,3 +27,18 @@
         }
     }
 }
+
+a.add-activity {
+  text-decoration: none;
+  text-align: center;
+  display: inline-block;
+  &:hover {
+    cursor: pointer;
+  }
+  i.icon {
+    display: block;
+    font-style: normal;
+    text-align: center;
+  } 
+}
+

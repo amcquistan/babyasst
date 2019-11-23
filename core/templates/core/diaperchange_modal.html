@@ -1,0 +1,67 @@
+
+{% load bootstrap i18n %}
+
+<div class="modal fade" id="diaperchange-modal">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-danger">
+        <h4 class="modal-title text-center"><i class="icon icon-diaperchange mr-2" aria-hidden="true"></i> {% trans "Diaper Change" %}</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+
+        <div class="form-group">
+          <label class="text-dark" for="diaperchange-time">{% trans "Time" %}</label>
+          <div class="input-group date" id="diaperchange-datetimepicker_time" data-target-input="nearest">
+            <div class="input-group-prepend" data-target="#diaperchange-datetimepicker_time" data-toggle="datetimepicker">
+              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+            </div>
+            <input type="text" class="form-control datetimepicker-input" id="diaperchange-time" data-target="#diaperchange-datetimepicker_time">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="text-dark">{% trans "Type" %}</label>
+          <div class="input-group">
+            <div class="mr-2">
+              <div class="btn-group-toggle" data-toggle="buttons">
+                <label for="diaperchange-wet" class="btn btn-outline-primary btn-no-hover">
+                  <input type="checkbox" id="diaperchange-wet">
+                  {% trans "Wet" %}
+                </label>
+              </div>
+            </div>
+            <div class="mr-2">
+              <div class="btn-group-toggle" data-toggle="buttons">
+                <label for="diaperchange-solid" class="btn btn-outline-primary btn-no-hover">
+                  <input type="checkbox" id="diaperchange-solid">
+                  {% trans "Solid" %}
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="text-dark"  for="diaperchange-color">{% trans "Color" %}</label>
+          <select class="form-control" id="diaperchange-color">
+            <option value="black">{% trans "Black" %}</option>
+            <option value="brown">{% trans "Brown" %}</option>
+            <option value="green">{% trans "Green" %}</option>
+            <option value="yellow">{% trans "Yellow" %}</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-5">
+          <p class="text-right">
+            <button id="diaperchange-save-btn" class="btn btn-primary btn-lg">{% trans "Save" %}</button>
+            <button type="button" class="btn btn-danger btn-lg" data-dismiss="modal">{% trans "Close" %}</button>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+

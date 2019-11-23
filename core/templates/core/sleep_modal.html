@@ -1,0 +1,45 @@
+
+{% load i18n %}
+
+<div class="modal fade" id="sleep-modal">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-secondary">
+        <h4 class="modal-title text-center"><i class="icon icon-sleep mr-2" aria-hidden="true"></i> {% trans "Sleep" %}</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+
+        <div class="form-group">
+          <label class="text-dark" for="sleep-start">{% trans "Start" %}</label>
+          <div class="input-group date" id="sleep-datetimepicker_start" data-target-input="nearest">
+            <div class="input-group-prepend" data-target="#sleep-datetimepicker_start" data-toggle="datetimepicker">
+              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+            </div>
+            <input type="text" class="form-control datetimepicker-input" id="sleep-start" data-target="#sleep-datetimepicker_start">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="text-dark" for="sleep-end">{% trans "End" %}</label>
+          <div class="input-group date" id="sleep-datetimepicker_end" data-target-input="nearest">
+            <div class="input-group-prepend" data-target="#sleep-datetimepicker_end" data-toggle="datetimepicker">
+              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+            </div>
+            <input type="text" class="form-control datetimepicker-input" id="sleep-end" data-target="#sleep-datetimepicker_end">
+          </div>
+        </div>
+
+        <div class="form-group mb-5">
+          <p class="text-right">
+            <button id="sleep-save-btn" class="btn btn-primary btn-lg">{% trans "Save" %}</button>
+            <button type="button" class="btn btn-danger btn-lg" data-dismiss="modal">{% trans "Close" %}</button>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+

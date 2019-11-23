@@ -10,13 +10,27 @@
 
 {% block content %}
   <div class="jumbotron text-center" id="timer">
-
+    {% comment %}
     <div class="h1{% if not timer.active %} timer-stopped{% endif %}" id="timer-status">
       <span id="timer-hours" class="timer-hours">{{ timer.duration|hours }}</span>h
       <span id="timer-minutes" class="timer-minutes">{{ timer.duration|minutes }}</span>m
       <span id="timer-seconds" class="timer-seconds">{{ timer.duration|seconds }}</span>s
     </div>
-    
+    {% endcomment %}
+    <div class="row justify-content-center {% if not timer.active %}timer-stopped{% endif %}" id="timer-status">
+      <div class="col-2">
+        <h2 id="timer-hours" class="timer-hours text-center mb-1">{{ timer.duration|hours }}</h2>
+        <h5 class="text-center text-muted">hrs</h5>
+      </div>
+      <div class="col-2">
+        <h2 id="timer-minutes" class="timer-minutes text-center mb-1">{{ timer.duration|minutes }}</h2>
+        <h5 class="text-center text-muted">mins</h5>
+      </div>
+      <div class="col-2">
+        <h2 id="timer-seconds" class="timer-seconds text-center mb-1">{{ timer.duration|seconds }}</h2>
+        <h5 class="text-center text-muted">secs</h5>
+      </div>
+    </div>
     <p class="lead text-secondary" id="timer-status-message"></p>
 
     <p class="text-muted">

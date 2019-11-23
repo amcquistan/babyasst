@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from django import template
 
+from django.shortcuts import reverse
+
 from core.models import Timer
 
 
@@ -19,3 +21,15 @@ def timer_nav(context, active=True):
     timers = Timer.objects.filter(active=active, user=request.user)
     # The 'next' parameter is currently not used.
     return {'timers': timers, 'next': request.path}
+
+@register.inclusion_tag('core/timer_mobile_nav.html', takes_context=True)
+def timer_mobile_nav(context):
+    request = context['request'] or None
+    timers = Timer.objects.filter(active=True, user=request.user)
+    timers_cnt = len(timers)
+
+    url = reverse('core:timer-quick-add')
+    if timers_cnt:
+        url = reverse('core:timer-list')
+
+    return {'timers_cnt': timers_cnt, 'url': url}

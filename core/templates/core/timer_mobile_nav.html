@@ -1,0 +1,12 @@
+<a class="text-success mr-2" href="{{ url }}">
+  {% if timers_cnt > 0 %}
+  <span class="fa-stack">
+    <i class="icon icon-2x icon-timer" aria-hidden="true"></i>
+    <strong class="fa-stack-1x" style="top: -12px; left: 12px;">
+      <span class="badge badge-dark">{{ timers_cnt }}</span>
+    </strong>
+  </span>
+  {% else %}
+  <i class="icon icon-2x icon-timer" aria-hidden="true"></i>
+  {% endif %}
+</a>

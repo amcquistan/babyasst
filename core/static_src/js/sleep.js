@@ -12,10 +12,12 @@ BabyBuddy.Sleep = function(root) {
   let $start;
   let $end;
   let $tableBody;
+  let $addBtn;
   let $saveBtn;
   let $prevBtn;
   let $nextBtn;
-  let $modal;
+  let $addModal;
+  let $deleteModal;
   let $confirmDeleteBtn;
   let self;
 
@@ -26,15 +28,17 @@ BabyBuddy.Sleep = function(root) {
       successUrl = url;
       childId = cId;
       sleepId = sId;
-      $startPicker = $el.find('#datetimepicker_start');
-      $endPicker = $el.find('#datetimepicker_end');
-      $start = $el.find('#start');
-      $end = $el.find('#end');
+      $startPicker = $el.find('#sleep-datetimepicker_start');
+      $endPicker = $el.find('#sleep-datetimepicker_end');
+      $start = $el.find('#sleep-start');
+      $end = $el.find('#sleep-end');
       $tableBody = $el.find('tbody');
-      $saveBtn = $el.find('#save-btn');
+      $addBtn = $el.find('#sleep-add-btn');
+      $saveBtn = $el.find('#sleep-save-btn');
       $prevBtn = $el.find('#prev-btn');
       $nextBtn = $el.find('#next-btn');
-      $modal = $el.find('#confirm-delete-modal');
+      $addModal = $el.find('#sleep-modal');
+      $deleteModal = $el.find('#confirm-delete-modal');
       $confirmDeleteBtn = $el.find('#confirm-delete-btn');
 
       $confirmDeleteBtn.click((evt) => {
@@ -44,7 +48,7 @@ BabyBuddy.Sleep = function(root) {
             type: 'DELETE'
           }).then((response) => {
             self.clear();
-            $modal.modal('hide');
+            $deleteModal.modal('hide');
             root.location.reload();
           });
         }
@@ -54,20 +58,11 @@ BabyBuddy.Sleep = function(root) {
         self.fetch();
       }
 
-      $startPicker.datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD hh:mm a'
+      $addBtn.click((evt) => {
+        evt.preventDefault();
+        sleep = {};
+        self.showAddModal();
       });
-
-      $endPicker.datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD hh:mm a'
-      });
-
-      $startPicker.on('change.datetimepicker', function(evt){
-        $endPicker.datetimepicker('minDate', evt.date);
-      });
-
       $saveBtn.click((evt) => {
         if (self.isValidInputs()) {
           self.syncModel();
@@ -92,15 +87,26 @@ BabyBuddy.Sleep = function(root) {
       const fetchAllUrl = BabyBuddy.ApiRoutes.sleeping(childId);
       self.fetchAll(`${fetchAllUrl}?limit=10`);
     },
+    showAddModal: () => {
+      $addModal.modal('show');
+      self.syncInputs();
+    },
     syncInputs: () => {
-      if (!_.isEmpty(sleep)) {
-        if (sleep.start) {
-          $start.val(moment(sleep.start).format('YYYY-MM-DD hh:mm a'));
-        }
-        if (sleep.end) {
-          $end.val(moment(sleep.end).format('YYYY-MM-DD hh:mm a'));
-        }
-      }
+      let startDefault = !_.isEmpty(sleep) && sleep.start ? moment(sleep.start) : moment().subtract(2, 'minutes');
+      let endDefault = !_.isEmpty(sleep) && sleep.end ? moment(sleep.end) : moment();
+      $startPicker.datetimepicker({
+        defaultDate: startDefault,
+        format: 'YYYY-MM-DD hh:mm a'
+      });
+
+      $endPicker.datetimepicker({
+        defaultDate: endDefault,
+        format: 'YYYY-MM-DD hh:mm a'
+      });
+
+      $startPicker.on('change.datetimepicker', function(evt){
+        $endPicker.datetimepicker('minDate', evt.date);
+      });
     },
     syncTable: () => {
       if (!_.isEmpty(sleeps)){
@@ -148,8 +154,8 @@ BabyBuddy.Sleep = function(root) {
           let id = parseInt($target.data('sleep'));
           sleepId = id;
           sleep = sleeps.find(c => c.id === id);
-          self.syncInputs();
           root.window.scrollTo(0, 0);
+          self.showAddModal();
         });
 
         $el.find('.delete-btn').click((evt) => {
@@ -157,7 +163,7 @@ BabyBuddy.Sleep = function(root) {
           const $target = $(evt.currentTarget);
           let id = parseInt($target.data('sleep'));
           sleepId = id;
-          $modal.modal('show');
+          $deleteModal.modal('show');
         });
       }
     },
@@ -208,8 +214,9 @@ BabyBuddy.Sleep = function(root) {
       $.post(BabyBuddy.ApiRoutes.sleeping(childId), sleep)
         .then((response) => {
           sleep = response;
-          sleepId = response.id;
-          root.location.href = successUrl;
+          // sleepId = response.id;
+          // root.location.href = successUrl;
+          root.location.reload(true);
           return response;
         });
     },
@@ -217,8 +224,9 @@ BabyBuddy.Sleep = function(root) {
       $.post(BabyBuddy.ApiRoutes.sleepingDetail(childId, sleepId), sleep)
         .then((response) => {
           sleep = response;
-          self.syncInputs();
-          root.location.href = successUrl;
+          // self.syncInputs();
+          // root.location.href = successUrl;
+          root.location.reload(true);
           return response;
         });
     },
