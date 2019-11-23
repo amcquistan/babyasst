@@ -10,9 +10,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from babybuddy import models as babybuddy_models
-from core import models
+from core import models, timeline
 
 from . import serializers
+
 
 from . import permissions as api_permissions
 

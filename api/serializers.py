@@ -71,12 +71,74 @@ class AccountDetailSerializer(serializers.ModelSerializer):
         return payment_source_data
 
 
-# class ChildSerializer(serializers.HyperlinkedModelSerializer):
 class ChildSerializer(serializers.ModelSerializer):
+    last_feeding = serializers.SerializerMethodField()
+    last_change = serializers.SerializerMethodField()
+    last_sleep = serializers.SerializerMethodField()
+    last_temperature = serializers.SerializerMethodField()
+    last_tummytime = serializers.SerializerMethodField()
+    last_weight = serializers.SerializerMethodField()
+
     class Meta:
         model = models.Child
-        fields = ('id', 'first_name', 'last_name', 'birth_date', 'slug', 'account', 'is_active')
+        fields = (
+            'id',
+            'first_name',
+            'last_name',
+            'birth_date',
+            'slug',
+            'account',
+            'is_active',
+            'last_feeding',
+            'last_change',
+            'last_sleep',
+            'last_temperature',
+            'last_tummytime',
+            'last_weight',
+        )
         lookup_field = 'slug'
+
+    def get_last_feeding(self, instance):
+        feeding = instance.feeding.order_by('-start').first()
+        data = {}
+        if feeding:
+            data = FeedingSerializer(feeding).data
+        return data
+
+    def get_last_change(self, instance):
+        change = instance.diaper_change.order_by('-time').first()
+        data = {}
+        if change:
+            data = DiaperChangeSerializer(change).data
+        return data
+
+    def get_last_sleep(self, instance):
+        sleep = instance.sleep.order_by('-start').first()
+        data = {}
+        if sleep:
+            data = SleepSerializer(sleep).data
+        return data
+
+    def get_last_temperature(self, instance):
+        temperature = instance.temperature.order_by('-time').first()
+        data = {}
+        if temperature:
+            data = TemperatureSerializer(temperature).data
+        return data
+
+    def get_last_tummytime(self, instance):
+        tummytime = instance.tummy_time.order_by('-start').first()
+        data = {}
+        if tummytime:
+            data = TummyTimeSerializer(tummytime).data
+        return data
+
+    def get_last_weight(self, instance):
+        weight = instance.weight.order_by('-date').first()
+        data = {}
+        if weight:
+            data = WeightSerializer(weight).data
+        return data
 
 
 class DiaperChangeSerializer(CoreModelSerializer):
@@ -88,8 +150,16 @@ class DiaperChangeSerializer(CoreModelSerializer):
 class FeedingSerializer(CoreModelSerializer):
     class Meta:
         model = models.Feeding
-        fields = ('id', 'child', 'start', 'end', 'duration', 'type', 'method',
-                  'amount')
+        fields = (
+            'id',
+            'child',
+            'start',
+            'end',
+            'duration',
+            'type',
+            'method',
+            'amount'
+        )
 
 
 class NoteSerializer(CoreModelSerializer):
@@ -126,19 +196,27 @@ class TimeLineSerializer(serializers.Serializer):
         self.child = kwargs.pop('child')
         super(TimeLineSerializer, self).__init__(**kwargs)
 
-    def get_items(self, instance):
-        items = []
-        date = instance['date']
-        for item in timeline.get_objects(self.child, date):
-            items.append({
-              'time': str(item['time']),
-              'event': item['event'],
-              'model_name': item['model_name'],
-              'detail': item['detail'],
-              'type': item.get('type')
-            })
-        return items
+    # def get_items(self, instance):
+    #     items = []
+    #     date = instance['date']
+    #     for item in timeline.get_objects(self.child, date):
+    #         items.append({
+    #           'time': str(item['time']),
+    #           'event': item['event'],
+    #           'model_name': item['model_name'],
+    #           'detail': item['detail'],
+    #           'type': item.get('type')
+    #         })
+    #     return items
 
+    def get_items(self, instance):
+        changes, feedings, sleep = timeline.get_timeline(self.child, instance['date'])
+        data = {
+          'changes': DiaperChangeSerializer(changes, many=True).data,
+          'feedings': FeedingSerializer(feedings, many=True).data,
+          'sleep': SleepSerializer(sleep, many=True).data
+        }
+        return data
 
 class TimerSerializer(serializers.ModelSerializer):
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())

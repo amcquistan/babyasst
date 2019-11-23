@@ -5,6 +5,25 @@ from django.utils.translation import gettext as _
 from core.models import DiaperChange, Feeding, Sleep, TummyTime
 from core.utils import duration_parts, duration_string
 
+def get_timeline(child, date):
+    min_date = date
+    max_date = date.replace(hour=23, minute=59, second=59)
+    
+    changes = DiaperChange.objects.filter(
+        child=child, 
+        time__range=(min_date, max_date)
+      ).order_by('time')
+    feedings = Feeding.objects.filter(
+        child=child, 
+        start__range=(min_date, max_date)
+      ).order_by('start')
+    sleep = Sleep.objects.filter(
+        child=child,
+        start__range=(min_date, max_date)
+      ).order_by('-start')
+    return changes, feedings, sleep
+
+
 def get_objects(child, date):
     """
     Create a time-sorted dictionary of all events for a child.

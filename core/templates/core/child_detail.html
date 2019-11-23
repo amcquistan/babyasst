@@ -9,6 +9,8 @@
 {% endblock %}
 
 {% block content %}
+<div id='child-detail'>
+
   <div class="row">
     <div class="col-lg-3 col-md-5 pb-3 text-center">
       {% if object.picture %}
@@ -26,116 +28,141 @@
     </div>
     <div class="col-lg-9 col-md-7">
       <h2 class="text-center">{% trans "Activities" %}</h2>
-      <div class="card-deck mb-5">
-        <a href="{% url 'core:diaperchange' slug=object.slug %}" class="card card-diaperchange">
+      <div class="card-deck mb-2">
+        <a href="{% url 'core:diaperchange' slug=object.slug %}" class="card card-dashboard card-diaperchange" id='diaperchange-card'>
           <div class="card-header text-center">
-            <i class="icon icon-2x icon-diaperchange" aria-hidden="true"></i>
+            <h3 class="text-center"><i class="icon icon-diaperchange mr-2" aria-hidden="true"></i> {% trans "Diaper Changes" %}</h3>
           </div>
-          <div class="card-body">
-            <h3 class="card-title text-center">{% trans "Diaper Changes" %}</h3>
+          <div class="card-body text-center"">
+            <span class="card-title" style="font-weight: bolder;">
+              <i class="icon icon-sad" aria-hidden="true"></i>
+              Nothing Yet
+              <i class="icon icon-sad" aria-hidden="true"></i>
+            </span>
+            <div class="card-text"></div>
           </div>
         </a>
-        <a href="{% url 'core:feeding' slug=child.slug %}" class="card card-feeding">
+        <a href="{% url 'core:feeding' slug=child.slug %}" class="card card-dashboard card-feeding" id="feeding-card">
           <div class="card-header text-center">
-            <i class="icon icon-2x icon-feeding" aria-hidden="true"></i>
+            <h3 class="text-center"><i class="icon icon-feeding mr-2" aria-hidden="true"></i> {% trans "Feedings" %}</h3>
           </div>
-          <div class="card-body">
-            <h3 class="card-title text-center">{% trans "Feedings" %}</h3>
+          <div class="card-body text-center"">
+            <span class="card-title" style="font-weight: bolder;">
+              <i class="icon icon-sad" aria-hidden="true"></i>
+              Nothing Yet
+              <i class="icon icon-sad" aria-hidden="true"></i>
+            </span>
+            <div class="card-text"></div>
           </div>
         </a>
-        <a href="{% url 'core:sleep' slug=child.slug %}" class="card card-sleep">
+        <a href="{% url 'core:sleep' slug=child.slug %}" class="card card-dashboard card-sleep" id='sleep-card'>
           <div class="card-header text-center">
-            <i class="icon icon-2x icon-sleep" aria-hidden="true"></i>
+            <h3 class="text-center"><i class="icon icon-sleep mr-2" aria-hidden="true"></i> {% trans "Sleep" %}</h3>
           </div>
-          <div class="card-body">
-            <h3 class="card-title text-center">{% trans "Sleep" %}</h3>
+          <div class="card-body text-center"">
+            <span class="card-title" style="font-weight: bolder;">
+              <i class="icon icon-sad" aria-hidden="true"></i>
+              Nothing Yet
+              <i class="icon icon-sad" aria-hidden="true"></i>
+            </span>
+            <div class="card-text"></div>
           </div>
         </a>
       </div>
       <div class="card-deck mb-5">
-        <a href="{% url 'core:temperature' slug=child.slug %}" class="card card-temperature">
+        <a href="{% url 'core:temperature' slug=child.slug %}" class="card card-dashboard card-temperature" id='temperature-card'>
           <div class="card-header text-center">
-            <i class="icon icon-2x icon-temperature" aria-hidden="true"></i>
+            <h3 class="text-center"><i class="icon icon-temperature mr-2" aria-hidden="true"></i> {% trans "Temperature" %}</h3>
           </div>
-          <div class="card-body">
-            <h3 class="card-title text-center">{% trans "Temperature" %}</h3>
+          <div class="card-body text-center"">
+            <span class="card-title" style="font-weight: bolder;">
+              <i class="icon icon-happy" aria-hidden="true"></i>
+              Nothing Yet
+              <i class="icon icon-happy" aria-hidden="true"></i>
+            </span>
+            <div class="card-text"></div>
           </div>
         </a>
-        <a href="{% url 'core:tummytime' slug=child.slug %}" class="card card-tummytime">
+
+        <a href="{% url 'core:tummytime' slug=child.slug %}" class="card card-dashboard card-tummytime" id='tummytime-card'>
           <div class="card-header text-center">
-            <i class="icon icon-2x icon-tummytime" aria-hidden="true"></i>
+            <h3 class="text-center"><i class="icon icon-tummytime mr-2" aria-hidden="true"></i> {% trans "Tummy Time" %}</h3>
           </div>
-          <div class="card-body">
-            <h3 class="card-title text-center">{% trans "Tummy Time" %}</h3>
+          <div class="card-body text-center"">
+            <span class="card-title" style="font-weight: bolder;">
+              <i class="icon icon-sad" aria-hidden="true"></i>
+              Nothing Yet
+              <i class="icon icon-sad" aria-hidden="true"></i>
+            </span>
+            <div class="card-text"></div>
           </div>
         </a>
-        <a href="{% url 'core:weight' slug=child.slug %}" class="card card-weight">
+
+        <a href="{% url 'core:weight' slug=child.slug %}" class="card card-dashboard card-weight" id='weight-card'>
           <div class="card-header text-center">
-            <i class="icon icon-2x icon-weight" aria-hidden="true"></i>
+            <h3 class="text-center"><i class="icon icon-weight mr-2" aria-hidden="true"></i> {% trans "Weight" %}</h3>
           </div>
-          <div class="card-body">
-            <h3 class="card-title text-center">{% trans "Weight" %}</h3>
+          <div class="card-body text-center"">
+            <span class="card-title" style="font-weight: bolder;">
+              <i class="icon icon-sad" aria-hidden="true"></i>
+              Nothing Yet
+              <i class="icon icon-sad" aria-hidden="true"></i>
+            </span>
+            <div class="card-text"></div>
           </div>
         </a>
       </div>
     </div>
   </div>
 
-  <div class="row" id='child-detail'>
-    <div class="col-lg-7 col-md-7 col-sm-12">
+  <div class="row">
+    <div class="col-lg-6 col-md-6 col-sm-12">
       <h2 class="text-center">{% trans "Summary" %}</h2>
-      <div id="dashboard-child" class="card-columns">
-        {% card_feeding_last object %}
-        {% card_feeding_last_method object %}
-        {% card_timer_list %}
-        {% card_statistics object %}
-        {% card_sleep_last object %}
-        {% card_sleep_day object %}
-        {% card_sleep_naps_day object %}
-        {% card_tummytime_day object %}
-        {% card_diaperchange_last object %}
-        {% card_diaperchange_types object %}
+      <div id="dashboard-child" class="row">
+        <div class="col-lg-6 col-sm-12">
+          {% card_diaperchange_types object %}
+        </div>
+        <div class="col-lg-6 col-sm-12">
+          {% card_statistics object %}
+          {% card_sleep_day object %}
+          {% card_feeding_day object %}
+        </div>
+
       </div>
     </div>
-    <div class="col-lg-5 col-md-5 col-sm-12">
+    <div class="col-lg-6 col-md-6 col-sm-12">
       <h2 class="text-center">{% trans "Timeline" %}</h2>
-      <div class="card card-timeline">
+      <div class="card" id="timeline-card">
         <div class="card-header text-center">
           <h3 class="text-center">
-            <a class="btn btn-sm btn-dark" id="prev-timeline-day" href="#" aria-label='{% trans "Previous" %}'>
+            <a class="btn btn-sm btn-primary" id="prev-timeline-day" href="#" aria-label='{% trans "Previous" %}'>
               <i class="icon icon-chevron-left" aria-hidden="true"></i>
               <span class="sr-only">{% trans "Previous" %}</span>
             </a>
             <span id="timeline-current-date" style="margin: 5px 12px;"></span>
-            <a class="btn btn-sm btn-dark" id="next-timeline-day" href="" aria-label='{% trans "Next" %}'>
+            <a class="btn btn-sm btn-primary" id="next-timeline-day" href="" aria-label='{% trans "Next" %}'>
               <i class="icon icon-chevron-right" aria-hidden="true"></i>
               <span class="sr-only">{% trans "Next" %}</span>
             </a>
           </h3>
         </div>
-        <div class="card-body" style="background-color: #292d31;">
-          <ul class="timeline m-auto" id="timeline-container"></ul>
+        <div class="card-body text-center" style="background-color: #292d31; border-color: yellow; border-width: 2px;" id="timeline-card-body">
+          <svg id="timeline-top-axis"></svg>
+          <div style="max-height: 600px; overflow-y: auto;">
+            <svg id="timeline-chart"></svg>
+          </div>
+          <svg id="timeline-bottom-axis"></svg>
         </div>
       </div>
-      {% comment %}
-      <h2 class="text-center">{% trans "Timeline" %}</h2>
-      <h3 class="text-center">
-        <a class="btn btn-sm btn-default" id="prev-timeline-day" href="#" aria-label='{% trans "Previous" %}'>
-          <i class="icon icon-chevron-left" aria-hidden="true"></i>
-          <span class="sr-only">{% trans "Previous" %}</span>
-        </a>
-        <span id="timeline-current-date"></span>
-        <a class="btn btn-sm btn-default" id="next-timeline-day" href="" aria-label='{% trans "Next" %}'>
-          <i class="icon icon-chevron-right" aria-hidden="true"></i>
-          <span class="sr-only">{% trans "Next" %}</span>
-        </a>
-      </h3>
-      <ul class="timeline m-auto" id="timeline-container">
-          
-      </ul>
-      {% endcomment %}
     </div>
   </div>
+
+  {% include 'core/diaperchange_modal.html' %}
+  {% include 'core/feeding_modal.html' %}
+  {% include 'core/sleep_modal.html' %}
+
+</div>
+
 {% endblock %}
 
 
@@ -145,10 +172,12 @@
   var childId = {{ object.id }};
   BabyBuddy.ChildDetail.init(childId, 'child-detail');
 
+{% comment %}
 {% if user.settings.dashboard_refresh_rate %}
   BabyBuddy.Dashboard.watch('dashboard-child', {{ user.settings.dashboard_refresh_rate_milliseconds }});
 {% else %}
   BabyBuddy.Dashboard.watch('dashboard-child', false);
 {% endif %}
+{% endcomment %}
 </script>
 {% endblock %}

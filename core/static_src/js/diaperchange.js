@@ -1,5 +1,6 @@
 
 BabyBuddy.DiaperChange = function(root) {
+  const chart = document.getElementById('chart');
   let $el;
   let successUrl;
   let userId;
@@ -15,7 +16,9 @@ BabyBuddy.DiaperChange = function(root) {
   let $saveBtn;
   let $prevBtn;
   let $nextBtn;
-  let $modal;
+  let $addBtn;
+  let $addModal;
+  let $deleteModal;
   let $confirmDeleteBtn;
   let self;
 
@@ -26,15 +29,17 @@ BabyBuddy.DiaperChange = function(root) {
       successUrl = url;
       childId = cId;
       diaperChangeId = dId;
-      $time = $el.find('#time');
-      $wet = $el.find('#wet');
-      $solid = $el.find('#solid');
-      $color = $el.find('#color');
+      $time = $el.find('#diaperchange-time');
+      $wet = $el.find('#diaperchange-wet');
+      $solid = $el.find('#diaperchange-solid');
+      $color = $el.find('#diaperchange-color');
+      $saveBtn = $el.find('#diaperchange-save-btn');
       $tableBody = $el.find('tbody');
-      $saveBtn = $el.find('#save-btn');
       $prevBtn = $el.find('#prev-btn');
       $nextBtn = $el.find('#next-btn');
-      $modal = $el.find('#confirm-delete-modal');
+      $addBtn = $el.find('#diaperchange-add-btn');
+      $addModal = $el.find('#diaperchange-modal');
+      $deleteModal = $el.find('#confirm-delete-modal');
       $confirmDeleteBtn = $el.find('#confirm-delete-btn');
 
       $confirmDeleteBtn.click((evt) => {
@@ -44,7 +49,7 @@ BabyBuddy.DiaperChange = function(root) {
             type: 'DELETE'
           }).then((response) => {
             self.clear();
-            $modal.modal('hide');
+            $deleteModal.modal('hide');
             root.location.reload();
           });
         }
@@ -54,11 +59,11 @@ BabyBuddy.DiaperChange = function(root) {
         self.fetch();
       }
 
-      $('#datetimepicker_time').datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD hh:mm a'
+      $addBtn.click((evt) => {
+        evt.preventDefault();
+        diaperChange = {};
+        self.showAddModal();
       });
-
       $saveBtn.click((evt) => {
         if (self.isValidInputs()) {
           self.syncModel();
@@ -83,17 +88,21 @@ BabyBuddy.DiaperChange = function(root) {
       const fetchAllUrl = BabyBuddy.ApiRoutes.diaperChanges(childId);
       self.fetchAll(`${fetchAllUrl}?limit=10`);
     },
+    showAddModal: () => {
+      $addModal.modal('show');
+      self.syncInputs();
+    },
     syncInputs: () => {
-      if (!_.isEmpty(diaperChange)) {
-        if (diaperChange.time) {
-          $time.val(moment(diaperChange.time).format('YYYY-MM-DD hh:mm a'));
-        }
-        $wet.prop('checked', diaperChange.wet);
-        $solid.prop('checked', diaperChange.solid);
-        $wet.parent().toggleClass('active', diaperChange.wet);
-        $solid.parent().toggleClass('active', diaperChange.solid);
-        $color.val(diaperChange.color);
-      }
+      let defaultTime = !_.isEmpty(diaperChange) && diaperChange.time ? moment(diaperChange.time) : moment();
+      $el.find('#diaperchange-datetimepicker_time').datetimepicker({
+        defaultDate: defaultTime,
+        format: 'YYYY-MM-DD hh:mm a'
+      });
+      $wet.prop('checked', !_.isEmpty(diaperChange) && diaperChange.wet);
+      $solid.prop('checked', !_.isEmpty(diaperChange) && diaperChange.solid);
+      $wet.parent().toggleClass('active', !_.isEmpty(diaperChange) && diaperChange.wet);
+      $solid.parent().toggleClass('active', !_.isEmpty(diaperChange) && diaperChange.solid);
+      $color.val(!_.isEmpty(diaperChange) && diaperChange.color ? diaperChange.color : '');
     },
     syncTable: () => {
       if (!_.isEmpty(diaperChanges)) {
@@ -133,8 +142,8 @@ BabyBuddy.DiaperChange = function(root) {
           console.log('clicked update change ' + id);
           diaperChangeId = id;
           diaperChange = diaperChanges.find(c => c.id === id);
-          self.syncInputs();
           root.window.scrollTo(0, 0);
+          self.showAddModal();
         });
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
@@ -142,7 +151,7 @@ BabyBuddy.DiaperChange = function(root) {
           let id = parseInt($target.data('change'));
           diaperChangeId = id;
           console.log('clicked delete change ' + id);
-          $modal.modal('show');
+          $deleteModal.modal('show');
         });
       }
     },
@@ -174,6 +183,7 @@ BabyBuddy.DiaperChange = function(root) {
         $.get(url)
         .then((response) => {
           diaperChanges = response.results;
+          console.log(response);
           self.syncTable();
           $prevBtn.prop('href', response.previous || '#');
           $nextBtn.prop('href', response.next || '#');
@@ -189,7 +199,9 @@ BabyBuddy.DiaperChange = function(root) {
         .then((response) => {
           diaperChange = response;
           diaperChangeId = response.id;
-          root.location.href = successUrl;
+          $addModal.modal('hide');
+          root.location.reload(true);
+          // root.location.href = successUrl;
           return response;
         });
     },
@@ -197,8 +209,10 @@ BabyBuddy.DiaperChange = function(root) {
       $.post(BabyBuddy.ApiRoutes.diaperChangeDetail(childId, diaperChangeId), diaperChange)
         .then((response) => {
           diaperChange = response;
-          self.syncInputs();
-          root.location.href = successUrl;
+          // self.syncInputs();
+          // root.location.href = successUrl;
+          root.location.reload(true);
+          // $addModal.modal('hide');
           return response;
         });
     },

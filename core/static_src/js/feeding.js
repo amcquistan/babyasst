@@ -15,10 +15,12 @@ BabyBuddy.Feeding = function(root) {
   let $method;
   let $amount;
   let $tableBody;
+  let $addBtn;
   let $saveBtn;
   let $prevBtn;
   let $nextBtn;
-  let $modal;
+  let $addModal;
+  let $deleteModal;
   let $confirmDeleteBtn;
   let self;
 
@@ -29,18 +31,20 @@ BabyBuddy.Feeding = function(root) {
       successUrl = url;
       childId = cId;
       feedingId = fId;
-      $startPicker = $el.find('#datetimepicker_start');
-      $endPicker = $el.find('#datetimepicker_end');
-      $start = $el.find('#start');
-      $end = $el.find('#end');
-      $type = $el.find('#type');
-      $method = $el.find('#method');
-      $amount = $el.find('#amount');
+      $startPicker = $el.find('#feeding-datetimepicker_start');
+      $endPicker = $el.find('#feeding-datetimepicker_end');
+      $start = $el.find('#feeding-start');
+      $end = $el.find('#feeding-end');
+      $type = $el.find('#feeding-type');
+      $method = $el.find('#feeding-method');
+      $amount = $el.find('#feeding-amount');
       $tableBody = $el.find('tbody');
-      $saveBtn = $el.find('#save-btn');
+      $addBtn = $el.find('#feeding-add-btn');
+      $saveBtn = $el.find('#feeding-save-btn');
       $prevBtn = $el.find('#prev-btn');
       $nextBtn = $el.find('#next-btn');
-      $modal = $el.find('#confirm-delete-modal');
+      $addModal = $el.find('#feeding-modal');
+      $deleteModal = $el.find('#confirm-delete-modal');
       $confirmDeleteBtn = $el.find('#confirm-delete-btn');
 
       $confirmDeleteBtn.click((evt) => {
@@ -50,7 +54,7 @@ BabyBuddy.Feeding = function(root) {
             type: 'DELETE'
           }).then((response) => {
             self.clear();
-            $modal.modal('hide');
+            $deleteModal.modal('hide');
             root.location.reload();
           });
         }
@@ -89,14 +93,18 @@ BabyBuddy.Feeding = function(root) {
       });
 
       $endPicker.datetimepicker({
-        defaultDate: 'now',
+        minDate: $startPicker.datetimepicker('viewDate').add(1, 'minutes'),
         format: 'YYYY-MM-DD hh:mm a'
       });
 
       $startPicker.on('change.datetimepicker', function(evt){
-        $endPicker.datetimepicker('minDate', evt.date);
+        $endPicker.datetimepicker('minDate', moment(evt.date).add(1, 'minutes'));
       });
-
+      $addBtn.click((evt) => {
+        evt.preventDefault();
+        feeding = {};
+        self.showAddModal();
+      });
       $saveBtn.click((evt) => {
         if (self.isValidInputs()) {
           self.syncModel();
@@ -121,18 +129,29 @@ BabyBuddy.Feeding = function(root) {
       const fetchAllUrl = BabyBuddy.ApiRoutes.feedings(childId);
       self.fetchAll(`${fetchAllUrl}?limit=10`);
     },
+    showAddModal: () => {
+      $addModal.modal('show');
+      self.syncInputs();
+    },
     syncInputs: () => {
-      if (!_.isEmpty(feeding)) {
-        if (feeding.start) {
-          $start.val(moment(feeding.start).format('YYYY-MM-DD hh:mm a'));
-        }
-        if (feeding.end) {
-          $end.val(moment(feeding.end).format('YYYY-MM-DD hh:mm a'));
-        }
-        $type.val(feeding.type);
-        $method.val(feeding.method);
-        $amount.val(feeding.amount);
-      }
+      let startDefault = !_.isEmpty(feeding) && feeding.start ? moment(feeding.start) : moment().subtract(2, 'minutes');
+      let endDefault = !_.isEmpty(feeding) && feeding.end ? moment(feeding.end) : moment();
+      $type.val(!_.isEmpty(feeding) && feeding.type ? feeding.type : '');
+      $method.val(!_.isEmpty(feeding) && feeding.method ? feeding.method : '');
+      $amount.val(!_.isEmpty(feeding) && feeding.amount ? feeding.amount : '');
+      $startPicker.datetimepicker({
+        defaultDate: startDefault,
+        format: 'YYYY-MM-DD hh:mm a'
+      });
+
+      $endPicker.datetimepicker({
+        defaultDate: endDefault,
+        format: 'YYYY-MM-DD hh:mm a'
+      });
+
+      $startPicker.on('change.datetimepicker', function(evt){
+        $endPicker.datetimepicker('minDate', evt.date);
+      });
     },
     syncTable: () => {
       if (!_.isEmpty(feedings)) {
@@ -180,8 +199,8 @@ BabyBuddy.Feeding = function(root) {
           feedingId = id;
           console.log('clicked update feeding ' + id);
           feeding = feedings.find(c => c.id === id);
-          self.syncInputs();
           root.window.scrollTo(0, 0);
+          self.showAddModal();
         });
 
         $el.find('.delete-btn').click((evt) => {
@@ -189,8 +208,7 @@ BabyBuddy.Feeding = function(root) {
           const $target = $(evt.currentTarget);
           let id = parseInt($target.data('feeding'));
           feedingId = id;
-          $modal.modal('show');
-          console.log('clicked delete feeding ' + id);
+          $deleteModal.modal('show');
         });
 
       }
@@ -266,8 +284,9 @@ BabyBuddy.Feeding = function(root) {
       $.post(BabyBuddy.ApiRoutes.feedings(childId), feeding)
         .then((response) => {
           feeding = response;
-          feedingId = response.id;
-          root.location.href = successUrl;
+          // feedingId = response.id;
+          // root.location.href = successUrl;
+          root.location.reload(true);
           return response;
         });
     },
@@ -275,8 +294,9 @@ BabyBuddy.Feeding = function(root) {
       $.post(BabyBuddy.ApiRoutes.feedingDetail(childId, feedingId), feeding)
         .then((response) => {
           feeding = response;
-          self.syncInputs();
-          root.location.href = successUrl;
+          // self.syncInputs();
+          // root.location.href = successUrl;
+          root.location.reload(true);
           return response;
         });
     },

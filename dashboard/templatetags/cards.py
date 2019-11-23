@@ -5,6 +5,8 @@ from django.db.models.functions import TruncDate
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
+import pandas as pd
+
 from core import models
 
 
@@ -86,6 +88,31 @@ def card_feeding_last_method(child):
     instance = models.Feeding.objects.filter(child=child) \
         .order_by('-end').first()
     return {'type': 'feeding', 'feeding': instance}
+
+
+@register.inclusion_tag('cards/feeding_day.html')
+def card_feeding_day(child, date=None):
+    if not date:
+        date = timezone.localtime().date()
+    instances = models.Feeding.objects.filter(
+        child=child, end__year=date.year, end__month=date.month,
+        end__day=date.day).order_by('-end')
+
+    total_duration = timezone.timedelta(seconds=0)
+    count = instances.count()
+    total_amount = 0
+
+    for instance in instances:
+        if instance.duration:
+            total_duration += timezone.timedelta(seconds=instance.duration.seconds)
+        if instance.amount:
+            total_amount += instance.amount
+    return {
+        'type': 'feeding',
+        'stattotal_durations': total_duration,
+        'count': count,
+        'total_amount': total_amount
+    }
 
 
 @register.inclusion_tag('cards/sleep_last.html')
@@ -172,6 +199,19 @@ def card_statistics(child):
         'stat': feedings['btwn_average'],
         'title': _('Feeding frequency')})
 
+    if feedings['avg_formula_per_day']:
+        stats.append({
+            'type': 'float',
+            'stat': feedings['avg_formula_per_day'],
+            'title': _('Avg formula per day (oz)')
+        })
+
+        stats.append({
+          'type': 'float',
+          'stat': feedings['avg_formula_per_feeding'],
+          'title': _('Avg formula per feed (oz)')
+        })
+
     naps = _nap_statistics(child)
     stats.append({
         'type': 'duration',
@@ -239,14 +279,26 @@ def _feeding_statistics(child):
         'btwn_average': 0.0}
     last_instance = None
 
+    formula_feeding_times = []
+    formula_feeding_amounts = []
+
     for instance in instances:
         if last_instance:
             feedings['btwn_total'] += instance.start - last_instance.end
         last_instance = instance
+        if instance.type != 'breast milk' and instance.amount:
+            formula_feeding_times.append(instance.end)
+            formula_feeding_amounts.append(instance.amount)
+
+    feedings['avg_formula_per_day'] = 0
+    feedings['avg_formula_per_feeding'] = 0
+    if formula_feeding_times:
+        s = pd.Series(formula_feeding_amounts, index=formula_feeding_times)
+        feedings['avg_formula_per_day'] = round(s.resample('D').sum().mean(), 2)
+        feedings['avg_formula_per_feeding'] = round(s.mean(), 2)
 
     if feedings['btwn_count'] > 0:
-        feedings['btwn_average'] = \
-            feedings['btwn_total'] / feedings['btwn_count']
+        feedings['btwn_average'] = feedings['btwn_total'] / feedings['btwn_count']
 
     return feedings
 

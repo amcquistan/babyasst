@@ -29,7 +29,8 @@ module.exports = {
             'node_modules/bootstrap/dist/js/bootstrap.js',
             'node_modules/moment/moment.js',
             'node_modules/tempusdominus-bootstrap-4/build/js/tempusdominus-bootstrap-4.js',
-            'node_modules/lodash/lodash.js'
+            'node_modules/lodash/lodash.js',
+            'node_modules/d3/dist/d3.min.js'
         ],
         graph: [
             'node_modules/plotly.js/dist/plotly-cartesian.js'
