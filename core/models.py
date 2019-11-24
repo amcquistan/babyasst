@@ -634,6 +634,14 @@ class Timer(models.Model):
         return self.name or str(format_lazy(_('Timer #{id}'), id=self.id))
 
     @classmethod
+    def unfinished_account_timers(cls, user):
+        return cls.objects.filter(
+                      account__in=user.accounts.all()
+                  ).exclude(
+                      complete=True
+                  ).order_by('-id').all()
+
+    @classmethod
     def from_db(cls, db, field_names, values):
         instance = super(Timer, cls).from_db(db, field_names, values)
         if not instance.name:

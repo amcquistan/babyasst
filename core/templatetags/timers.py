@@ -25,7 +25,7 @@ def timer_nav(context, active=True):
 @register.inclusion_tag('core/timer_mobile_nav.html', takes_context=True)
 def timer_mobile_nav(context):
     request = context['request'] or None
-    timers = Timer.objects.filter(active=True, user=request.user)
+    timers = Timer.unfinished_account_timers(request.user)
     timers_cnt = len(timers)
 
     url = reverse('core:timer-quick-add')

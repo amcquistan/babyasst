@@ -21,6 +21,9 @@ BabyBuddy.Timer = function (root) {
         $seconds = null,
         $timerStatus = null,
         $timerStatusMsg = null,
+        $feedingModal = null,
+        $startFeedingPicker = null,
+        $endFeedingPicker = null,
         debounceTimer = null,
         lastUpdate = moment(),
         hidden = null,
@@ -49,6 +52,7 @@ BabyBuddy.Timer = function (root) {
             $seconds = $el.find('#timer-seconds');
             $timerStatus = $el.find('#timer-status');
             $timerStatusMsg = $el.find('#timer-status-message');
+            $feedingModal = $el.find('#feeding-modal');
             self = this;
 
             if (timerId) {
@@ -101,9 +105,72 @@ BabyBuddy.Timer = function (root) {
               });
             });
             $endBtn.click((evt) => {
+              evt.preventDefault();
               timer.active = false;
               timer.complete = true;
-              self.save();
+              self.save().then(response => {
+                if (response.is_feeding) {
+                  $feedingModal.modal('show');
+                  const feedingDuration = moment.duration(response.duration);
+                  const feedingEnd = moment();
+                  const feedingStart = feedingEnd.clone().subtract(feedingDuration);
+                  const $feedingStart = $feedingModal.find('#feeding-datetimepicker_start');
+                  const $feedingEnd = $feedingModal.find('#feeding-datetimepicker_end');
+                  $feedingStart.datetimepicker({
+                    defaultDate: feedingStart,
+                    format: 'YYYY-MM-DD hh:mm a'
+                  });
+                  $feedingEnd.datetimepicker({
+                    defaultDate: feedingEnd,
+                    format: 'YYYY-MM-DD hh:mm a'
+                  });
+                  const $type = $feedingModal.find('#feeding-type');
+                  const $method = $feedingModal.find('#feeding-method');
+                  const $amount = $feedingModal.find('#feeding-amount');
+                  $type.change((evt) => {
+                    if (!$type.val()) {
+                      $method.find('option').each((i, el) => {
+                        const $this = $(el);
+                        $this.prop('disabled', false);
+                        $this.prop('selected', i === 0);
+                      });
+                    } else if ($type.val() === 'breast milk') {
+                      const validOptions = ['left breast', 'right breast', 'both breasts'];
+                      $method.find('option').each((i, el) => {
+                        const $this = $(el);
+                        $this.prop('disabled', !validOptions.includes($this.prop('value')));
+                        $this.prop('selected', false);
+                      });
+                    } else {
+                      $method.find('option').each((i, el) => {
+                        const $this = $(el);
+                        $this.prop('disabled', $this.prop('value') !== 'bottle');
+                        $this.prop('selected', $this.prop('value') === 'bottle');
+                      });
+                    }
+                  });
+                  $feedingModal.find('#feeding-save-btn').click(e => {
+                    const feeding = {
+                      child: response.child,
+                      start: $feedingStart.datetimepicker('viewDate').toISOString(),
+                      end: $feedingEnd.datetimepicker('viewDate').toISOString(),
+                      type: $type.val(),
+                      method: $method.val(),
+                      amount: $amount.val(),
+                    };
+                    if (feeding.method === 'bottle' && !feeding.amount) {
+                      return;
+                    }
+                    $.post(BabyBuddy.ApiRoutes.feedings(feeding.child), feeding)
+                      .then((response) => {
+                        root.location.href = $endBtn.prop('href');
+                        return response;
+                      });
+                  });
+                } else {
+                  root.location.href = $endBtn.prop('href');
+                }
+              });
             });
 
             $name.change(_.debounce((evt) => {
@@ -237,7 +304,7 @@ BabyBuddy.Timer = function (root) {
             $seconds.text(seconds + 1);
             return;
           } else {
-            $seconds.text(0);
+            $seconds.text('0');
           }
 
           var minutes = Number($minutes.text());
@@ -245,7 +312,7 @@ BabyBuddy.Timer = function (root) {
             $minutes.text(minutes + 1);
             return;
           } else {
-            $minutes.text(0);
+            $minutes.text('0');
           }
 
           var hours = Number($hours.text());

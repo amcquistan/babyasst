@@ -19,6 +19,9 @@ BabyBuddy.Sleep = function(root) {
   let $addModal;
   let $deleteModal;
   let $confirmDeleteBtn;
+  let $chart;
+  let $startFilterPicker;
+  let $endFilterPicker;
   let self;
 
   const Sleep = {
@@ -40,6 +43,9 @@ BabyBuddy.Sleep = function(root) {
       $addModal = $el.find('#sleep-modal');
       $deleteModal = $el.find('#confirm-delete-modal');
       $confirmDeleteBtn = $el.find('#confirm-delete-btn');
+      $chart = $el.find('#sleep-chart');
+      $startFilterPicker = $el.find('#sleep-filter-datetimepicker_start');
+      $endFilterPicker = $el.find('#sleep-filter-datetimepicker_end');
 
       $confirmDeleteBtn.click((evt) => {
         if (childId && sleepId) {
@@ -83,7 +89,25 @@ BabyBuddy.Sleep = function(root) {
         evt.preventDefault();
         self.fetchAll($nextBtn.prop('href'));
       });
+      /*
+      $startFilterPicker.datetimepicker({
+        defaultDate: moment().subtract(7, 'days'),
+        format: 'YYYY-MM-DD'
+      });
+      $endFilterPicker.datetimepicker({
+        defaultDate: moment(),
+        format: 'YYYY-MM-DD'
+      });
 
+      $startFilterPicker.on('change.datetimepicker', function(evt){
+        $endFilterPicker.datetimepicker('minDate', moment(evt.date).add(1, 'days'));
+        console.log('start filter date changed');
+      });
+
+      $endFilterPicker.on('change.datetimepicker', function(evt) {
+        console.log('end filter date changed');
+      });
+      */
       const fetchAllUrl = BabyBuddy.ApiRoutes.sleeping(childId);
       self.fetchAll(`${fetchAllUrl}?limit=10`);
     },
@@ -105,7 +129,7 @@ BabyBuddy.Sleep = function(root) {
       });
 
       $startPicker.on('change.datetimepicker', function(evt){
-        $endPicker.datetimepicker('minDate', evt.date);
+        $endPicker.datetimepicker('minDate', moment(evt.date).add(1, 'minutes'));
       });
     },
     syncTable: () => {
@@ -206,9 +230,33 @@ BabyBuddy.Sleep = function(root) {
             $prevBtn.toggleClass('disabled', !Boolean(response.previous));
             $nextBtn.toggleClass('disabled', !Boolean(response.next));
             self.syncTable();
+            // self.plotData();
             return response;
           });
       }
+    },
+    plotData: () => {
+      $chart.empty();
+      const w = $el.width();
+      const h = 350;
+      const marginX = 50;
+      const marginY = 50;
+      const startChartDate = $startFilterPicker.datetimepicker('viewDate');
+      const endChartDate = $endFilterPicker.datetimepicker('viewDate');
+      const svg = d3.select('#sleep-chart').attr('width', w).attr('height', h);
+      const curDate = startChartDate.clone();
+      const xDomain = [];
+      while(curDate.isSameOrBefore(end)) {
+        xDomain.push(curDate.toDate());
+        curDate.add(1, 'days');
+      }
+      const scaleX = d3.scaleBand()
+                        .domain(xDomain)
+                        .range([marginX, w - marginX]);
+
+      const datesMap = {};
+      const scaleY = d3.scaleLinear()
+      
     },
     create: () => {
       $.post(BabyBuddy.ApiRoutes.sleeping(childId), sleep)
