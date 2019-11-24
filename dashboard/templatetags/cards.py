@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta
 from django import template
 from django.db.models import Avg, Count, Sum
 from django.db.models.functions import TruncDate
@@ -186,14 +187,14 @@ def card_statistics(child):
     :returns: a list of dictionaries with "type", "stat" and "title" entries.
     """
     stats = []
-
-    changes = _diaperchange_statistics(child)
+    start = timezone.now() - timedelta(days=14)
+    changes = _diaperchange_statistics(child, start=start)
     stats.append({
         'type': 'duration',
         'stat': changes['btwn_average'],
         'title': _('Diaper change frequency')})
 
-    feedings = _feeding_statistics(child)
+    feedings = _feeding_statistics(child, start=start)
     stats.append({
         'type': 'duration',
         'stat': feedings['btwn_average'],
@@ -212,7 +213,7 @@ def card_statistics(child):
           'title': _('Avg formula per feed (oz)')
         })
 
-    naps = _nap_statistics(child)
+    naps = _nap_statistics(child, start=start)
     stats.append({
         'type': 'duration',
         'stat': naps['average'],
@@ -222,7 +223,7 @@ def card_statistics(child):
         'stat': naps['avg_per_day'],
         'title': _('Average naps per day')})
 
-    sleep = _sleep_statistics(child)
+    sleep = _sleep_statistics(child, start=start)
     stats.append({
         'type': 'duration',
         'stat': sleep['average'],
@@ -241,14 +242,15 @@ def card_statistics(child):
     return {'stats': stats}
 
 
-def _diaperchange_statistics(child):
+def _diaperchange_statistics(child, start=None):
     """
     Averaged Diaper Change data.
     :param child: an instance of the Child model.
     :returns: a dictionary of statistics.
     """
-    instances = models.DiaperChange.objects.filter(child=child) \
-        .order_by('time')
+    instances = models.DiaperChange.objects.filter(child=child).order_by('time')
+    if start:
+        instances = instances.filter(time__gte=start)
     changes = {
         'btwn_total': timezone.timedelta(0),
         'btwn_count': instances.count() - 1,
@@ -266,13 +268,15 @@ def _diaperchange_statistics(child):
     return changes
 
 
-def _feeding_statistics(child):
+def _feeding_statistics(child, start=None):
     """
     Averaged Feeding data.
     :param child: an instance of the Child model.
     :returns: a dictionary of statistics.
     """
     instances = models.Feeding.objects.filter(child=child).order_by('start')
+    if start:
+        instances = instances.filter(start__gte=start)
     feedings = {
         'btwn_total': timezone.timedelta(0),
         'btwn_count': instances.count() - 1,
@@ -303,13 +307,15 @@ def _feeding_statistics(child):
     return feedings
 
 
-def _nap_statistics(child):
+def _nap_statistics(child, start=None):
     """
     Averaged nap data.
     :param child: an instance of the Child model.
     :returns: a dictionary of statistics.
     """
     instances = models.Sleep.naps.filter(child=child).order_by('start')
+    if start:
+        instances = instances.filter(start__gte=start)
     naps = {
         'total': instances.aggregate(Sum('duration'))['duration__sum'],
         'count': instances.count(),
@@ -326,13 +332,15 @@ def _nap_statistics(child):
     return naps
 
 
-def _sleep_statistics(child):
+def _sleep_statistics(child, start=None):
     """
     Averaged Sleep data.
     :param child: an instance of the Child model.
     :returns: a dictionary of statistics.
     """
     instances = models.Sleep.objects.filter(child=child).order_by('start')
+    if start:
+        instances = instances.filter(start__gte=start)
     sleep = {
         'total': instances.aggregate(Sum('duration'))['duration__sum'],
         'count': instances.count(),
