@@ -247,10 +247,6 @@ BabyBuddy.Feeding = function(root) {
         } catch (err) {
           return false;
         }
-
-        if ($method === 'bottle') {
-          return false;
-        }
       } else if (!['left breast', 'right breast', 'both breasts'].includes($method.val())) {
         return false;
       }
