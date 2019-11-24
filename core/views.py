@@ -585,7 +585,7 @@ class TimerCompleteView(UserPassesTestMixin, View):
 
         start = timer.end + (-1 * timer.duration)
 
-        if timer.is_sleeping:
+        if timer.is_sleeping :
             sleep = models.Sleep.objects.create(
                 child=timer.child,
                 start=start,
@@ -595,13 +595,7 @@ class TimerCompleteView(UserPassesTestMixin, View):
             return redirect(reverse('core:child', args=(timer.child.slug,)))
 
         elif timer.is_feeding:
-            feeding = models.Feeding.objects.create(
-                child=timer.child,
-                start=start,
-                duration=timer.duration,
-                end=timer.end
-            )
-            return redirect(reverse('core:feeding-update', args=(timer.child.slug, feeding.id,)))
+            return redirect(reverse('core:child', args=(timer.child.slug,)))
 
         elif timer.is_tummytime:
             tummytime = models.TummyTime.objects.create(

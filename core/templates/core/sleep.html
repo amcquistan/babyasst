@@ -33,6 +33,34 @@
       </div>
       {% include 'core/sleep_modal.html' %}
 
+      <svg id="sleep-chart"></svg>
+      {% comment %}
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label class="text-dark" for="sleep-filter-start">{% trans "Start" %}</label>
+            <div class="input-group date" id="sleep-filter-datetimepicker_start" data-target-input="nearest">
+              <div class="input-group-prepend" data-target="#sleep-filter-datetimepicker_start" data-toggle="datetimepicker">
+                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+              </div>
+              <input type="text" class="form-control datetimepicker-input" id="sleep-filter-start" data-target="#sleep-filter-datetimepicker_start">
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label class="text-dark" for="sleep-filter-end">{% trans "End" %}</label>
+            <div class="input-group date" id="sleep-filter-datetimepicker_end" data-target-input="nearest">
+              <div class="input-group-prepend" data-target="#sleep-filter-datetimepicker_end" data-toggle="datetimepicker">
+                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+              </div>
+              <input type="text" class="form-control datetimepicker-input" id="sleep-filter-end" data-target="#sleep-filter-datetimepicker_end">
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endcomment %}
+
       <p class="mt-5 mb-5 clearfix"></p>
 
       <div class="table-responsive mb-4">
