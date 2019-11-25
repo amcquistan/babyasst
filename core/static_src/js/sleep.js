@@ -230,12 +230,13 @@ BabyBuddy.Sleep = function(root) {
             $prevBtn.toggleClass('disabled', !Boolean(response.previous));
             $nextBtn.toggleClass('disabled', !Boolean(response.next));
             self.syncTable();
-            // self.plotData();
+            self.plotData();
             return response;
           });
       }
     },
     plotData: () => {
+      debugger
       $chart.empty();
       const w = $el.width();
       const h = 350;
@@ -253,9 +254,23 @@ BabyBuddy.Sleep = function(root) {
       const scaleX = d3.scaleBand()
                         .domain(xDomain)
                         .range([marginX, w - marginX]);
+      let grouped = _.groupBy(sleeps, (s) => moment(s.start).startOf('day'));
+      const sleepTotalPerDay = _.reduce(
+          grouped,
+          (days, sleepThatDay, day) => {
+            days.push(sleepThatDay.reduce((totalSleep, s) => {
+              totalSleep.hours += moment.duration(s.duration).asHours();
+              return totalSleep;
+            }, {day: day, hours: 0}))
+            return days;
+          }, [])
 
-      const datesMap = {};
       const scaleY = d3.scaleLinear()
+                        .domain([
+                          d3.min(sleepTotalPerDay, (daySleep) => daySleep.hours),
+                          d3.max(sleepTotalPerDay, (daySleep) => daySleep.hours)
+                        ])
+                        .range([marginY, h - marginY]);
       
     },
     create: () => {

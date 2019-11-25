@@ -257,6 +257,7 @@ class TimerSerializer(serializers.ModelSerializer):
         if complete:
             instance.complete = complete
             instance.stop()
+            instance.save()
         
         if not instance.complete:
             instance.stop()

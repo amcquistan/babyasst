@@ -20,17 +20,17 @@
       </div>
       {% endcomment %}
       <div class="row justify-content-center {% if not timer.active %}timer-stopped{% endif %}" id="timer-status">
-        <div class="col-6">
+        <div class="col-sm-4">
           <div class="row justify-content-center">
-            <div class="col-sm-3">
+            <div style="width:33%;">
               <h2 id="timer-hours" class="timer-hours text-center mb-1 display-4">{{ timer.duration|hours }}</h2>
               <h5 class="text-center text-muted">hrs</h5>
             </div>
-            <div class="col-sm-3">
+            <div style="width:34%;">
               <h2 id="timer-minutes" class="timer-minutes text-center mb-1 display-4">{{ timer.duration|minutes }}</h2>
               <h5 class="text-center text-muted">mins</h5>
             </div>
-            <div class="col-sm-3">
+            <div style="width:33%;">
               <h2 id="timer-seconds" class="timer-seconds text-center mb-1 display-4">{{ timer.duration|seconds }}</h2>
               <h5 class="text-center text-muted">secs</h5>
             </div>
