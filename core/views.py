@@ -14,12 +14,12 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, UpdateView, DeleteView
 from django.views.generic.list import ListView
 
-from babybuddy.mixins import PermissionRequired403Mixin, AccountMemberRequiredMixin, ActiveSubscriptionRequiredMixin, ChildActivityTestMixin, ChildCreationTestMixin
+from babybuddy.mixins import PermissionRequired403Mixin, ChildActivityTestMixin, ChildCreationTestMixin
 from babybuddy.views import BabyBuddyFilterView
 from core import forms, helpers, models, timeline
 
 
-class BaseChildActivityView(View):
+class BaseChildActivityView(LoginRequiredMixin, View):
     def get_queryset(self):
         return self.model.objects.filter(child__slug=self.kwargs.get('slug'))
 
@@ -229,10 +229,6 @@ class ChildList(LoginRequiredMixin, ListView):
 
 class ChildDetail(ChildActivityTestMixin, DetailView):
     model = models.Child
-
-    def test_func(self):
-        child = self.model.objects.get(slug=self.kwargs['slug'])
-        return self.request.user.accounts.filter(children__pk=child.id).count() > 0
 
     def get_context_data(self, **kwargs):
         context = super(ChildDetail, self).get_context_data(**kwargs)

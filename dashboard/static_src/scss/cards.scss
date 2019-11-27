@@ -19,7 +19,7 @@
 
 .card-diaperchange {
     @extend .border-danger;
-    text-decoration: none;
+    text-decoration: none !important;
 
     .card-header {
         @extend .text-white, .bg-danger;

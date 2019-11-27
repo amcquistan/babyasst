@@ -370,14 +370,15 @@ BabyBuddy.ChildDetail = function(root) {
     },
     showFeedingModal: function(d) {
       $feedingModal.modal('show');
-      $feedingModal.find('#feeding-start').val(moment(d.start).format('YYYY-MM-DD hh:mm a'));
+      const s = moment(d.start);
+      $feedingModal.find('#feeding-start').val(s.format('YYYY-MM-DD hh:mm a'));
       $feedingModal.find('#feeding-datetimepicker_start').datetimepicker({
-        defaultDate: 'now',
+        defaultDate: s,
         format: 'YYYY-MM-DD hh:mm a'
       });
       $feedingModal.find('#feeding-end').val(moment(d.end).format('YYYY-MM-DD hh:mm a'));
       $feedingModal.find('#feeding-datetimepicker_end').datetimepicker({
-        minDate: $feedingModal.find('#feeding-datetimepicker_start').datetimepicker('viewDate').add(1, 'minutes'),
+        minDate: s.clone().add(1, 'minutes'),
         format: 'YYYY-MM-DD hh:mm a'
       });
       $feedingModal.find('#feeding-datetimepicker_start').on('change.datetimepicker', function(evt){
@@ -431,14 +432,15 @@ BabyBuddy.ChildDetail = function(root) {
     },
     showSleepModal: function(d) {
       $sleepModal.modal('show');
-      $sleepModal.find('#sleep-start').val(moment(d.start).format('YYYY-MM-DD hh:mm a'));
+      const s = moment(d.start);
+      $sleepModal.find('#sleep-start').val(s.format('YYYY-MM-DD hh:mm a'));
       $sleepModal.find('#sleep-datetimepicker_start').datetimepicker({
-        defaultDate: 'now',
+        defaultDate: s,
         format: 'YYYY-MM-DD hh:mm a'
       });
       $sleepModal.find('#sleep-end').val(moment(d.end).format('YYYY-MM-DD hh:mm a'));
       $sleepModal.find('#sleep-datetimepicker_end').datetimepicker({
-        minDate: $sleepModal.find('#sleep-datetimepicker_start').datetimepicker('viewDate').add(1, 'minute'),
+        minDate: s.clone().add(1, 'minutes'),
         format: 'YYYY-MM-DD hh:mm a'
       });
       $sleepModal.find('#sleep-datetimepicker_start').on('change.datetimepicker', function(evt){

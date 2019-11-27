@@ -23,7 +23,7 @@ from django.views.i18n import set_language
 from django_filters.views import FilterView
 
 from babybuddy import forms, models
-from babybuddy.mixins import PermissionRequired403Mixin, StaffOnlyMixin, AccountMemberRequiredMixin, CanManageAccountTestMixin
+from babybuddy.mixins import PermissionRequired403Mixin, StaffOnlyMixin, CanManageAccountTestMixin
 # from babybuddy.mixins import PermissionRequired403Mixin, AccountMemberRequiredMixin
 
 class TOSView(View):

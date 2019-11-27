@@ -9,8 +9,6 @@ BabyBuddy.Feeding = function(root) {
   let feedings = [];
   let $startPicker;
   let $endPicker;
-  let $start;
-  let $end;
   let $type;
   let $method;
   let $amount;
@@ -33,8 +31,6 @@ BabyBuddy.Feeding = function(root) {
       feedingId = fId;
       $startPicker = $el.find('#feeding-datetimepicker_start');
       $endPicker = $el.find('#feeding-datetimepicker_end');
-      $start = $el.find('#feeding-start');
-      $end = $el.find('#feeding-end');
       $type = $el.find('#feeding-type');
       $method = $el.find('#feeding-method');
       $amount = $el.find('#feeding-amount');
@@ -87,13 +83,15 @@ BabyBuddy.Feeding = function(root) {
         self.fetch();
       }
 
+      const maxEnd = moment();
+      
       $startPicker.datetimepicker({
-        defaultDate: 'now',
+        defaultDate: maxEnd.clone().subtract(10, 'minutes'),
         format: 'YYYY-MM-DD hh:mm a'
       });
 
       $endPicker.datetimepicker({
-        minDate: $startPicker.datetimepicker('viewDate').add(1, 'minutes'),
+        defaultDate: maxEnd,
         format: 'YYYY-MM-DD hh:mm a'
       });
 
@@ -134,16 +132,17 @@ BabyBuddy.Feeding = function(root) {
       self.syncInputs();
     },
     syncInputs: () => {
-      let startDefault = !_.isEmpty(feeding) && feeding.start ? moment(feeding.start) : moment().subtract(2, 'minutes');
+      let startDefault = !_.isEmpty(feeding) && feeding.start ? moment(feeding.start) : moment().subtract(10, 'minutes');
       let endDefault = !_.isEmpty(feeding) && feeding.end ? moment(feeding.end) : moment();
       $type.val(!_.isEmpty(feeding) && feeding.type ? feeding.type : '');
       $method.val(!_.isEmpty(feeding) && feeding.method ? feeding.method : '');
       $amount.val(!_.isEmpty(feeding) && feeding.amount ? feeding.amount : '');
+      $startPicker.find('#feeding-start').val(startDefault.format('YYYY-MM-DD hh:mm a'));
       $startPicker.datetimepicker({
         defaultDate: startDefault,
         format: 'YYYY-MM-DD hh:mm a'
       });
-
+      $endPicker.find('#feeding-end').val(endDefault.format('YYYY-MM-DD hh:mm a'));
       $endPicker.datetimepicker({
         defaultDate: endDefault,
         format: 'YYYY-MM-DD hh:mm a'
@@ -219,18 +218,20 @@ BabyBuddy.Feeding = function(root) {
           feeding = {};
         }
         feeding.child = childId;
-        feeding.start = moment($start.val(), 'YYYY-MM-DD hh:mm a').toISOString();
-        feeding.end = moment($end.val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        feeding.start = moment($startPicker.find('#feeding-start').val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        feeding.end = moment($endPicker.find('#feeding-end').val(), 'YYYY-MM-DD hh:mm a').toISOString();
         feeding.type = $type.val();
         feeding.method = $method.val();
         feeding.amount = $amount.val();
       }
     },
     isValidInputs: () => {
-      let datesValid = $start.val() && $end.val();
+      const s = $startPicker.find('#feeding-start').val();
+      const e = $endPicker.find('#feeding-end').val();
+      let datesValid = s && e;
       if (datesValid) {
-        const startDate = moment($start.val(), 'YYYY-MM-DD hh:mm a');
-        const endDate = moment($end.val(), 'YYYY-MM-DD hh:mm a');
+        const startDate = moment(s, 'YYYY-MM-DD hh:mm a');
+        const endDate = moment(e, 'YYYY-MM-DD hh:mm a');
         datesValid = startDate.isSame(endDate) || startDate.isBefore(endDate);
       }
 

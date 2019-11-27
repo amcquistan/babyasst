@@ -1,6 +1,5 @@
 
 BabyBuddy.DiaperChange = function(root) {
-  const chart = document.getElementById('chart');
   let $el;
   let successUrl;
   let userId;
@@ -9,6 +8,7 @@ BabyBuddy.DiaperChange = function(root) {
   let diaperChange;
   let diaperChanges = [];
   let $time;
+  let $timePicker;
   let $wet;
   let $solid;
   let $color;
@@ -20,6 +20,10 @@ BabyBuddy.DiaperChange = function(root) {
   let $addModal;
   let $deleteModal;
   let $confirmDeleteBtn;
+  let $startFilterPicker;
+  let $endFilterPicker;
+  let diaperChangeDao;
+  let diaperChangeChart;
   let self;
 
   const DiaperChange = {
@@ -41,6 +45,11 @@ BabyBuddy.DiaperChange = function(root) {
       $addModal = $el.find('#diaperchange-modal');
       $deleteModal = $el.find('#confirm-delete-modal');
       $confirmDeleteBtn = $el.find('#confirm-delete-btn');
+      $timePicker = $el.find('#diaperchange-datetimepicker_time');
+      $startFilterPicker = $el.find('#diaperchange-filter-datetimepicker_start');
+      $endFilterPicker = $el.find('#diaperchange-filter-datetimepicker_end');
+      diaperChangeDao = BabyBuddy.ChildTimeActivityDao();
+      diaperChangeChart = BabyBuddy.DiaperChangeChart();
 
       $confirmDeleteBtn.click((evt) => {
         if (childId && diaperChangeId) {
@@ -75,6 +84,7 @@ BabyBuddy.DiaperChange = function(root) {
         }
       });
 
+      /*
       $prevBtn.click((evt) => {
         evt.preventDefault();
         self.fetchAll($prevBtn.prop('href'));
@@ -84,9 +94,30 @@ BabyBuddy.DiaperChange = function(root) {
         evt.preventDefault();
         self.fetchAll($nextBtn.prop('href'));
       });
+      */
 
-      const fetchAllUrl = BabyBuddy.ApiRoutes.diaperChanges(childId);
-      self.fetchAll(`${fetchAllUrl}?limit=10`);
+      $startFilterPicker.datetimepicker({
+        defaultDate: moment().subtract(7, 'days'),
+        format: 'YYYY-MM-DD'
+      });
+
+      $endFilterPicker.datetimepicker({
+        defaultDate: moment(),
+        format: 'YYYY-MM-DD'
+      });
+
+      $startFilterPicker.on('change.datetimepicker', function(evt){
+        $endFilterPicker.datetimepicker('minDate', moment(evt.date).add(1, 'days'));
+        console.log('start filter date changed');
+        self.fetchAll();
+      });
+
+      $endFilterPicker.on('change.datetimepicker', function(evt) {
+        console.log('end filter date changed');
+        self.fetchAll();
+      });
+
+      self.fetchAll();
     },
     showAddModal: () => {
       $addModal.modal('show');
@@ -94,7 +125,7 @@ BabyBuddy.DiaperChange = function(root) {
     },
     syncInputs: () => {
       let defaultTime = !_.isEmpty(diaperChange) && diaperChange.time ? moment(diaperChange.time) : moment();
-      $el.find('#diaperchange-datetimepicker_time').datetimepicker({
+      $timePicker.datetimepicker({
         defaultDate: defaultTime,
         format: 'YYYY-MM-DD hh:mm a'
       });
@@ -178,7 +209,20 @@ BabyBuddy.DiaperChange = function(root) {
           return response;
         });
     },
-    fetchAll: (url) => {
+    fetchAll: () => {
+      const url = BabyBuddy.ApiRoutes.diaperChanges(childId);
+      const s = $startFilterPicker.datetimepicker('viewDate');
+      const e = $endFilterPicker.datetimepicker('viewDate');
+      return diaperChangeDao.fetch(url, s.startOf('day'), e.endOf('day')).then(response => {
+        diaperChanges = response;
+        self.syncTable();
+        $(window).resize(() => {
+          diaperChangeChart.plot($el.find('#diaperchange-chart'), $el.find('#diaperchange-chart-container'), diaperChanges, s, e);
+        });
+        diaperChangeChart.plot($el.find('#diaperchange-chart'), $el.find('#diaperchange-chart-container'), diaperChanges, s, e);
+        return response;
+      });
+      /*
       if (!_.isEmpty(url)) {
         $.get(url)
         .then((response) => {
@@ -193,6 +237,7 @@ BabyBuddy.DiaperChange = function(root) {
           return response;
         });
       }
+      */
     },
     create: () => {
       $.post(BabyBuddy.ApiRoutes.diaperChanges(childId), diaperChange)

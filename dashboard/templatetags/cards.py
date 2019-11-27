@@ -192,42 +192,42 @@ def card_statistics(child):
     stats.append({
         'type': 'duration',
         'stat': changes['btwn_average'],
-        'title': _('14 Day Diaper change frequency')})
+        'title': _('14 day diaper change frequency')})
 
     feedings = _feeding_statistics(child, start=start)
     stats.append({
         'type': 'duration',
         'stat': feedings['btwn_average'],
-        'title': _('14 Day Feeding frequency')})
+        'title': _('14 day feeding frequency')})
 
     if feedings['avg_formula_per_day']:
         stats.append({
-            'type': 'float',
-            'stat': feedings['avg_formula_per_day'],
-            'title': _('14 Day Avg formula per day (oz)')
+            'type': 'text',
+            'stat': f"{feedings['avg_formula_per_day']} ounces",
+            'title': _('14 day avg formula per day')
         })
 
         stats.append({
-          'type': 'float',
-          'stat': feedings['avg_formula_per_feeding'],
-          'title': _('14 Day Avg formula per feed (oz)')
+          'type': 'text',
+          'stat': f"{feedings['avg_formula_per_feeding']} ounces",
+          'title': _('14 day avg formula per feed')
         })
 
     naps = _nap_statistics(child, start=start)
     stats.append({
         'type': 'duration',
         'stat': naps['average'],
-        'title': _('14 Day Average nap duration')})
+        'title': _('14 day avg nap duration')})
     stats.append({
         'type': 'float',
         'stat': naps['avg_per_day'],
-        'title': _('14 Day Average naps per day')})
+        'title': _('14 day avg naps per day')})
 
     sleep = _sleep_statistics(child, start=start)
     stats.append({
         'type': 'duration',
         'stat': sleep['average'],
-        'title': _('14 Day Average sleep duration')})
+        'title': _('14 day avg sleep duration')})
     stats.append({
         'type': 'duration',
         'stat': sleep['btwn_average'],
