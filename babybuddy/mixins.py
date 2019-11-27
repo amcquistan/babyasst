@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import AccessMixin, PermissionRequiredMixin, UserPassesTestMixin
+from django.contrib.auth.mixins import LoginRequiredMixin, AccessMixin, PermissionRequiredMixin, UserPassesTestMixin
 
 from django.http import Http404
+from django.shortcuts import reverse
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 
@@ -38,29 +39,15 @@ class StaffOnlyMixin(AccessMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-class AccountMemberRequiredMixin(UserPassesTestMixin):
-    """
-    Verify that the current user is part of the account 
-    for which the user is attempting to access
-    """
-    raise_exception = True
-
-
-class ActiveSubscriptionRequiredMixin(UserPassesTestMixin):
-    """
-    Verify that the current user has an active subscription
-    """
-    raise_exception = False
-    login_url = 'babybuddy/subscription.html'
-
-    def test_func(self):
-        return True
-
 class CanManageAccountTestMixin(UserPassesTestMixin):
     raise_exception = True
     
     def test_func(self):
         request = self.request
+        if not request.user.is_authenticated:
+            self.raise_exception = False
+            return False
+
         if request.method in ['POST', 'PUT']:
             account_id = int(request.POST.get('account', self.kwargs.get('account_id')))
             if not account_id:
@@ -82,6 +69,10 @@ class ChildCreationTestMixin(UserPassesTestMixin):
     login_url = reverse_lazy('babybuddy:user-account')
 
     def test_func(self):
+        if not self.request.user.is_authenticated:
+            self.login_url = reverse('babybuddy:login')
+            return False
+
         account = self.request.user.account        
         is_premium, subscription = account.is_premium_subscriber()
         if not is_premium:
@@ -116,6 +107,10 @@ class ChildActivityTestMixin(UserPassesTestMixin):
 
     def test_func(self):
         user = self.request.user
+        if not user.is_authenticated:
+            self.raise_exception = False
+            self.login_url = reverse('babybuddy:login')
+            return False
         try:
             child = models.Child.objects.get(slug=self.kwargs.get('slug'))
         except models.Child.model.DoesNotExist:

@@ -7,7 +7,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render, redirect, reverse
 from django.views import View
 
-from babybuddy.mixins import PermissionRequired403Mixin, AccountMemberRequiredMixin
+from babybuddy.mixins import PermissionRequired403Mixin, ChildActivityTestMixin
 from core.models import Child
 
 
@@ -43,11 +43,11 @@ class Dashboard(LoginRequiredMixin, View):
 #     raise_exception = True
 #     template_name = 'dashboard/child.html'
 
-class ChildDashboard(AccountMemberRequiredMixin, View):
+class ChildDashboard(ChildActivityTestMixin, View):
 
-    def test_func(self):
-        child = Child.objects.get(slug=self.kwargs['slug'])
-        return self.request.user.accounts.filter(children__pk=child.id).count() > 0
+    # def test_func(self):
+    #     child = Child.objects.get(slug=self.kwargs['slug'])
+    #     return self.request.user.accounts.filter(children__pk=child.id).count() > 0
 
     def get(self, request, slug):
         child = Child.objects.get(slug=slug)
