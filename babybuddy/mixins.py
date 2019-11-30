@@ -43,7 +43,6 @@ class CanManageAccountTestMixin(UserPassesTestMixin):
     raise_exception = True
     
     def test_func(self):
-        import pdb; pdb.set_trace()
         request = self.request
         if not request.user.is_authenticated:
             self.raise_exception = False

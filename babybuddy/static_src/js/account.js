@@ -208,7 +208,6 @@ BabyBuddy.Account = function(root) {
       });
     },
     inviteAccountMember: function() {
-      debugger
       var invitee = $inviteeInput.val();
       if (!invitee || !account.subscription || !account.subscription.is_active) {
         return;
