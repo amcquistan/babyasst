@@ -224,7 +224,7 @@ class ActiveTimersAPIView(APIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request):
-        timers = self.request.user.account.timers.exclude(complete=True).all()
+        timers = models.Timer.unfinished_account_timers(request.user)
         serializer = serializers.TimerSerializer(timers, many=True)
         return Response(serializer.data)
 
