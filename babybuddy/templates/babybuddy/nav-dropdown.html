@@ -154,7 +154,9 @@
         {% if user.is_authenticated %}
           {% timer_nav %}
 
+          {% comment %}
           {% notification_nav %}
+          {% endcomment %}
         {% endif %}
       </ul>
 

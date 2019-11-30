@@ -7,10 +7,10 @@ from core import models
 
 @admin.register(models.Child)
 class ChildAdmin(admin.ModelAdmin):
-    list_display = ('first_name', 'last_name', 'birth_date', 'slug')
-    list_filter = ('last_name',)
+    list_display = ('first_name', 'last_name', 'birth_date', 'slug', 'account', 'is_active')
+    list_filter = ('account',)
     search_fields = ('first_name', 'last_name', 'birth_date')
-    fields = ['first_name', 'last_name', 'birth_date']
+    fields = ['first_name', 'last_name', 'birth_date', 'is_active']
     if settings.BABY_BUDDY['ALLOW_UPLOADS']:
         fields.append('picture')
 

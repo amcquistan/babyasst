@@ -3,37 +3,43 @@ from django.conf.urls.static import static
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from django.urls import include, path
+from django.contrib.auth import urls
+from django.urls import include, path, reverse_lazy
 
 from . import views
 
 app_patterns = [
-    path('login/', auth_views.LoginView.as_view(), name='login'),
+    path('login/', views.LoginView.as_view(), name='login'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('tos/', views.TOSView.as_view(), name='tos'),
     path('privacy/', views.PrivacyView.as_view(), name='privacy'),
     path('signup/', views.RegisterView.as_view(), name='signup'),
     path(
         'password_reset/',
-        auth_views.PasswordResetView.as_view(),
+        auth_views.PasswordResetView.as_view(
+            success_url=reverse_lazy('babybuddy:password_reset_done')
+        ),
         name='password_reset'
     ),
-
+    path(
+        'password_reset_confirm/<uidb64>/<token>/',
+        auth_views.PasswordResetConfirmView.as_view(
+            success_url=reverse_lazy('babybuddy:password_reset_complete')
+        ),
+        name='password_reset_confirm'
+    ),
+    path(
+        'password_reset_complete/',
+        auth_views.PasswordResetCompleteView.as_view(),
+        name='password_reset_complete'
+    ),
+    path(
+        'password_reset_done/',
+        auth_views.PasswordResetDoneView.as_view(),
+        name='password_reset_done'
+    ),
     path('', views.RootRouter.as_view(), name='root-router'),
     path('welcome/', views.Welcome.as_view(), name='welcome'),
-
-    path('users/', views.UserList.as_view(), name='user-list'),
-    path('users/add/', views.UserAdd.as_view(), name='user-add'),
-    path(
-        'users/<int:pk>/edit/',
-        views.UserUpdate.as_view(),
-        name='user-update'
-    ),
-    path(
-        'users/<int:pk>/delete/',
-        views.UserDelete.as_view(),
-        name='user-delete'
-    ),
 
     path(
         'user/password/',
@@ -66,6 +72,11 @@ app_patterns = [
         name='user-account'
     ),
     path(
+        'user-account/<int:account_id>/delete/',
+        views.UserAccountDeleteView.as_view(),
+        name='user-account-delete'
+    ),
+    path(
         'user-account/<int:account_id>/invite/',
         views.UserAccountInviteMemberView.as_view(),
         name='user-account-invite'
@@ -74,6 +85,11 @@ app_patterns = [
         'user-account/<int:account_id>/invite/<int:user_id>/accept/',
         views.UserAccountInviteMemberAcceptView.as_view(),
         name='user-account-invite-accept'
+    ),
+    path(
+        'user-account/<int:account_id>/account-member/<int:user_id>/activate/',
+        views.UserAccountMemberActivateView.as_view(),
+        name='user-account-member-activate'
     ),
     path(
         'user-account/<int:account_id>/account-member/<int:user_id>/deactivate/',

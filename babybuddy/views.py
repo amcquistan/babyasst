@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import update_session_auth_hash, login
+from django.contrib.auth import update_session_auth_hash, login, logout, authenticate
 from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.messages.views import SuccessMessageMixin
+from django.core.exceptions import ValidationError
 from django.core.mail import EmailMessage
 from django.http import Http404
+
 from django.shortcuts import redirect, reverse, render, get_object_or_404
 from django.template.loader import get_template
 from django.urls import reverse_lazy
@@ -24,7 +26,7 @@ from django_filters.views import FilterView
 
 from babybuddy import forms, models
 from babybuddy.mixins import PermissionRequired403Mixin, StaffOnlyMixin, CanManageAccountTestMixin
-# from babybuddy.mixins import PermissionRequired403Mixin, AccountMemberRequiredMixin
+
 
 class TOSView(View):
     def get(self, request):
@@ -34,6 +36,27 @@ class TOSView(View):
 class PrivacyView(View):
     def get(self, request):
         return render(request, 'registration/privacy.html')
+
+
+class LoginView(View):
+    form_class = forms.CustomAuthenticationForm
+
+    def get(self, request):
+        return render(request, 'registration/login.html', {'form': self.form_class()})
+
+    def post(self, request):
+        form = self.form_class(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+
+            if user is None:
+                return render(request, 'registration/login.html', {'form': form, 'message': 'No matching credentials'})
+
+            login(request, user)
+
+            return redirect(reverse('dashboard:dashboard'))
+
+        return render(request, 'registration/login.html', {'form': form, 'message': 'No matching credentials'})
 
 
 class RegisterView(View):
@@ -82,7 +105,7 @@ class AccountsView(LoginRequiredMixin, View):
     form_class = forms.AccountMemberSettingsForm
 
     def get(self, request):
-        account_member_settings = request.user.account_member_settings.all()
+        account_member_settings = request.user.account_member_settings.exclude(account=request.user.account).all()
         forms = [self.form_class(instance=ams) for ams in account_member_settings]
         return render(request, self.template_name, {'forms': forms})
 
@@ -105,64 +128,85 @@ class AccountsUpdateView(UserPassesTestMixin, View):
         return redirect(reverse('babybuddy:accounts'))
 
 
+class UserAccountDeleteView(LoginRequiredMixin, View):
+    def post(self, request, account_id):
+        user = request.user
+        account = get_object_or_404(models.Account, pk=account_id)
+        if account.id != user.account.id:
+            raise Http404(_("Uh oh, something odd happened"))
+
+        if account.is_premium_subscriber() and not account.is_free_premium_subscriber():
+            account.cancel_subscriptions(account.find_or_create_stripe_customer())
+        
+        account.delete()
+        user.delete()
+
+        return redirect(reverse('babybuddy:login'))
+
+
 class UserAccountInviteMemberView(CanManageAccountTestMixin, View):
 
     def post(self, request, account_id):
         acct = models.Account.objects.get(pk=account_id)
-
-        stripe_token = request.POST.get('stripe_invitee_token')
-        stripe_email = request.POST.get('stripe_invitee_user_email')
-        existing_payment_source = request.POST.get('stripe_invitee_use_existing_payment_source', 'no') == 'yes'
         invitee = request.POST.get('invitee')
 
-        # complete stripe transaction
-        stripe_customer = acct.find_or_create_stripe_customer()
-        has_subscription, subscription = acct.has_active_subscription(
-            stripe_customer,
-            settings.STRIPE_PREMIUM_PLAN
-        )
-        if not has_subscription:
-            messages.error(request, _('Must have active premium service to add account user.'))
-            return redirect(reverse('babybuddy:user-account'))
+        if acct.is_premium_subscriber():
+            success = True
+            if not acct.can_add_account_member():
+                stripe_token = request.POST.get('stripe_invitee_token')
+                stripe_email = request.POST.get('stripe_invitee_user_email')
+                existing_payment_source = request.POST.get('stripe_invitee_use_existing_payment_source', 'no') == 'yes'
 
-        success, subscription = acct.add_account_member_or_child_subscription(
-            stripe_customer,
-            settings.STRIPE_ADDITIONAL_MEMBER_PLAN
-        )
-        if success:
-            additional_msg = ''
-            # - search for user by email
-            invitee_user = User.objects.filter(email__iexact=invitee).first()
-            if invitee_user:
-                message = get_template('emails/invite_email.html').render({
-                  'account': acct,
-                  'invitee': invitee_user
-                })
-                mail = EmailMessage(_('Baby Asst Account Member Invite'), message, to=[invitee_user.email], from_email='noreply@babyasst.com')
-                mail.content_subtype = 'html'
-                mail.send()
+                # complete stripe transaction
+                stripe_customer = acct.find_or_create_stripe_customer()
+                has_subscription, subscription = acct.has_active_subscription(
+                    stripe_customer,
+                    settings.STRIPE_PREMIUM_PLAN
+                )
+                if not has_subscription:
+                    messages.error(request, _('Must have active premium service to add account user.'))
+                    return redirect(reverse('babybuddy:user-account'))
+
+                success, subscription = acct.add_account_member_or_child_subscription(
+                    stripe_customer,
+                    settings.STRIPE_ADDITIONAL_MEMBER_PLAN
+                )
+
+            if success:
+                additional_msg = ''
+                # - search for user by email
+                invitee_user = User.objects.filter(email__iexact=invitee).first()
+                if invitee_user:
+                    message = get_template('emails/invite_email.html').render({
+                      'account': acct,
+                      'invitee': invitee_user
+                    })
+                    mail = EmailMessage(_('Baby Asst Account Member Invite'), message, to=[invitee_user.email], from_email='noreply@babyasst.com')
+                    mail.content_subtype = 'html'
+                    mail.send()
+                else:
+                    invitee_user = User.objects.create(username=invitee, email=invitee)
+                    
+                    # send an email indicating they have been added to this account
+                    accept_url = settings.APP_HOST + reverse('babybuddy:user-account-invite-accept', args=(acct.id, invitee_user.id,))
+                    message = get_template('emails/new_user_invite_email.html').render({
+                      'accept_url': accept_url,
+                      'account': acct,
+                      'invitee': invitee_user
+                    })
+                    mail = EmailMessage(_('Baby Asst Account Member Invite'), message, to=[invitee_user.email], from_email='noreply@babyasst.com')
+                    mail.content_subtype = 'html'
+                    mail.send()
+                    additional_msg = '. An invitation email has been sent.'
+
+                acct.users.add(invitee_user)
+                messages.success(request, _('User added to account' + additional_msg))
+
             else:
-                invitee_user = User.objects.create(username=invitee, email=invitee)
-                
-                # send an email indicating they have been added to this account
-                accept_url = settings.APP_HOST + reverse('babybuddy:user-account-invite-accept', args=(acct.id, invitee_user.id,))
-                message = get_template('emails/new_user_invite_email.html').render({
-                  'accept_url': accept_url,
-                  'account': acct,
-                  'invitee': invitee_user
-                })
-                mail = EmailMessage(_('Baby Asst Account Member Invite'), message, to=[invitee_user.email], from_email='noreply@babyasst.com')
-                mail.content_subtype = 'html'
-                mail.send()
-                additional_msg = '. An invitation email has been sent.'
-
-            acct.users.add(invitee_user)
-            messages.success(request, _('User added to account' + additional_msg))
-
-        else:
-            messages.error(request, _('Transaction failed'))
+                messages.error(request, _('Transaction failed'))
 
         return redirect(reverse('babybuddy:user-account'))
+
 
 class UserAccountInviteMemberAcceptView(View):
     template_name = 'registration/accept_invite.html'
@@ -271,6 +315,7 @@ class UserAccountView(UserPassesTestMixin, View):
         return True
 
     def get(self, request):
+        
         user = request.user
         account = user.account
         acct_members_settings = account.account_member_settings.all()
@@ -300,21 +345,16 @@ class UserAccountView(UserPassesTestMixin, View):
 
             account_users.append(account_user_data)
 
-        is_premium, subscription = account.is_premium_subscriber()
-
-        users_to_add_before_incurring_cost = settings.PREMIUM_MEMBER_COUNT - len([am for am in account_users if am['is_active']]) - 1
-        children = account.children.all()
-        children_to_add_before_incurring_cost = settings.PREMIUM_CHILD_COUNT - len([c for c in children if c.is_active])
-
         return render(request, self.template_name, {
             'account_form': self.account_form(instance=account),
             'account': account,
             'account_settings_form': self.account_settings_form(instance=user_acct_settings),
             'account_members': account_users,
-            'children': children,
-            'users_to_add_before_incurring_cost': users_to_add_before_incurring_cost,
-            'children_to_add_before_incurring_cost': children_to_add_before_incurring_cost,
-            'is_premium': is_premium,
+            'children': account.children.all(),
+            'premium_member_cnt': settings.PREMIUM_MEMBER_COUNT,
+            'premium_child_cnt': settings.PREMIUM_CHILD_COUNT,
+            'is_premium': account.is_premium_subscriber(),
+            'is_free_premium': account.is_free_premium_subscriber(),
             'stripe_client_key': settings.STRIPE_CLIENT_KEY
         })
 
@@ -333,9 +373,30 @@ class UserAccountView(UserPassesTestMixin, View):
         return redirect(reverse('babybuddy:user-account'))
 
 
+class UserAccountMemberActivateView(CanManageAccountTestMixin, View):
+  
+    def post(self, request, account_id, user_id):
+        user_to_remove = User.objects.get(pk=user_id)
+        account = request.user.account
+        acct_member_settings = models.AccountMemberSettings.objects.filter(
+            account=account,
+            user=user_to_remove).first()
+
+
+        if not account.can_add_account_member():
+            messages.error(request, _('Account member cannot be activated without upgrading service'))
+            redirect(reverse('babybuddy:user-account'))
+
+        acct_member_settings.is_active = True
+        acct_member_settings.save()
+
+        messages.success(self.request, _("Account member activated"))
+        return redirect(reverse('babybuddy:user-account'))
+
+
 class UserAccountMemberDeleteView(CanManageAccountTestMixin, View):
 
-    def get(self, request, account_id, user_id):
+    def post(self, request, account_id, user_id):
         user_to_remove = User.objects.get(pk=user_id)
         account = request.user.account
         acct_member_settings = models.AccountMemberSettings.objects.filter(
@@ -351,7 +412,7 @@ class UserAccountMemberDeleteView(CanManageAccountTestMixin, View):
 
 class UserAccountMemberDeactivateView(CanManageAccountTestMixin, View):
 
-    def get(self, request, account_id, user_id):
+    def post(self, request, account_id, user_id):
         user_to_remove = User.objects.get(pk=user_id)
         account = request.user.account
         acct_member_settings = models.AccountMemberSettings.objects.filter(
@@ -373,49 +434,6 @@ class BabyBuddyFilterView(FilterView):
     """
     # TODO Figure out the correct way to use this.
     strict = False
-
-
-class UserList(StaffOnlyMixin, BabyBuddyFilterView):
-    model = User
-    template_name = 'babybuddy/user_list.html'
-    ordering = 'username'
-    paginate_by = 10
-    filterset_fields = ('username', 'first_name', 'last_name', 'email')
-
-
-class UserAdd(StaffOnlyMixin, PermissionRequired403Mixin, SuccessMessageMixin,
-              CreateView):
-    model = User
-    template_name = 'babybuddy/user_form.html'
-    permission_required = ('admin.add_user',)
-    form_class = forms.UserAddForm
-    success_url = reverse_lazy('babybuddy:user-list')
-    success_message = gettext_lazy('User %(username)s added!')
-
-
-class UserUpdate(StaffOnlyMixin, PermissionRequired403Mixin,
-                 SuccessMessageMixin, UpdateView):
-    model = User
-    template_name = 'babybuddy/user_form.html'
-    permission_required = ('admin.change_user',)
-    form_class = forms.UserUpdateForm
-    success_url = reverse_lazy('babybuddy:user-list')
-    success_message = gettext_lazy('User %(username)s updated.')
-
-
-class UserDelete(StaffOnlyMixin, PermissionRequired403Mixin,
-                 DeleteView):
-    model = User
-    template_name = 'babybuddy/user_confirm_delete.html'
-    permission_required = ('admin.delete_user',)
-    success_url = reverse_lazy('babybuddy:user-list')
-
-    def delete(self, request, *args, **kwargs):
-        success_message = format_lazy(gettext_lazy(
-            'User {user} deleted.'), user=self.get_object()
-        )
-        messages.success(request, success_message)
-        return super(UserDelete, self).delete(request, *args, **kwargs)
 
 
 class UserPassword(LoginRequiredMixin, View):

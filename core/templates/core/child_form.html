@@ -1,45 +1,148 @@
 {% extends 'babybuddy/page.html' %}
-{% load i18n %}
+{% load i18n widget_tweaks %}
 
 {% block title %}
-    {% if object %}
-        {{ object }}
-    {% else %}
-        {% trans "Add a Child" %}
-    {% endif %}
+  {% if child %}
+    {{ child }}
+  {% else %}
+    {% trans "Add a Child" %}
+  {% endif %}
 {% endblock %}
 
 {% block breadcrumbs %}
-    <li class="breadcrumb-item"><a href="{% url 'core:child-list' %}">{% trans "Children" %}</a></li>
-    {% if object %}
-        <li class="breadcrumb-item font-weight-bold"><a href="{% url 'core:child' object.slug %}">{{ object }}</a></li>
-        <li class="breadcrumb-item active" aria-current="page">{% trans "Update" %}</li>
-    {% else %}
-        <li class="breadcrumb-item active" aria-current="page">{% trans "Add a Child" %}</li>
-    {% endif %}
+  <li class="breadcrumb-item"><a href="{% url 'core:child-list' %}">{% trans "Children" %}</a></li>
+  {% if child %}
+    <li class="breadcrumb-item font-weight-bold"><a href="{% url 'core:child' child.slug %}">{{ child }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Update" %}</li>
+  {% else %}
+    <li class="breadcrumb-item active" aria-current="page">{% trans "Add a Child" %}</li>
+  {% endif %}
 {% endblock %}
 
 {% block content %}
   <div class="row">
     <div class="col-10 offset-md-1">
-      {% if object %}
-          {% blocktrans %}<h1>Update <span class="text-info">{{ object }}</span></h1>{% endblocktrans %}
+      {% if child %}
+        {% blocktrans %}<h1>Update <span class="text-info">{{ child }}</span></h1>{% endblocktrans %}
       {% else %}
-          <h1>{% trans "Add a Child" %}</h1>
+        <h1>{% trans "Add a Child" %}</h1>
       {% endif %}
-      {% include 'babybuddy/form.html' %}
+      <form id='babybuddy-form' role="form" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="{{ form.first_name.name }}">{{ form.first_name.label }}</label>
+          {{ form.first_name|add_class:"form-control" }}
+        </div>
+        <div class="form-group">
+          <label for="{{ form.last_name.name }}">{{ form.last_name.label }}</label>
+          {{ form.last_name|add_class:"form-control" }}
+        </div>
+
+        <div class="form-group">
+          <label for="{{ form.birth_date.name }}">{{ form.birth_date.label }}</label>
+          <div class="input-group date" id="datetimepicker_{{ form.birth_date.name }}" data-target-input="nearest">
+            <div class="input-group-prepend" data-target="#datetimepicker_{{ form.birth_date.name }}" data-toggle="datetimepicker">
+              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+            </div>
+              {{ form.birth_date|add_class:"form-control" }}
+          </div>
+        </div>
+
+        <div class="form-group mt-4">
+          {% if child %}
+            {% if child.is_active %}
+              <a class="btn btn-warning" id="deactivate-child-btn">{% trans "Deactivate" %}</a>
+            {% else %}
+              <a class="btn btn-danger" id="delete-child-btn">{% trans "Delete" %}</a>
+              <a class="btn btn-success" id="activate-child-btn">{% trans "Activate" %}</a>
+            {% endif %}
+          {% endif %}
+          <button type="submit" class="btn btn-primary">{% trans "Save" %}</button>
+        </div>
+      </form>
+
+      {% if child %}
+        {% if child.is_active %}
+        <form method="POST" id='deactivate-child-form' action="{% url 'core:child-deactivate' child.slug %}">
+          {% csrf_token %}
+        </form>
+        {% else %}
+        <form method="POST" id='delete-child-form' action="{% url 'core:child-delete' child.slug %}">
+          {% csrf_token %}
+        </form>
+        <form method="POST" id='activate-child-form' action="{% url 'core:child-activate' child.slug %}">
+          {% csrf_token %}
+        </form>
+        {% endif %}
+      {% endif %}
     </div>
   </div>
-    
+  <div id='confirm-delete-child-modal' class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h4 class="text-center text-dark">{% trans "Deleting Child From Account" %}</h4>
+          <p class="text-center text-dark">{% trans "This action cannot be reversed. Are you sure you want to delete child?" %}</p>
+          <p class="text-center">
+            <button id="confirm-delete-child-btn" class="btn btn-primary">Yes</button>
+            <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id='confirm-deactivate-child-modal' class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h4 class="text-center text-dark">{% trans "Deactivating Child From Account" %}</h4>
+          <ul class="text-dark">
+            <li>{% trans "You can still view previously saved child activity data" %}</li>
+            <li>{% trans "You cannot log any new activities for this child" %}</li>
+            <li>{% trans "This action may open a spot to add a new child if your account allows it" %}</li>
+            <li>{% trans "You can delete a child from your account" %}</li>
+          </ul>
+          <p class="text-center text-dark">{% trans "Are you sure you want to deactivate this child?" %}</p>
+          <p class="text-center">
+            <button id="confirm-deactivate-child-btn" class="btn btn-primary">Yes</button>
+            <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}
 
 {% block javascript %}
-    <script type="text/javascript">
-        $(function () {
-            $('#datetimepicker_birth_date').datetimepicker({
-                viewMode: 'years',
-                format: 'YYYY-MM-DD'
-            });
+  <script type="text/javascript">
+    $(function () {
+      $('#datetimepicker_birth_date').datetimepicker({
+        viewMode: 'years',
+        format: 'YYYY-MM-DD'
+      });
+      {% if child %}
+        $('#deactivate-child-btn').click(function(evt){
+          evt.preventDefault();
+          $('#confirm-deactivate-child-modal').modal('show');
+          $('#confirm-deactivate-child-btn').click(function(e){
+            $('#deactivate-child-form').submit();
+          });
         });
-    </script>
+
+        $('#delete-child-btn').click(function(evt){
+          evt.preventDefault();
+          $('#confirm-delete-child-modal').modal('show');
+          $('#confirm-delete-child-btn').click(function(e){
+            $('#delete-child-form').submit();
+          });
+        });
+
+        $('#activate-child-btn').click(function(evt){
+          evt.preventDefault();
+          $('#activate-child-form').submit();
+        });
+      {% endif %}
+    });
+  </script>
 {% endblock %}

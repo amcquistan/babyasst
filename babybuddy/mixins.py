@@ -74,7 +74,7 @@ class ChildCreationTestMixin(UserPassesTestMixin):
             return False
 
         account = self.request.user.account        
-        is_premium, subscription = account.is_premium_subscriber()
+        is_premium = account.is_premium_subscriber()
         if not is_premium:
             children_cnt = account.children.count()
             if children_cnt == 0:
@@ -113,23 +113,14 @@ class ChildActivityTestMixin(UserPassesTestMixin):
             return False
         try:
             child = models.Child.objects.get(slug=self.kwargs.get('slug'))
-        except models.Child.model.DoesNotExist:
+            acct_member_settings = child.account.account_member_settings.get(user=user)
+        except:
             raise Http404(_("Uh oh something unexpected happended."))
 
-        user_accounts = [acct.id for acct in user.accounts.all()]
-
-        if child.account.id not in user_accounts:
+        if not child.is_active or not acct_member_settings.is_active:
             return False
 
         if self.request.method in SAFE_METHODS:
-            return True
-
-        active_subscription = is_active_account_subscription(child.account)
-
-        if not active_subscription:
-            return False
-
-        if self.request.method in ['PUT', 'POST']:
             return True
 
         if self.request.method == 'DELETE' and user.account == child.account:

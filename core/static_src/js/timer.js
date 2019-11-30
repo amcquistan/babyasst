@@ -322,21 +322,49 @@ BabyBuddy.Timer = function (root) {
           if (!_.isEmpty(timer)) {
             self.save().then((response) => {
               if (!_.isEmpty(timer) && timer.duration) {
-                clearInterval(runIntervalId);
-                var duration = moment.duration(timer.duration);
-                $hours.text(duration.hours());
-                $minutes.text(duration.minutes());
-                $seconds.text(duration.seconds());
-                lastUpdate = moment();
-    
-                if (timer.active) {
-                  runIntervalId = setInterval(Timer.tick, 1000);
-                  $timerStatus.removeClass('timer-stopped');
-                } else {
-                  $timerStatus.addClass('timer-stopped');
-                }
+                self.syncUI();
               }
             });
+          }
+        },
+        syncUI: function() {
+          if (!_.isEmpty(timer)) {
+            var duration = moment.duration(timer.duration);
+            $hours.text(duration.hours());
+            $minutes.text(duration.minutes());
+            $seconds.text(duration.seconds());
+            lastUpdate = moment();
+
+            if (timer.active) {
+              if (runIntervalId) {
+                clearInterval(runIntervalId);
+              }
+              runIntervalId = setInterval(Timer.tick, 1000);
+              $pauseBtn.show();
+              $startBtn.hide();
+              $endBtn.show();
+              $timerStatus.removeClass('timer-stopped');
+            } else {
+              if (timer.complete) {
+                $pauseBtn.hide();
+                $startBtn.hide();
+                $endBtn.hide();
+              } else {
+                $pauseBtn.hide();
+                $startBtn.show();
+                $endBtn.show();
+              }
+              $timerStatus.addClass('timer-stopped');
+            }
+
+            $tummytimeCard.toggleClass('card-active', timer.is_tummytime);
+            $feedingCard.toggleClass('card-active', timer.is_feeding);
+            $sleepCard.toggleClass('card-active', timer.is_sleeping);
+          } else {
+            $startBtn.show();
+            $tummytimeCard.toggleClass('card-active', false);
+            $feedingCard.toggleClass('card-active', false);
+            $sleepCard.toggleClass('card-active', false);
           }
         },
         fetchTimer: function() {
@@ -345,6 +373,7 @@ BabyBuddy.Timer = function (root) {
             .then(function(response){
               timer = response;
               self.reportTimerStatusMessage();
+              self.syncUI();
               return response;
             });
           }
@@ -390,6 +419,7 @@ BabyBuddy.Timer = function (root) {
             .then((response) => {
               timer = response;
               self.reportTimerStatusMessage();
+              self.syncUI();
               return response;
             });
         },
@@ -412,6 +442,8 @@ BabyBuddy.Timer = function (root) {
               $pauseBtn.show();
               $endBtn.prop('href', `${BabyBuddy.host()}/timer/${timerId}/stop/`);
               self.run();
+              self.syncUI();
+              BabyBuddy.updateTimerNavSpan();
               return response;
             });
         }

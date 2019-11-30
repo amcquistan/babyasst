@@ -38,9 +38,13 @@ class ChildActivityQuickAddView(UserPassesTestMixin, SuccessMessageMixin, BaseCh
     def test_func(self):
         if self.request.method == 'POST':
             obj = models.Child.objects.get(pk=self.request.POST['child'])
-            user_accts = [acct.id for acct in self.request.user.accounts.all()]
-            return obj.account.id in user_accts
-        return True
+            try:
+              acct_member_settings = obj.account.account_member_settings.get(user=self.request.user)
+              return acct_member_settings.is_active and obj.is_active
+            except:
+                pass
+
+        return False
 
     def get_success_message(self, cleaned_data):
         cleaned_data['model'] = self.model._meta.verbose_name.title()
@@ -72,9 +76,13 @@ class ChildActivityAddFromTimerView(UserPassesTestMixin, SuccessMessageMixin, Ba
     def test_func(self):
         if self.request.method == 'POST':
             obj = models.Child.objects.get(pk=self.request.POST['child'])
-            user_accts = [acct.id for acct in self.request.user.accounts.all()]
-            return obj.account.id in user_accts
-        return True
+            try:
+              acct_member_settings = obj.account.account_member_settings.get(user=self.request.user)
+              return acct_member_settings.is_active and obj.is_active
+            except:
+                pass
+
+        return False
 
     def get_success_message(self, cleaned_data):
         cleaned_data['model'] = self.model._meta.verbose_name.title()
@@ -194,14 +202,15 @@ class ChildAdd(LoginRequiredMixin, View):
         })
 
     def post(self, request):
-        if not self.request.user.account.can_add_child():
+        acct = self.request.user.account
+        if not acct.can_add_child():
             messages.error(request, _('Must upgrade account to add child'))
             return redirect(reverse('babybuddy:user-account'))
         
         form = self.form_class(request.POST)
         if form.is_valid():
             child = form.save(commit=False)
-            child.account = request.user.account
+            child.account = acct
             child.save()
             messages.success(request, _('Child added'))
             return redirect(reverse('core:child', args=(child.slug,)))
@@ -269,15 +278,59 @@ class ChildUpdateView(ChildActivityTestMixin, View):
         })
 
 
-class ChildDeleteView(ChildActivityTestMixin, View):
+class ChildDeleteView(LoginRequiredMixin, View):
     model = models.Child
     success_url_name = 'dashboard:dashboard'
 
-    def delete(self, request, slug):
+    def post(self, request, slug):
         child = self.model.objects.get(slug=slug)
-        child.delete()
-        return redirect(reverse(self.success_url))
+        if request.user.account.id != child.account.id:
+            messages.error(request, _('Action only available to child account owner'))
+            return redirect(reverse(self.success_url_name))
 
+        child.delete()
+        messages.success(request, _('Child has been deleted'))
+        return redirect(reverse(self.success_url_name))
+
+
+class ChildDeactivateView(LoginRequiredMixin, View):
+    model = models.Child
+    success_url_name = 'dashboard:dashboard'
+
+    def post(self, request, slug):
+        child = self.model.objects.get(slug=slug)
+
+        if request.user.account.id != child.account.id:
+            messages.error(request, _('Action only available to child account owner'))
+            return redirect(reverse(self.success_url_name))
+
+        child.is_active = False
+        child.save()
+
+        messages.success(request, _('Child has been deactivated'))
+        return redirect(reverse(self.success_url_name))
+
+
+class ChildActivateView(LoginRequiredMixin, View):
+    model = models.Child
+    success_url_name = 'dashboard:dashboard'
+
+    def post(self, request, slug):
+        child = self.model.objects.get(slug=slug)
+
+        if request.user.account.id != child.account.id:
+            messages.error(request, _('Action only available to child account owner'))
+            return redirect(reverse(self.success_url_name))
+
+        if not request.user.account.can_add_child():
+            messages.error(request, _('Must upgrade service to activate child'))
+            return redirect(reverse('babybuddy:user-account'))
+
+        child.is_active = True
+        child.save()
+
+        messages.success(request, _('Child has been activated'))
+        return redirect(reverse(self.success_url_name))
 
 # List and Add Views are going to be the same
 # Separate update and delete views

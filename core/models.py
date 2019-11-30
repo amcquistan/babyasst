@@ -107,6 +107,27 @@ class Child(models.Model):
     )
     is_active = models.BooleanField(default=True)
 
+    @property
+    def age(self):
+        now = timezone.now().date()
+        dob = self.birth_date
+        age = (now - dob)
+        weeks = age.days // 7
+        
+        if weeks < 52:
+            return f"{weeks} weeks"
+
+        if weeks == 52:
+            return "1 year"
+        
+        years = now.year - dob.year
+        months = years * 12 + (now.month - dob.month)
+        if months < 24:
+            return f"{months} months"
+
+        return f"{years} years"
+
+
     objects = models.Manager()
 
     class Meta:
@@ -116,7 +137,7 @@ class Child(models.Model):
         verbose_name_plural = _('Children')
 
     def __str__(self):
-        return '{} {}'.format(self.first_name, self.last_name)
+        return self.first_name
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -626,7 +647,7 @@ class Timer(models.Model):
 
     class Meta:
         default_permissions = ('view', 'add', 'change', 'delete')
-        ordering = ['-start', '-end']
+        ordering = ['complete', '-id']
         verbose_name = _('Timer')
         verbose_name_plural = _('Timers')
 
