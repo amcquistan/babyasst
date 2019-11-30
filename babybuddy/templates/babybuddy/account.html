@@ -13,6 +13,7 @@
     <div class="col-md-10 offset-1">
       <h1 class='mb-5'>{% trans "My Account" %}</h1>
 
+      {% if not is_free_premium %}
       <form id='subscription-form' action="{% url 'babybuddy:user-account-subscription' user.account.id %}" class="mb-5 mt-3" method="POST">
         <legend class="mb-4">{% trans "Account Plan" %}</legend>
         {% csrf_token %}
@@ -40,7 +41,7 @@
               </ul>
               <a
                 id='free-plan-btn'
-                class="btn btn-lg btn-block btn-secondary">
+                class="btn btn-lg btn-block btn-secondary {% if not is_premium %}disabled{% endif %}">
                 {% if not is_premium %}{% trans "Current Plan" %}{% else %}{% trans "Downgrade" %}{% endif %}
               </a>
             </div>
@@ -54,8 +55,8 @@
                 $2 <small class="text-muted">/ mo</small>
               </h3>
               <ul class="list-unstyled mt-3 mb-4">
-                <li>3 account members ($1 additional per member)</li>
-                <li>1 child ($1 additional per child)</li>
+                <li>{{ premium_member_cnt }} account members ($1 additional per member)</li>
+                <li>{{ premium_child_cnt }} child ($1 additional per child)</li>
                 <li>unlimited timers</li>
                 <li>unlimited notifications</li>
                 <li>unlimited activity logging</li>
@@ -63,7 +64,7 @@
               </ul>
               <a
                 id='premium-plan-btn'
-                class="btn btn-lg btn-block btn-secondary">
+                class="btn btn-lg btn-block btn-secondary {% if is_premium %}disabled{% endif %}">
                 {% if is_premium %}{% trans "Current Plan" %}{% else %}{% trans "Upgrade" %}{% endif %}
               </a>
             </div>
@@ -71,6 +72,24 @@
 
         </div>
       </form>
+      {% else %}
+      <div class="card">
+        <div class="card-header bg-success">
+          <h2 class="my-0 font-weight-normal">Free Premium Service</h2>
+        </div>
+        <div class="card-body">
+          <ul class="list-unstyled mt-3 mb-4">
+            <li>{{ account.max_account_members }} account members ($1 additional per person)</li>
+            <li>{{ account.max_children }} child ($1 additional per child)</li>
+            <li>unlimited timers</li>
+            <li>unlimited notifications</li>
+            <li>unlimited activity logging</li>
+            <li>unlimited reporting</li>
+          </ul>
+          <h4 class="text-info text-center">Service Expires {{ account.free_premium_end_date|date:"M j, Y" }}</h4>
+        </div>
+      </div>
+      {% endif %}
 
       <form class='mb-5 mt-3' role="form" action="{% url 'babybuddy:user-account' %}" method="POST">
         {% csrf_token %}
@@ -99,7 +118,7 @@
       </form>
 
       <legend class="mb-4 mt-3">{% trans "Account Children" %}</legend>
-      <div class="table-responsive">
+      <div class="table-responsive mb-5">
         <table class="table table-striped table-hover">
           <thead class="thead-inverse">
             <tr>
@@ -116,14 +135,9 @@
               <td>{{ child.birth_date|date:"" }}</td>
               <td class="text-center">{{ child.is_active|bool_icon }}</td>
               <td class="text-center">
-                <form style="display: inline;" class='deactivate-child-form' action="">
-                  {% csrf_token %}
-                  <button type="submit" class="btn btn-warning">Deactivate</button>
-                </form>
-                <form style="display: inline;" class='delete-child-form' action="">
-                  {% csrf_token %}
-                  <button id="delete-account-user-btn" type="submit" class="btn btn-danger">Remove</button>
-                </form>
+                <a class="btn btn-info"  href="{% url 'core:child-update' child.slug %}" role="button">
+                  <i class="icon icon-update"></i>
+                </a>
               </td>
             </tr>
             {% empty %}
@@ -144,7 +158,7 @@
         <input type="hidden" name="stripe_invitee_user_email" id="stripe_invitee_user_email">
         <input type="hidden" name="stripe_invitee_use_existing_payment_source" id="stripe_invitee_use_existing_payment_source">
         <div class="row mb-4">
-          <div class="col-10 offset-1">
+          <div class="col">
             <div class="input-group">
               <input id='invitee' name="invitee" type="text" class='form-control' placeholder="{% trans 'Invite user by email' %}">
               <div class="input-group-append">
@@ -152,8 +166,8 @@
               </div>
             </div>
             <div class="help-block">
-              {% if users_to_add_before_incurring_cost > 0 %}
-                {% trans "You may add up to " %}{{ users_to_add_before_incurring_cost }}{% trans " more members before incurring additional costs of $1 per new user." %}
+              {% if account.can_add_account_member %}
+                {% trans "You may add up to " %}{{ account.number_of_members_available_to_add_free }}{% trans " more members before incurring additional costs of $1 per new user." %}
               {% else %}
                 {% trans "Adding an additional member will incur an additional cost of $1 per user." %}
               {% endif %}
@@ -162,16 +176,16 @@
         </div>
       </form>
 
-      <div class="table-responsive">
+      <div class="table-responsive mb-5">
         <table class="table table-striped table-hover">
           <thead class="thead-inverse">
             <tr>
               <th>{% trans "Name" %}</th>
               <th>{% trans "Phone" %}</th>
-              <th class="text-center">{% trans "Active" %}</th>
               <th class="text-center">{% trans "Phone Notifications" %}</th>
               <th>{% trans "Email" %}</th>
               <th class="text-center">{% trans "Email Notifications" %}</th>
+              <th class="text-center">{% trans "Active" %}</th>
               <th class="text-center">{% trans "Actions" %}</th>
             </tr>
           </thead>
@@ -179,20 +193,25 @@
             {% for account_member in account_members %}
             <tr>
               <td>{{ account_member.first_name }} {{ account_member.last_name }}</td>
-              <td>{{ account_member.phone_number }}</td>
-              <td class="text-center">{{ account_member.is_active|bool_icon }}</td>
+              <td>{% if account_member.phone_number %} {{ account_member.phone_number }}{% endif %}</td>
               <td class="text-center">{{ account_member.phone_notifications_enabled|bool_icon }}</td>
               <td>{{ account_member.email }}</td>
               <td class="text-center">{{ account_member.email_notifications_enabled|bool_icon }}</td>
+              <td class="text-center">{{ account_member.is_active|bool_icon }}</td>
               <td class="text-center">
-                <form style="display: inline;" class='deactivate-member-form' action="{% url 'babybuddy:user-account-member-deactivate' account.id account_member.id %}">
+                {% if account_member.is_active %}
+                <form style="display: inline;" method="POST" class='deactivate-member-form' action="{% url 'babybuddy:user-account-member-deactivate' account.id account_member.id %}">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-warning">Deactivate</button>
+                  <input type="hidden" name="account" value="{{ account.id }}">
+                  <button type="button" class="btn btn-warning deactivate-account-user-btn">{% trans "Deactivate" %}</button>
                 </form>
-                <form style="display: inline;" class='delete-member-form' action="{% url 'babybuddy:user-account-member-delete' account.id account_member.id %}">
+                {% else %}
+                <form style="display: inline;" method="POST" class='delete-member-form' action="{% url 'babybuddy:user-account-member-delete' account.id account_member.id %}">
                   {% csrf_token %}
-                  <button id="delete-account-user-btn" type="submit" class="btn btn-danger">Remove</button>
+                  <input type="hidden" name="account" value="{{ account.id }}">
+                  <button type="button" class="btn btn-danger delete-account-user-btn">{% trans "Remove" %}</button>
                 </form>
+                {% endif %}
               </td>
             </tr>
             {% empty %}
@@ -204,114 +223,165 @@
         </table>
       </div>
       {% endif %}
-  
+
+      <div class="form-group row">
+        <div class="col-4">
+          <a id="delete-account-btn" class="btn btn-danger btn-lg">Delete Account</a>
+        </div>
+      </div>
+      <form id="delete-account-form" action="{% url 'babybuddy:user-account-delete' user.id %}" method="POST">
+        {% csrf_token %}
+      </form>
     </div>
 
-<!-- Premium Plan Modal -->
-<div class="modal fade" id="payment-modal">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-    
-      <!-- Modal Header -->
-      <div class="modal-header">
-        <h3 class="modal-title text-dark">{% trans "Baby Asst Payment Submission" %}</h3>
-        <button type="button" class="close" data-dismiss="modal">×</button>
-      </div>
-      
-      <!-- Modal body -->
-      <div class="modal-body">
-        <div class="row">
-          <div class="col-10 offset-1">
-            <h4 class="text-dark">Purchase Description</h4>
-            <p class="text-dark" id="purchase-description"></p>
-          </div>
+  <!-- Confirm Delete Account Modal -->
+  <div id='confirm-delete-account-modal' class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h4 class="text-center text-dark">{% trans "Deleting Account" %}</h4>
+          <p class="text-center text-dark">{% trans "This action cannot be reversed. Are you sure you want to delete your account?" %}</p>
+          <p class="text-center">
+            <button id="confirm-delete-account-btn" class="btn btn-primary">{% trans "Yes" %}</button>
+            <button class="btn btn-danger" data-dismiss="modal">{% trans "Cancel" %}</button>
+          </p>
         </div>
-        <div class="row" id='existing-payment-source-section'>
-          <div class="col-10 offset-1">
-            <h4 class="text-center" id="purchase-description">Previously Used Payment Source</h4>
-            <p class="text-center"><span id="payment-brand"></span> **** **** **** <span id="payment-last4"></span></p>
-            <p class="text-center"><span id="payment-expmo"></span> / <span id="payment-expyr"></span></p>
-            <div class="form-check">
-              <input type="checkbox" id="use-existing-payment-source">
-              <label for="use-existing-payment-source">Use existing payment source</label>
-            </div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-10 offset-1">
-            <label class="text-dark" for="card-elements">
-              Credit or debit card
-            </label>
-            <div id="card-element"></div>
-          </div>
-        </div>
-        <div class="row">
-          <div class="col-10 offset-1">
-            <div id="card-errors" role="alert"></div>
-          </div>
-        </div>
-
-      </div>
-      
-      <div class="modal-footer">
-        <button id="card-button" class="btn btn-primary">Submit Payment</button>
-        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
       </div>
     </div>
   </div>
-</div>
 
+  <!-- Confirm Deactivate Account Modal -->
+  <div id='confirm-deactivate-member-modal' class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h4 class="text-center text-dark">{% trans "Deactivating Account Member" %}</h4>
+          <p class="text-center text-dark">{% trans "This action results in:" %}</p>
+          <ul class="text-dark">
+            <li>{% trans "You can still view the activities they have entered" %}</li>
+            <li>{% trans "User cannot create any additional activities" %}</li>
+            <li>{% trans "User cannot view account" %}</li>
+            <li>{% trans "This action may open a spot to add a new account member if your account allows it" %}</li>
+          </ul>
+          <p class="text-center">
+            <button id="confirm-deactivate-member-btn" class="btn btn-primary">{% trans "Yes" %}</button>
+            <button class="btn btn-danger" data-dismiss="modal">{% trans "Cancel" %}</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Delete Account Modal -->
+  <div id='confirm-delete-member-modal' class="modal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-body">
+          <h4 class="text-center text-dark">{% trans "Deleting Account Member" %}</h4>
+          <p class="text-center text-dark">{% trans "This action cannot be reversed. Are you sure you want to delete this account member?" %}</p>
+          <p class="text-center">
+            <button id="confirm-delete-member-btn" class="btn btn-primary">Yes</button>
+            <button class="btn btn-danger" data-dismiss="modal">Cancel</button>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Premium Plan Modal -->
+  <div class="modal fade" id="payment-modal">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-content">
+      
+        <!-- Modal Header -->
+        <div class="modal-header bg-primary">
+          <h3 class="modal-title text-dark">{% trans "Baby Asst Payment Submission" %}</h3>
+          <button type="button" class="close" data-dismiss="modal">×</button>
+        </div>
+        
+        <!-- Modal body -->
+        <div class="modal-body text-dark">
+          <div class="row mb-2">
+            <div class="col-10 offset-1">
+              <h4 id="purchase-description"></h4>
+            </div>
+          </div>
+          <div class="row mb-3" id='existing-payment-source-section'>
+            <div class="col-10 offset-1">
+              <table>
+                <tr>
+                  <td align="left" style="font-weight: bold; width: 120px;">Brand</td>
+                  <td align="left"><span id="payment-brand"></span></td>
+                </tr>
+                <tr>
+                  <td align="left" style="font-weight: bold; width: 120px;">Number</td>
+                  <td align="left">**** **** **** <span id="payment-last4"></span></td>
+                </tr>
+                <tr>
+                  <td align="left" style="font-weight: bold; width: 120px;">Expiration</td>
+                  <td align="left"><span id="payment-expmo"></span> / <span id="payment-expyr"></span></td>
+                </tr>
+              </table>
+              <div class="form-check mt-2">
+                <input type="checkbox" id="use-existing-payment-source">
+                <label for="use-existing-payment-source">Use this payment source</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="row mb-4" id="cc-container">
+            <div class="col-10 offset-1">
+              <label class="text-dark" style="font-weight: bold;" for="card-elements">
+                Enter Card Details Below
+              </label>
+              <div id="card-element"></div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-10 offset-1">
+              <div id="card-errors" role="alert"></div>
+            </div>
+          </div>
+
+          <div class="row mb-4">
+            <div class="col-10 offset-1">
+              <div class="input-group mb-3">
+                <input type="text" id="promo-code" class="form-control" placeholder="Apply a promo code">
+                <div class="input-group-append">
+                  <button id="apply-promo-btn" class="btn btn-success">Apply</button>
+                </div>
+              </div>
+              <small id="promo-code-help-text" class="form-text text-muted"></small>
+            </div>
+          </div>
+          <div class="row mb-4">
+            <div class="col-4 offset-8">
+              <button id="payment-btn" class="btn btn-primary">Submit Payment</button>
+              <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock %}
 
 {% block javascript %}
 
 <script>
-var userId = {{ user.id }};
-var accountId = {{ user.account.id }};
-var usersToAddBeforeIncurringCost = {{ users_to_add_before_incurring_cost }};
-var stripeClientKey = "{{ stripe_client_key }}";
-
-BabyBuddy.Account.init(
-  'account-container',
-  userId,
-  accountId,
-  usersToAddBeforeIncurringCost,
-  stripeClientKey
-);
 
 $(function(){
-  var $editBtn;
-  var $displayRow;
+  var userId = {{ user.id }};
+  var accountId = {{ user.account.id }};
+  var stripeClientKey = "{{ stripe_client_key }}";
 
-  $('.edit-btn').click(function(){
-    $displayRow = $(this).parent().parent();
-    $editRow = $displayRow.next();
-    $editRow.show();
-    $displayRow.hide();
-    console.log('edit-btn clicked');
-  });
-  $('.save-btn').click(function(){
-    console.log('save-btn clicked');
-  });
-  $('.cancel-btn').click(function(){
-    $displayRow.show();
-    $editRow.hide();
-    console.log('cancel-btn clicked');
-  });
-
-  $('.delete-member-form').submit(function(evt){
-    var confirmed = confirm("Are you sure you want to delete account member?");
-    if (!confirmed) {
-      evt.preventDefault();
-    }
-  });
-  $('.deactivate-member-form').submit(function(evt){
-    var confirmed = confirm("Are you sure you want to deactivate account member?");
-    if (!confirmed) {
-      evt.preventDefault();
-    }
-  });
+  BabyBuddy.Account.init(
+    'account-container',
+    userId,
+    accountId,
+    stripeClientKey
+  );
 });
 </script>
 {% endblock %}

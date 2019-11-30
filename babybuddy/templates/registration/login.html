@@ -4,7 +4,11 @@
 {% block title %}Login{% endblock %}
 {% block content %}
 <div class="row">
-  <div class="bg-light p-4 rounded text-dark mb-5 col-8 offset-2">
+  <div class="bg-light p-4 rounded text-dark mb-5 col-lg-8 offset-lg-2 col-sm-10 offset-sm-1">
+
+    {% if message %}
+    <p class="text-center">{{ message }}</p>
+    {% endif %}
 
     <form class="login-form" method="post" action="{% url 'babybuddy:login' %}">
       {% csrf_token %}

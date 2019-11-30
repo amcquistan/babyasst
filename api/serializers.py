@@ -1,13 +1,16 @@
 # -*- coding: utf-8 -*-
-from rest_framework import serializers
 
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib.auth.models import User
 from django.utils import timezone
 
-from core import models, timeline
+from rest_framework import serializers
 
 from babybuddy import models as babybuddy_models
 
+from core import models, timeline
 
 class CoreModelSerializer(serializers.HyperlinkedModelSerializer):
     """
@@ -48,10 +51,15 @@ class AccountDetailSerializer(serializers.ModelSerializer):
     def get_subscription(self, acct):
         subscription_data = {
           'is_active': False,
-          'plans': {}
+          'plans': {},
+          'member_count': acct.account_member_settings.filter(is_active=True).count(),
+          'children_count': acct.children.filter(is_active=True).count(),
+          'max_children': acct.max_children(),
+          'max_members': acct.max_account_members()
         }
-        is_active, subscription = acct.is_premium_subscriber()
-        subscription_data['is_active'] = is_active
+
+        subscription_data['is_active'] = acct.is_premium_subscriber()
+
         return subscription_data
 
     def get_payment_source(self, acct):
@@ -65,7 +73,7 @@ class AccountDetailSerializer(serializers.ModelSerializer):
             payment_source_data['payment_source'] = {
               'brand': payment_source['brand'],
               'exp_month': payment_source['exp_month'],
-              'exp_month': payment_source['exp_year'],
+              'exp_year': payment_source['exp_year'],
               'last4': payment_source['last4']
             }
         return payment_source_data

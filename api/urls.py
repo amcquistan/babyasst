@@ -27,6 +27,15 @@ urlpatterns = [
         'api/accounts/<int:pk>/',
         views.AccountAPIView.as_view()
     ),
+    path(
+        'api/accounts/<int:pk>/apply-promo-code/',
+        views.AccountPromoCodeAPIView.as_view()
+    ),
+
+    path(
+        'api/active-timers/',
+        views.ActiveTimersAPIView.as_view()
+    ),
 
     path(
         'api/children/',

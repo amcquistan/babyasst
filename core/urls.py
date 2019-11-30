@@ -27,6 +27,16 @@ urlpatterns = [
         name='child-update'
     ),
     path(
+        'children/<slug:slug>/deactivate/',
+        views.ChildDeactivateView.as_view(),
+        name='child-deactivate'
+    ),
+    path(
+        'children/<slug:slug>/activate/',
+        views.ChildActivateView.as_view(),
+        name='child-activate'
+    ),
+    path(
         'children/<slug:slug>/delete/',
         views.ChildDeleteView.as_view(),
         name='child-delete'

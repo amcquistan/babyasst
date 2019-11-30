@@ -41,11 +41,10 @@ BabyBuddy.Account = function(root) {
       self = null;
 
   var Account = {
-    init: function(el, uId, aId, usersToAdd, key) {
+    init: function(el, uId, aId, key) {
       self = this;
       userId = uId;
       accountId = aId;
-      usersToAddBeforeIncurringCost = usersToAdd;
       stripe = Stripe(key);
       stripeElements = stripe.elements();
       $el = $('#' + el);
@@ -83,26 +82,61 @@ BabyBuddy.Account = function(root) {
       stripeCard = stripeElements.create('card', {style: stripeStyle});
 
       self.fetchAccount(accountId);
+
+      $el.find('#delete-account-btn').click(function(evt){
+        evt.preventDefault();
+        $el.find('#confirm-delete-account-modal').show();
+        $el.find('#confirm-delete-account-btn').click(function(e){
+          $el.find('#delete-account-form').submit();
+        });
+      });
+
+      $el.find('.deactivate-account-user-btn').click(function(evt){
+        evt.preventDefault();
+        var $form = $(this).parent();
+        $el.find('#confirm-deactivate-member-modal').modal('show');
+        $el.find('#confirm-deactivate-member-btn').click(function(e){
+          $form.submit();
+        });
+      });
+
+      $el.find('.delete-account-user-btn').click(function(evt){
+        evt.preventDefault();
+        var $form = $(this).parent();
+        $el.find('#confirm-delete-member-modal').modal('show');
+        $el.find('#confirm-delete-member-btn').click(function(e){
+          $form.submit();
+        });
+      });
+      
     },
     fetchAccount: function(id) {
-      return $.get('/api/accounts/' + id + '/').then(function(response){
+      return $.get(BabyBuddy.ApiRoutes.account(id)).then(function(response){
         account = response;
         console.log('account', account);
         return response;
       });
     },
     upgradeToPremium: function (){
-      $paymentModal.find('#purchase-description').html('Premium subscription purchase for $3 per month');
+      $paymentModal.find('#purchase-description').html('Upgrade to premium service');
       
       var $useExistingPaymentSourceSection = $paymentModal.find('#existing-payment-source-section');
       var $useExistingPaymentSourceCB = $paymentModal.find('#use-existing-payment-source');
       var hasPaymentSource = account && account.payment_source && account.payment_source.has_payment_source;
       if (hasPaymentSource) {
-        var paymentSource = account.payment_source;
+        var paymentSource = account.payment_source.payment_source;
         $paymentModal.find('#payment-brand').html(paymentSource.brand);
-        $paymentModal.find('#payment-expmo').html(paymentSource.exp_mo);
-        $paymentModal.find('#payment-expyr').html(paymentSource.exp_yr);
+        $paymentModal.find('#payment-expmo').html(paymentSource.exp_month);
+        $paymentModal.find('#payment-expyr').html(paymentSource.exp_year);
         $paymentModal.find('#payment-last4').html(paymentSource.last4);
+        $useExistingPaymentSourceCB.click(function(evt) {
+          var useExisting = $useExistingPaymentSourceCB.prop('checked');
+          if (useExisting) {
+            $paymentModal.find('#cc-container').hide();
+          } else {
+            $paymentModal.find('#cc-container').show();
+          }
+        });
       } else {
         $useExistingPaymentSourceSection.empty();
       }
@@ -120,7 +154,42 @@ BabyBuddy.Account = function(root) {
 
       $paymentModal.modal('show');
 
-      $paymentModal.find('#card-button').click(function(e){
+      var $paymentBtn = $paymentModal.find('#payment-btn');
+
+      var $promoCode = $paymentModal.find('#promo-code');
+      var $promoCodeHelpText = $paymentModal.find('#promo-code-help-text');
+
+      $promoCode.on('input', function(evt){
+        var promoCode = $promoCode.val();
+        if (promoCode) {
+          $paymentBtn.toggleClass('disabled', true);
+          $paymentBtn.prop('disabled', true);
+          $promoCodeHelpText.html('Click to apply promo code before submitting payment');
+        } else {
+          $paymentBtn.toggleClass('disabled', false);
+          $paymentBtn.prop('disabled', false);
+          $promoCodeHelpText.html('');
+        }
+      });
+
+      $paymentModal.find('#apply-promo-btn').click(function(evt) {
+        evt.preventDefault();
+        var promoCode = $promoCode.val();
+        if (promoCode) {
+          console.log('apply promo code ' + promoCode);
+          return $.post(BabyBuddy.ApiRoutes.accountApplyPromo(accountId), {promo_code: promoCode}).then(response => {
+            $paymentBtn.toggleClass('disabled', false);
+            $paymentBtn.prop('disabled', false);
+            $promoCodeHelpText.html(response.message);
+            if (!response.requires_purchase) {
+              root.location.reload(true);
+            }
+            return response;
+          });
+        }
+      });
+
+      $paymentBtn.click(function(e){
         e.preventDefault();
         $subscriptionService.val('premium');
         if (hasPaymentSource && $useExistingPaymentSourceCB.prop('checked')) {
@@ -139,17 +208,19 @@ BabyBuddy.Account = function(root) {
       });
     },
     inviteAccountMember: function() {
+      debugger
       var invitee = $inviteeInput.val();
       if (!invitee || !account.subscription || !account.subscription.is_active) {
         return;
       }
 
-      if (usersToAddBeforeIncurringCost > 0) {
+      var addForFree = account.subscription.member_count < account.subscription.max_members
+      if (addForFree) {
         $inviteeStripeForm.submit();
         return;
       }
 
-      $paymentModal.find('#purchase-description').html('Adding account user for an additional $1 per month');
+      $paymentModal.find('#purchase-description').html('Add account member for an additional $1 per month');
       
       var $useExistingPaymentSourceSection = $paymentModal.find('#existing-payment-source-section');
       var $useExistingPaymentSourceCB = $paymentModal.find('#use-existing-payment-source');
@@ -177,7 +248,7 @@ BabyBuddy.Account = function(root) {
 
       $paymentModal.modal('show');
 
-      $paymentModal.find('#card-button').click(function(e){
+      $paymentModal.find('#payment-btn').click(function(e){
         e.preventDefault();
         if (hasPaymentSource && $useExistingPaymentSourceCB.prop('checked')) {
           $inviteeStripeForm.submit();

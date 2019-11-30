@@ -22,9 +22,8 @@
       <div class="child-name display-4">{{ object }}</div>
       <p class="lead">
         {% trans "Born" %} <span class="text-secondary">{{ object.birth_date }}</span><br/>
-        {% trans "Age" %} <span class="text-secondary">{{ object.birth_date|timesince }}</span>
+        {% trans "Age" %} <span class="text-secondary">{{ object.age }}</span>
       </p>
-      {% include 'dashboard/child_button_group.html' %}
     </div>
     <div class="col-lg-9 col-md-7">
       <h2 class="text-center">{% trans "Activities" %}</h2>

@@ -304,7 +304,21 @@ BabyBuddy.ChildDetail = function(root) {
                 const dy = (e - s) * 0.65;
                 return dy < minTextDy ? minTextDy : dy;
             })
-            .text(d => d.type !== 'breast milk' ? d.amount + ' oz' : '')
+            .text(d => {
+              if (d.type !== 'breast milk') {
+                return `${d.amount} oz`;
+              }
+
+              let text;
+              const duration = moment.duration(d.duration);
+              if (d.method === 'left breast') {
+                return `Left: ${duration.asMinutes()} mins`;
+              } else if (d.method === 'right breast') {
+                return `Right: ${duration.asMinutes()} mins`;
+              }
+
+              return `Both: ${duration.asMinutes()} mins`;
+            })
             .on('click', d => self.showFeedingModal(d));
         
       svg.selectAll('.sleep-tl')
@@ -365,6 +379,11 @@ BabyBuddy.ChildDetail = function(root) {
             $diaperChangeModal.modal('hide');
             self.fetchTimeline(timelineDate.toISOString());
             return response;
+          })
+          .catch(err => {
+            if (err.responseJSON && err.responseJSON.error_message) {
+              $diaperChangeModal.find('#error-message').html(err.responseJSON.error_message);
+            }
           });
       });
     },
@@ -427,6 +446,11 @@ BabyBuddy.ChildDetail = function(root) {
             $feedingModal.modal('hide');
             self.fetchTimeline(timelineDate.toISOString());
             return response;
+          })
+          .catch(err => {
+            if (err.responseJSON && err.responseJSON.error_message) {
+              $feedingModal.find('#error-message').html(err.responseJSON.error_message);
+            }
           });
       });
     },
@@ -456,6 +480,11 @@ BabyBuddy.ChildDetail = function(root) {
             $sleepModal.modal('hide');
             self.fetchTimeline(timelineDate.toISOString());
             return response;
+          })
+          .catch(err => {
+            if (err.responseJSON && err.responseJSON.error_message) {
+              $sleepModal.find('#error-message').html(err.responseJSON.error_message);
+            }
           });
       });
     }

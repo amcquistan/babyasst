@@ -18,17 +18,6 @@ class SettingsInline(admin.StackedInline):
         }),
     )
 
-# class AccountInline(admin.StackedInline):
-#     model = models.Account
-#     verbose_name = _('Account')
-#     verbose_name_plural = _('Accounts')
-#     can_delete = False
-#     fieldsets = (
-#         (_('Account'), {
-#             'fields': ('name','approved_terms', 'payment_processor_id', 'phone_number', 'phone_notifications_enabled', 'email_notifications_enabled', 'users')
-#         }),
-#     )
-
 
 class UserAdmin(BaseUserAdmin):
     inlines = (SettingsInline,)
@@ -37,5 +26,51 @@ class UserAdmin(BaseUserAdmin):
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
-admin.site.register(models.Account)
-admin.site.register(models.AccountMemberSettings)
+@admin.register(models.Account)
+class AccountAdmin(admin.ModelAdmin):
+    list_display = ('name', 'owner', 'approved_terms', 'slug')
+    fields = ('name', 'owner')
+    search_fields = ('owner__first_name', 'owner__last_name')
+
+
+@admin.register(models.AccountMemberSettings)
+class AccountMemberSettingsAdmin(admin.ModelAdmin):
+    list_display = ('account', 'user', 'phone_notifications_enabled', 'email_notifications_enabled', 'is_active')
+    fields = ('account', 'user', 'phone_notifications_enabled', 'email_notifications_enabled', 'is_active')
+    search_fields = ('account__name', 'user__last_name')
+
+
+@admin.register(models.AccountPromoCode)
+class AccountPromoCodeAdmin(admin.ModelAdmin):
+    list_display = ('account', 'promo_code', 'applied_on')
+    fields = ('account', 'promo_code', 'applied_on')
+    search_fields = ('account__name', 'promo_code__code')
+    readonly_fields = ('applied_on',)
+
+
+@admin.register(models.PromoCode)
+class PromoCodeAdmin(admin.ModelAdmin):
+    list_display = (
+        'code',
+        'max_usage',
+        'max_usage_per_account',
+        'months_valid',
+        'apply_premium',
+        'apply_additional_member',
+        'apply_additional_child',
+        'stripe',
+        'promo_price'
+    )
+    fields = (
+        'code',
+        'max_usage',
+        'max_usage_per_account',
+        'months_valid',
+        'apply_premium',
+        'apply_additional_member',
+        'apply_additional_child',
+        'stripe',
+        'promo_price'
+    )
+    search_fields = ('code',)
+    list_filter = ('stripe',)

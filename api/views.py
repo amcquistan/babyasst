@@ -33,6 +33,7 @@ class ListOrCreateModelWithAccountAPIView(APIView):
         account_id = request.data.get('account')
         if account_id:
             obj_account = get_object_or_404(babybuddy_models.Account, pk=account_id)
+        
         if not api_permissions.can_create_obj_with_acct(request, obj_account=obj_account):
             return Response(None, status=status.HTTP_403_FORBIDDEN)
 
@@ -50,8 +51,9 @@ class ViewOrUpdateModelWithAccountAPIView(APIView):
 
     def get(self, request, pk, format=None):
         obj = get_object_or_404(self.model, pk=pk)
-        if not api_permissions.can_view_update_obj_with_acct(request, obj):
-            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        permission_check = api_permissions.can_view_update_obj_with_acct(request, obj)
+        if not permission_check.passed_check:
+            return Response(permission_check.message, status=status.HTTP_403_FORBIDDEN)
         
         serializer = self.serializer_class(obj)
         return Response(serializer.data)
@@ -85,9 +87,9 @@ class ListOrCreateChildActivityAPIView(GenericAPIView):
 
     def get(self, request, child_id, format=None):
         child = self.get_child()
-
-        if not api_permissions.can_view_update_obj_with_acct(request, child):
-            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        permission_check = api_permissions.can_view_update_obj_with_acct(request, child)
+        if not permission_check.passed_check:
+            return Response({'message': permission_check.message}, status=status.HTTP_403_FORBIDDEN)
 
         queryset = self.get_queryset()
         page = self.paginate_queryset(queryset)
@@ -100,9 +102,9 @@ class ListOrCreateChildActivityAPIView(GenericAPIView):
 
     def post(self, request, child_id, format=None):
         child = get_object_or_404(models.Child, pk=child_id)
-
-        if not api_permissions.can_view_update_obj_with_acct(request, child):
-            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        permission_check = api_permissions.can_view_update_obj_with_acct(request, child)
+        if not permission_check.passed_check:
+            return Response({'message': permission_check.message}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.serializer_class(data=request.data)
         if serializer.is_valid():
@@ -120,8 +122,9 @@ class ViewOrUpdateChildActivityAPIView(APIView):
     def get(self, request, child_id, pk, format=None):
         child = get_object_or_404(models.Child, pk=child_id)
 
-        if not api_permissions.can_view_update_obj_with_acct(request, child):
-            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        permission_check = api_permissions.can_view_update_obj_with_acct(request, child)
+        if not permission_check.passed_check:
+            return Response({'message': permission_check.message}, status=status.HTTP_403_FORBIDDEN)
 
         obj = get_object_or_404(self.model, pk=pk)
         serializer = self.serializer_class(obj)
@@ -129,9 +132,10 @@ class ViewOrUpdateChildActivityAPIView(APIView):
 
     def post(self, request, child_id, pk, format=None):
         child = get_object_or_404(models.Child, pk=child_id)
-
-        if not api_permissions.can_view_update_obj_with_acct(request, child):
-            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        
+        permission_check = api_permissions.can_view_update_obj_with_acct(request, child)
+        if not permission_check.passed_check:
+            return Response({'message': permission_check.message}, status=status.HTTP_403_FORBIDDEN)
 
         obj = get_object_or_404(self.model, pk=pk)
         serializer = self.serializer_class(obj, data=request.data)
@@ -143,8 +147,9 @@ class ViewOrUpdateChildActivityAPIView(APIView):
     def delete(self, request, child_id, pk, format=None):
         child = get_object_or_404(models.Child, pk=child_id)
 
-        if not api_permissions.can_view_update_obj_with_acct(request, child):
-            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        permission_check = api_permissions.can_view_update_obj_with_acct(request, child)
+        if not permission_check.passed_check:
+            return Response({'message': permission_check.message}, status=status.HTTP_403_FORBIDDEN)
 
         obj = get_object_or_404(self.model, pk=pk)
         obj.delete()
@@ -178,8 +183,9 @@ class ChildTimelineAPIView(APIView):
     def get(self, request, child_id, date_str, format=None):
         child = get_object_or_404(self.model, pk=child_id)
 
-        if not api_permissions.can_view_update_obj_with_acct(request, child):
-            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        permission_check = api_permissions.can_view_update_obj_with_acct(request, child)
+        if not permission_check.passed_check:
+            return Response({'message': permission_check.message}, status=status.HTTP_403_FORBIDDEN)
 
         serializer = self.serializer_class(child=child, data={'date': date_str})
         if serializer.is_valid():
@@ -190,7 +196,7 @@ class ChildTimelineAPIView(APIView):
 
 class AccountsAPIView(APIView):
     permission_classes = (IsAuthenticated,)
-    model = models.Account
+    model = babybuddy_models.Account
     serializer_class = serializers.AccountSerializer
 
     def get(self, request, format=None):
@@ -201,7 +207,7 @@ class AccountsAPIView(APIView):
 
 class AccountAPIView(APIView):
     permission_classes = (IsAuthenticated,)
-    model = models.Account
+    model = babybuddy_models.Account
     serializer_class = serializers.AccountDetailSerializer
 
     def get(self, request, pk):
@@ -212,6 +218,69 @@ class AccountAPIView(APIView):
         serializer = self.serializer_class(account)
 
         return Response(serializer.data)
+
+
+class ActiveTimersAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request):
+        timers = self.request.user.account.timers.exclude(complete=True).all()
+        serializer = serializers.TimerSerializer(timers, many=True)
+        return Response(serializer.data)
+
+
+class AccountPromoCodeAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
+    model = babybuddy_models.Account
+    
+    def post(self, request, pk):
+        account = self.model.objects.get(pk=pk)
+        if account.id != request.user.account.id:
+            return Response({}, status=status.HTTP_403_FORBIDDEN)
+
+        promo_code = get_object_or_404(babybuddy_models.PromoCode, code__iexact=request.data.get('promo_code'))
+
+        acct_promo_codes = babybuddy_models.AccountPromoCode.objects.filter(promo_code=promo_code).all()
+
+        total_usage = 0
+        usage_this_acct = 0
+        for acct_promo_code in acct_promo_codes:
+            total_usage += 1
+            if acct_promo_code.account.id == account.id:
+                usage_this_acct += 1
+
+        if total_usage > promo_code.max_usage or usage_this_acct > promo_code.max_usage_per_account:
+            return Response({'valid': False, 'message': 'Max usage exceeded', 'requires_purchase': True})
+        
+        msg = ''
+        if not promo_code.stripe:
+            babybuddy_models.AccountPromoCode.objects.create(
+              account=account,
+              promo_code=promo_code
+            )
+            
+            if promo_code.apply_premium:
+                msg = 'Promo applied for premium service'
+            elif promo_code.apply_additional_member:
+                msg = 'Promo applied for an additional account member'
+            elif promo_code.apply_additional_child:
+                msg = 'Promo applied for an additional child'
+
+            if promo_code.months_valid != -1:
+                msg += f' for {promo_code.months_valid} months'
+
+        else:
+            if promo_code.apply_premium:
+                msg = f'Promo available for premium service at ${promo_code.promo_price}'
+            elif promo_code.apply_additional_member:
+                msg = 'Promo available for an additional account member at ${promo_code.promo_price}'
+            elif promo_code.apply_additional_child:
+                msg = 'Promo available for an additional child at ${promo_code.promo_price}'
+
+            if promo_code.months_valid != -1:
+                msg += f' for {promo_code.months_valid} months'
+
+        return Response({'valid': True, 'message': msg, 'requires_purchase': promo_code.stripe})
 
 
 class DiaperChangeListOrCreateAPIView(ListOrCreateChildActivityAPIView):
@@ -305,24 +374,26 @@ class TimerAPIView(ViewOrUpdateModelWithAccountAPIView):
 
     def get(self, request, pk, format=None):
         '''override default implementation so that timer can be refershed'''
-        obj = get_object_or_404(self.model, pk=pk)
-        if not api_permissions.can_view_update_obj_with_acct(request, obj):
-            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        timer = get_object_or_404(self.model, pk=pk)
+        permission_check = api_permissions.can_view_update_obj_with_acct(request, timer)
+        if not permission_check.passed_check:
+            return Response({'message': permission_check.message}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = self.serializer_class(obj)
+        serializer = self.serializer_class(timer)
         return Response(serializer.data)
 
     def post(self, request, pk, format=None):
-        obj = get_object_or_404(self.model, pk=pk)
-        account = obj.account
-        requesting_start = not obj.active and request.data.get('active')
+        timer = get_object_or_404(self.model, pk=pk)
+        account = timer.account
+        requesting_start = not timer.active and request.data.get('active')
         if requesting_start and not account.can_start_timer():
             return Response(None, status=status.HTTP_403_FORBIDDEN)
 
-        if not api_permissions.can_view_update_obj_with_acct(request, obj):
-            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        permission_check = api_permissions.can_view_update_obj_with_acct(request, timer)
+        if not permission_check.passed_check:
+            return Response({'message': permission_check.message}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = self.serializer_class(obj, data=request.data)
+        serializer = self.serializer_class(timer, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

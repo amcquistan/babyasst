@@ -11,6 +11,8 @@ from django.utils.text import format_lazy
 from django.utils import translation
 from django.utils.translation import gettext_lazy as _
 
+from dateutil.relativedelta import relativedelta
+
 from rest_framework.authtoken.models import Token
 
 import stripe
@@ -179,48 +181,120 @@ class Account(models.Model):
 
         return cancelled
 
+    def is_free_premium_subscriber(self):
+        for acct_promo in self.account_promo_codes.filter(promo_code__apply_premium=True).all():
+            promo_code = acct_promo.promo_code
+            if promo_code.months_valid != -1:
+                expires_on = acct_promo.applied_on + relativedelta(months=promo_code.months_valid)
+                valid_promo = timezone.now() <= expires_on
+                if valid_promo:
+                    return True
+        return False
+
+    def free_premium_end_date(self):
+        if not self.is_free_premium_subscriber():
+            raise RuntimeError('Not a promotional premium subscriber')
+
+        promo_expires = []
+        for acct_promo in self.account_promo_codes.filter(promo_code__apply_premium=True).all():
+            promo_code = acct_promo.promo_code
+            if promo_code.months_valid != -1:
+                expires_on = acct_promo.applied_on + relativedelta(months=promo_code.months_valid)
+                promo_expires.append(expires_on)
+
+        promo_expires = sorted(promo_expires)
+        return promo_expires[-1]
+
+
     def is_premium_subscriber(self):
-        return True, ''
+        if self.is_free_premium_subscriber():
+            return True
 
         if not self.payment_processor_id:
-            return False, None
+            return False
 
         stripe_customer = self.find_or_create_stripe_customer()
         if not stripe_customer:
-            return False, None
+            return False
 
         is_active, subscription = self.has_active_subscription(
             stripe_customer,
             settings.STRIPE_PREMIUM_PLAN
         )
-        return is_active, subscription
+        return is_active
 
     def can_add_child(self):
-        is_premium, subscription = self.is_premium_subscriber()
-        if not is_premium:
-            children_cnt = self.children.count()
-            if children_cnt == 0:
-                return True
-        else:
-            active_children_cnt = self.children.filter(is_active=True).count()
-            if active_children_cnt < settings.PREMIUM_CHILD_COUNT:
-                return True
+        children_cnt = self.children.filter(is_active=True).count()
+        max_children = self.max_children()
 
-        return False
+        return max_children > children_cnt
+
+    def max_children(self):
+        max_children = settings.FREE_CHILD_COUNT
+        is_premium = self.is_premium_subscriber()
+        if is_premium:
+            max_children = settings.PREMIUM_CHILD_COUNT
+
+        for acct_promo in self.account_promo_codes.all():
+            valid_promo = True
+            promo_code = acct_promo.promo_code
+            if promo_code.months_valid != -1:
+                expires_on = acct_promo.applied_on + relativedelta(months=promo_code.months_valid)
+                valid_promo = timezone.now() >= expires_on
+            
+            if valid_promo and promo_code.apply_additional_child:
+                max_children += 1
+
+        return max_children
+
+    def active_account_members(self):
+        return self.account_member_settings.filter(is_active=True)
+
+    def can_add_account_member(self):
+        acct_member_cnt = self.active_account_members().count()
+        max_acct_members = self.max_account_members()
+
+        return max_acct_members > acct_member_cnt
+
+    def number_of_members_available_to_add_free(self):
+        acct_member_cnt = self.active_account_members().count()
+        max_acct_members = self.max_account_members()
+        return max_acct_members - acct_member_cnt
+
+    def max_account_members(self):
+        max_members = settings.FREE_MEMBER_COUNT
+        is_premium = self.is_premium_subscriber()
+        if is_premium:
+            max_members = settings.PREMIUM_MEMBER_COUNT
+        
+        for acct_promo in self.account_promo_codes.all():
+            valid_promo = True
+            promo_code = acct_promo.promo_code
+            if promo_code.months_valid != -1:
+                expires_on = acct_promo.applied_on + relativedelta(months=promo_code.months_valid)
+                valid_promo = timezone.now() >= expires_on
+            
+            if valid_promo:
+                if promo_code.apply_additional_member:
+                    max_members += 1
+
+        return max_members
 
     def can_start_timer(self):
-        is_premium, subscription = self.is_premium_subscriber()
+        is_premium = self.is_premium_subscriber()
         if is_premium:
             return True
 
         first_of_month = timezone.now().replace(day=1)
         
-        timers_cnt = self.timers.filter(created__gte=first_of_month).exclude(duration__isnull=True).count()
+        timers_cnt = self.timers.filter(
+                          created__gte=first_of_month
+                      ).exclude(duration__isnull=True).count()
 
         return timers_cnt < settings.FREE_TIMER_COUNT
 
     def can_add_notification(self):
-        is_premium, subscription = self.is_premium_subscriber()
+        is_premium = self.is_premium_subscriber()
         if is_premium:
             return True
 
@@ -365,3 +439,23 @@ class AccountMemberSettings(models.Model):
 
     def __str__(self):
         return '{} {} {}'.format(self.account.name, self.user.first_name, self.user.last_name)
+
+
+class PromoCode(models.Model):
+    code = models.CharField(max_length=100)
+    max_usage = models.IntegerField(default=1)
+    max_usage_per_account = models.IntegerField(default=1)
+    months_valid = models.IntegerField(default=1)
+    apply_premium = models.BooleanField(default=False)
+    apply_additional_member = models.BooleanField(default=False)
+    apply_additional_child = models.BooleanField(default=False)
+    stripe = models.BooleanField(default=False)
+    promo_price = models.DecimalField(max_digits=7, decimal_places=2, default=0.00)
+
+    def __str__(self):
+        return f"{self.code} ({self.months_valid} month)"
+
+class AccountPromoCode(models.Model):
+    account = models.ForeignKey(Account, on_delete=models.CASCADE, related_name='account_promo_codes')
+    promo_code = models.ForeignKey(PromoCode, on_delete=models.CASCADE, related_name='account_promo_codes')
+    applied_on = models.DateTimeField(auto_now_add=timezone.now)

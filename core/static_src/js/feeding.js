@@ -285,6 +285,12 @@ BabyBuddy.Feeding = function(root) {
           // root.location.href = successUrl;
           root.location.reload(true);
           return response;
+        })
+        .catch(err => {
+          console.log('error', err);
+          if (err.responseJSON && err.responseJSON.error_message) {
+            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          }
         });
     },
     update: () => {
@@ -295,6 +301,12 @@ BabyBuddy.Feeding = function(root) {
           // root.location.href = successUrl;
           root.location.reload(true);
           return response;
+        })
+        .catch(err => {
+          console.log('error', err);
+          if (err.responseJSON && err.responseJSON.error_message) {
+            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          }
         });
     },
     clear: () => {

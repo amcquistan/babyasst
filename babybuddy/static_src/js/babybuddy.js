@@ -40,11 +40,16 @@ function csrfSafeMethod (method) {
 }
 
 var BabyBuddy = function () {
+    const $timerCountSpan = $('#timers-count');
+
     var BabyBuddy = {
       host: () => {
         return `${window.location.protocol}//${window.location.host}`;
       },
       ApiRoutes: {
+        activeTimersCount: () => {
+          return `/api/active-timers/`;
+        },
         children: () => {
           return '/api/children/';
         },
@@ -56,6 +61,12 @@ var BabyBuddy = function () {
         },
         notification: (notificationId) => {
           return `/api/notifications/${notificationId}/`;
+        },
+        account: (accountId) => {
+          return `/api/accounts/${accountId}/`;
+        },
+        accountApplyPromo: (accountId) => {
+          return `/api/accounts/${accountId}/apply-promo-code/`;
         },
         accounts: () => {
           return '/api/accounts/';
@@ -464,8 +475,17 @@ var BabyBuddy = function () {
             evt.preventDefault();
           }
         });
+      },
+      updateTimerNavSpan: () => {
+        if ($timerCountSpan) {
+          return $.get(BabyBuddy.ApiRoutes.activeTimersCount()).then(response => {
+            $timerCountSpan.html(''+response.length);
+          });
+        }
       }
     };
+
+    window.addEventListener('focus', BabyBuddy.updateTimerNavSpan, false);
 
     return BabyBuddy;
 }();

@@ -84,18 +84,6 @@ BabyBuddy.DiaperChange = function(root) {
         }
       });
 
-      /*
-      $prevBtn.click((evt) => {
-        evt.preventDefault();
-        self.fetchAll($prevBtn.prop('href'));
-      });
-
-      $nextBtn.click((evt) => {
-        evt.preventDefault();
-        self.fetchAll($nextBtn.prop('href'));
-      });
-      */
-
       $startFilterPicker.datetimepicker({
         defaultDate: moment().subtract(7, 'days'),
         format: 'YYYY-MM-DD'
@@ -222,22 +210,6 @@ BabyBuddy.DiaperChange = function(root) {
         diaperChangeChart.plot($el.find('#diaperchange-chart'), $el.find('#diaperchange-chart-container'), diaperChanges, s, e);
         return response;
       });
-      /*
-      if (!_.isEmpty(url)) {
-        $.get(url)
-        .then((response) => {
-          diaperChanges = response.results;
-          console.log(response);
-          self.syncTable();
-          $prevBtn.prop('href', response.previous || '#');
-          $nextBtn.prop('href', response.next || '#');
-          $prevBtn.toggleClass('disabled', !Boolean(response.previous));
-          $nextBtn.toggleClass('disabled', !Boolean(response.next));
-          self.syncTable();
-          return response;
-        });
-      }
-      */
     },
     create: () => {
       $.post(BabyBuddy.ApiRoutes.diaperChanges(childId), diaperChange)
@@ -246,19 +218,25 @@ BabyBuddy.DiaperChange = function(root) {
           diaperChangeId = response.id;
           $addModal.modal('hide');
           root.location.reload(true);
-          // root.location.href = successUrl;
           return response;
+        })
+        .catch(err => {
+          if (err.responseJSON && err.responseJSON.error_message) {
+            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          }
         });
     },
     update: () => {
       $.post(BabyBuddy.ApiRoutes.diaperChangeDetail(childId, diaperChangeId), diaperChange)
         .then((response) => {
           diaperChange = response;
-          // self.syncInputs();
-          // root.location.href = successUrl;
           root.location.reload(true);
-          // $addModal.modal('hide');
           return response;
+        })
+        .catch(err => {
+          if (err.responseJSON && err.responseJSON.error_message) {
+            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          }
         });
     },
     clear: () => {

@@ -18,9 +18,10 @@ def timer_nav(context, active=True):
     :returns: a dictionary with timers data.
     """
     request = context['request'] or None
-    timers = Timer.objects.filter(active=active, user=request.user)
+    timers = Timer.unfinished_account_timers(request.user)
+    timers_cnt = len(timers)
     # The 'next' parameter is currently not used.
-    return {'timers': timers, 'next': request.path}
+    return {'timers': timers, 'next': request.path, 'timers_cnt': timers_cnt}
 
 @register.inclusion_tag('core/timer_mobile_nav.html', takes_context=True)
 def timer_mobile_nav(context):

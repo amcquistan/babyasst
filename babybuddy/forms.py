@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django import forms
-from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm, SetPasswordForm
+from django.contrib.auth import authenticate
+from django.contrib.auth.forms import PasswordChangeForm, UserCreationForm, SetPasswordForm, AuthenticationForm
 from django.contrib.auth.models import User
 from django.utils.translation import gettext as _
 
@@ -18,6 +19,35 @@ class UserSignupForm(UserCreationForm):
         user.account.approved_terms = self.cleaned_data["approved_terms"] 
         user.save()
         return user
+
+
+class CustomAuthenticationForm(AuthenticationForm):
+
+    def __init__(self, request=None, *args, **kwargs):
+        super(CustomAuthenticationForm, self).__init__(request, *args, **kwargs)
+
+    def clean(self):
+        username = self.cleaned_data.get('username')
+        password = self.cleaned_data.get('password')
+
+        if username is not None and password:
+            self.user_cache = authenticate(self.request, username=username, password=password)
+            if self.user_cache is None:
+                try:
+                    matched_email = User.objects.get(email__iexact=username)
+                except User.DoesNotExist:
+                    raise self.get_invalid_login_error()
+
+                self.user_cache = authenticate(self.request, username=matched_email.username, password=password)
+                if self.user_cache is None:
+                    raise self.get_invalid_login_error()
+
+            self.confirm_login_allowed(self.user_cache)
+
+        return self.cleaned_data
+
+    def get_user(self):
+        return self.user_cache
 
 
 class InvitedNewUserForm(SetPasswordForm):

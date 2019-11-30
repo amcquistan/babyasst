@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
+
+from collections import namedtuple
+
 from rest_framework.permissions import DjangoModelPermissions, BasePermission, SAFE_METHODS
 
 from core import models
+
+PermissionCheck = namedtuple('PermissionCheck', ['passed_check', 'message'])
 
 class BabyBuddyDjangoModelPermissions(DjangoModelPermissions):
     perms_map = {
@@ -18,28 +23,40 @@ class BabyBuddyDjangoModelPermissions(DjangoModelPermissions):
 def can_create_obj_with_acct(request, obj_account=None):
     acct = obj_account if obj_account else request.user.account
 
-    acct_users = {u.id for u in acct.users.all()}
-    if request.user.id not in acct_users:
-        return False
+    try:
+        acct_member_settings = acct.account_member_settings.get(user=request.user)
+        child = acct.children.get(child=int(request.data.get('child', 0)))
+    except:
+        return PermissionCheck(False, 'Operation not supported')
 
-    child_id = int(request.data.get('child', 0))
-    if child_id:
-        children_in_acct = {child.id for child in acct.children.all()}
-        if child_id not in children_in_acct:
-            return False
+    if not child.is_active:
+        return PermissionCheck(False, 'Child must be active to perform this action')
 
-    return True
+    if not acct_member_settings.is_active:
+        return PermissionCheck(False, 'User account not active')
+
+    return PermissionCheck(True, '')
 
 
 def can_view_update_obj_with_acct(request, obj):
-    if not obj.account:
-       if obj.user.id != request.user.id:
-            return False
+    if hasattr(obj, 'child') and request.method not in SAFE_METHODS and not obj.child.is_active:
+        return PermissionCheck(False, 'Child must be active to perform this action')
+
+    if isinstance(obj, models.Child) and request.method not in SAFE_METHODS and not obj.is_active:
+        return PermissionCheck(False, 'Child must be active to perform this action')
+
+    if not hasattr(obj, 'account'):
+       if obj.user.id == request.user.id:
+            return PermissionCheck(True, '')
 
     else:
-        user_accounts = {acct.id for acct in request.user.accounts.all()}
-        if obj.account.id not in user_accounts:
-            return False
+        try:
+            acct_member_settings = obj.account.account_member_settings.get(user=request.user)
+        except:
+            PermissionCheck(False, 'Operation not supported')
 
-    return True
+        if acct_member_settings.is_active:
+            return PermissionCheck(True, '')
+
+    return PermissionCheck(False, 'Operation not supported')
 
