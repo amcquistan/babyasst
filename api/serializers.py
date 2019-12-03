@@ -80,6 +80,7 @@ class AccountDetailSerializer(serializers.ModelSerializer):
 
 
 class ChildSerializer(serializers.ModelSerializer):
+    last_bath = serializers.SerializerMethodField()
     last_feeding = serializers.SerializerMethodField()
     last_change = serializers.SerializerMethodField()
     last_sleep = serializers.SerializerMethodField()
@@ -97,6 +98,7 @@ class ChildSerializer(serializers.ModelSerializer):
             'slug',
             'account',
             'is_active',
+            'last_bath',
             'last_feeding',
             'last_change',
             'last_sleep',
@@ -105,6 +107,13 @@ class ChildSerializer(serializers.ModelSerializer):
             'last_weight',
         )
         lookup_field = 'slug'
+
+    def get_last_bath(self, instance):
+        bath = instance.baths.order_by('-time').first()
+        data = {}
+        if bath:
+            data = BathSerializer(bath).data
+        return data
 
     def get_last_feeding(self, instance):
         feeding = instance.feeding.order_by('-start').first()
@@ -148,6 +157,11 @@ class ChildSerializer(serializers.ModelSerializer):
             data = WeightSerializer(weight).data
         return data
 
+class BathSerializer(CoreModelSerializer):
+    class Meta:
+        model = models.Bath
+        fields = ('id', 'child', 'time')
+
 
 class DiaperChangeSerializer(CoreModelSerializer):
     class Meta:
@@ -166,7 +180,8 @@ class FeedingSerializer(CoreModelSerializer):
             'duration',
             'type',
             'method',
-            'amount'
+            'amount',
+            'units'
         )
 
 
@@ -203,19 +218,6 @@ class TimeLineSerializer(serializers.Serializer):
     def __init__(self, **kwargs):
         self.child = kwargs.pop('child')
         super(TimeLineSerializer, self).__init__(**kwargs)
-
-    # def get_items(self, instance):
-    #     items = []
-    #     date = instance['date']
-    #     for item in timeline.get_objects(self.child, date):
-    #         items.append({
-    #           'time': str(item['time']),
-    #           'event': item['event'],
-    #           'model_name': item['model_name'],
-    #           'detail': item['detail'],
-    #           'type': item.get('type')
-    #         })
-    #     return items
 
     def get_items(self, instance):
         changes, feedings, sleep = timeline.get_timeline(self.child, instance['date'])
@@ -292,4 +294,4 @@ class TummyTimeSerializer(CoreModelSerializer):
 class WeightSerializer(CoreModelSerializer):
     class Meta:
         model = models.Weight
-        fields = ('id', 'child', 'weight', 'date')
+        fields = ('id', 'child', 'weight', 'date', 'units')

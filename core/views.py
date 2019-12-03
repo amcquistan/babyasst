@@ -335,10 +335,11 @@ class ChildActivateView(LoginRequiredMixin, View):
 # List and Add Views are going to be the same
 # Separate update and delete views
 
-class DiaperChangeQuickAddView(ChildActivityQuickAddView):
-    model = models.DiaperChange
-    form_class = forms.DiaperChangeQuickAddForm
-    template_name = 'core/diaperchange_form.html'
+class BathAddListView(ChildActivityAddListView):
+    model = models.Bath
+    template_name = 'core/bath.html'
+    form_class = forms.BathForm
+    success_url_name = 'core:child'
 
 
 class DiaperChangeAddListView(ChildActivityAddListView):
@@ -348,44 +349,10 @@ class DiaperChangeAddListView(ChildActivityAddListView):
     success_url_name = 'core:child'
 
 
-class DiaperChangeUpdateView(ChildActivityUpdateView):
-    model = models.DiaperChange
-    template_name = 'core/diaperchange_form.html'
-    form_class = forms.DiaperChangeForm
-    success_url_name = 'core:child'
-
-
-class DiaperChangeDeleteView(ChildActivityDeleteView):
-    model = models.DiaperChange
-    success_url_name = 'core:child'
-
-
-class FeedingQuickAddView(ChildActivityQuickAddView):
-    model = models.Feeding
-    form_class = forms.FeedingQuickAddForm
-    template_name = 'core/feeding_form.html'
-
-
 class FeedingAddListView(ChildActivityAddListView):
     model = models.Feeding
-    # permission_required = ('core.add_feeding',)
     form_class = forms.FeedingForm
-    # success_url = reverse_lazy('core:feeding-list')
     template_name = 'core/feeding.html'
-    success_url_name = 'core:child'
-
-
-class FeedingUpdateView(ChildActivityUpdateView):
-    model = models.Feeding
-    # permission_required = ('core.change_feeding',)
-    form_class = forms.FeedingForm
-    # success_url = reverse_lazy('core:feeding-list')
-    template_name = 'core/feeding_form.html'
-    success_url_name = 'core:child'
-
-
-class FeedingDeleteView(ChildActivityDeleteView):
-    model = models.Feeding
     success_url_name = 'core:child'
 
 
@@ -508,28 +475,10 @@ class NotificationDetailView(LoginRequiredMixin, View):
         return redirect(reverse('core:notification-detail', args=(notification.id, )))
 
 
-class SleepQuickAddView(ChildActivityQuickAddView):
-    model = models.Sleep
-    form_class = forms.SleepQuickAddForm
-    template_name = 'core/sleep_form.html'
-
-
 class SleepAddListView(ChildActivityAddListView):
     model = models.Sleep
     form_class = forms.SleepForm
     template_name = 'core/sleep.html'
-    success_url_name = 'core:child'
-
-
-class SleepUpdateView(ChildActivityUpdateView):
-    model = models.Sleep
-    template_name = 'core/sleep_form.html'
-    form_class = forms.SleepForm
-    success_url_name = 'core:sleep'
-
-
-class SleepDeleteView(ChildActivityDeleteView):
-    model = models.Sleep
     success_url_name = 'core:child'
 
 
@@ -656,24 +605,6 @@ class TimerCompleteView(UserPassesTestMixin, View):
             return redirect(reverse('core:child', args=(timer.child.slug,)))
         
         return redirect(reverse('core:timer-list'))
-
-
-class FeedingAddFromTimerView(ChildActivityAddFromTimerView):
-      model = models.Feeding
-      form_class = forms.FeedingQuickAddForm
-      template_name = 'core/feeding_form.html'
-
-
-class SleepAddFromTimerView(ChildActivityAddFromTimerView):
-      model = models.Feeding
-      form_class = forms.SleepQuickAddForm
-      template_name = 'core/sleep_form.html'
-
-
-class TummyTimeAddFromTimerView(ChildActivityAddFromTimerView):
-      model = models.Feeding
-      form_class = forms.TummyTimeQuickAddForm
-      template_name = 'core/tummytime_form.html'
 
 
 class TummyTimeQuickAddView(ChildActivityQuickAddView):

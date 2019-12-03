@@ -151,6 +151,28 @@ class Child(models.Model):
         return '{} {}'.format(self.first_name, self.last_name)
 
 
+class Bath(models.Model):
+    model_name = 'bath'
+    child = models.ForeignKey(
+        'Child',
+        on_delete=models.CASCADE,
+        related_name='baths',
+        help_text=_('Select a child'),
+        verbose_name=_('Child')
+    )
+    time = models.DateTimeField(
+        blank=False,
+        null=False,
+        verbose_name=_('Time')
+    )
+    objects = models.Manager()
+
+    class Meta:
+        ordering = ['-time']
+        verbose_name = _('Bath')
+        verbose_name_plural = _('Baths')
+
+
 class DiaperChange(models.Model):
     model_name = 'diaperchange'
     child = models.ForeignKey(
@@ -253,6 +275,16 @@ class Feeding(models.Model):
         verbose_name=_('Method')
     )
     amount = models.FloatField(blank=True, null=True, verbose_name=_('Amount'))
+    units = models.CharField(
+      blank=False,
+      choices=[
+        ('ounces', _('Ounces')),
+        ('milliliters', _('Milliliters'))
+      ],
+      default='ounces',
+      max_length=20,
+      verbose_name=_('Units')
+    )
 
     objects = models.Manager()
 
@@ -775,7 +807,16 @@ class Weight(models.Model):
         null=False,
         verbose_name=_('Date')
     )
-
+    units = models.CharField(
+      blank=False,
+      choices=[
+        ('pounds', _('Pounds')),
+        ('kilograms', _('Kilograms'))
+      ],
+      default='pounds',
+      max_length=20,
+      verbose_name=_('Units')
+    )
     objects = models.Manager()
 
     class Meta:

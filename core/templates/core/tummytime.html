@@ -16,37 +16,47 @@
 {% endblock %}
 
 {% block content %}
-  <div class="row" id="tummytime">
-    <div class="col-md-10 offset-1">
-      <h1 class='mb-5'>{% trans "Tummy Time for" %} <span class="text-info">{{ child }}</span></h1>
-      <div class="mb-5 container-fluid">
-        <div class="form-group">
-          <label for="start">{% trans "Start" %}</label>
-          <div class="input-group date" id="datetimepicker_start" data-target-input="nearest">
-            <div class="input-group-prepend" data-target="#datetimepicker_start" data-toggle="datetimepicker">
-              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+<div class="row" id="tummytime-container">
+    <div class="col-md-10 offset-1" id='tummytime-chart-container'>
+      <div class="row">
+        <div class="col-lg-10 col-sm-12">
+          <h2 class='mb-3'>{% trans "Tummy Time" %}</h2>
+        </div>
+        <div class="col-lg-2 col-sm-12">
+          <h2 class="text-center">
+            <a id="tummytime-add-btn" class="btn add-activity">
+              <i class="icon icon-5x icon-add-circle text-info"></i>
+              {% trans "Add" %}
+            </a>
+          </h2>
+        </div>
+      </div>
+      {% include 'core/tummytime_modal.html' %}
+
+      <svg id="tummytime-chart"></svg>
+
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label class="text-light" for="tummytime-filter-start">{% trans "Start" %}</label>
+            <div class="input-group date" id="tummytime-filter-datetimepicker_start" data-target-input="nearest">
+              <div class="input-group-prepend" data-target="#tummytime-filter-datetimepicker_start" data-toggle="datetimepicker">
+                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+              </div>
+              <input type="text" class="form-control datetimepicker-input" id="tummytime-filter-start" data-target="#tummytime-filter-datetimepicker_start">
             </div>
-            <input type="text" class="form-control datetimepicker-input" id="start" data-target="#datetimepicker_start">
           </div>
         </div>
-
-        <div class="form-group">
-          <label for="end">{% trans "End" %}</label>
-          <div class="input-group date" id="datetimepicker_end" data-target-input="nearest">
-            <div class="input-group-prepend" data-target="#datetimepicker_end" data-toggle="datetimepicker">
-              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+        <div class="col">
+          <div class="form-group">
+            <label class="text-light" for="tummytime-filter-end">{% trans "End" %}</label>
+            <div class="input-group date" id="tummytime-filter-datetimepicker_end" data-target-input="nearest">
+              <div class="input-group-prepend" data-target="#tummytime-filter-datetimepicker_end" data-toggle="datetimepicker">
+                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+              </div>
+              <input type="text" class="form-control datetimepicker-input" id="tummytime-filter-end" data-target="#tummytime-filter-datetimepicker_end">
             </div>
-            <input type="text" class="form-control datetimepicker-input" id="end" data-target="#datetimepicker_end">
           </div>
-        </div>
-
-        <div class="form-group">
-          <label for="milestone">{% trans "Milestone" %}</label>
-          <input type="text" id="milestone" class="form-control">
-        </div>
-
-        <div class="form-group mb-5">
-          <button id="save-btn" class="btn btn-primary btn-lg pull-right">{% trans "Save" %}</button>
         </div>
       </div>
 
@@ -65,23 +75,11 @@
           </thead>
           <tbody>
             <tr>
-              <th colspan="6" class="text-center">{% trans "No tummy time entries found." %}</th>
+              <th colspan="5" class="text-center">{% trans "No tummy time entries found." %}</th>
             </tr>
           </tbody>
-        </table>
-      </div>
 
-      <div class="row justify-content-center">
-        <div class="col-3">
-          <a id='prev-btn' class="btn btn-info pull-left" aria-label="Previous">
-            <i class="icon icon-chevron-left" aria-hidden="true"></i>
-          </a>
-        </div>
-        <div class="col-3">
-          <a id='next-btn' class="btn btn-info pull-right" aria-label="Previous">
-            <i class="icon icon-chevron-right" aria-hidden="true"></i>
-          </a>
-        </div>
+        </table>
       </div>
 
       <div id='confirm-delete-modal' class="modal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -106,13 +104,11 @@
   <script type="text/javascript">
     $(function () {
       var userId = {{ user.id }};
-      var successUrl = "{% url 'core:child' child.slug %}";
       var childId = {{ child.id }};
       var tummyTimeId = {% if obj %} obj.id {% else %} null {% endif %};
       BabyBuddy.TummyTime.init(
-        '#tummytime',
+        '#tummytime-container',
         userId,
-        successUrl,
         childId,
         tummyTimeId
       );

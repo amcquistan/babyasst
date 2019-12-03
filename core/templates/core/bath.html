@@ -2,7 +2,7 @@
 {% load bootstrap i18n widget_tweaks %}
 
 {% block title %}
-  {% trans "Diaper Changes" %}
+  {% trans "Baths" %}
 {% endblock %}
 
 {% block breadcrumbs %}
@@ -12,19 +12,19 @@
       {{ child }}
     </a>
   </li>
-  <li class="breadcrumb-item active" aria-current="page">{% trans "Diaper Changes" %}</li>
+  <li class="breadcrumb-item active" aria-current="page">{% trans "Baths" %}</li>
 {% endblock %}
 
 {% block content %}
-  <div class="row" id="diaper-change">
+  <div class="row" id="bath">
     <div class="col-md-10 offset-1">
       <div class="row">
         <div class="col-lg-10 col-sm-12">
-          <h2 class='mb-3'>{% trans "Diaper Changes" %}</h2>
+          <h2 class='mb-3'>{% trans "Baths" %}</h2>
         </div>
         <div class="col-lg-2 col-sm-12">
           <h2 class="text-center">
-            <a id="diaperchange-add-btn" class="btn add-activity">
+            <a id="bath-add-btn" class="btn add-activity">
               <i class="icon icon-5x icon-add-circle text-info"></i>
               {% trans "Add" %}
             </a>
@@ -32,32 +32,32 @@
         </div>
       </div>
       
-      {% include 'core/diaperchange_modal.html' %}
+      {% include 'core/bath_modal.html' %}
 
-      <div id="diaperchange-chart-container">
-        <svg id="diaperchange-chart"></svg>
+      <div id="bath-chart-container">
+        <svg id="bath-chart"></svg>
       </div>
 
       <div class="row">
         <div class="col">
           <div class="form-group">
-            <label class="text-light" for="diaperchange-filter-start">{% trans "Start" %}</label>
-            <div class="input-group date" id="diaperchange-filter-datetimepicker_start" data-target-input="nearest">
-              <div class="input-group-prepend" data-target="#diaperchange-filter-datetimepicker_start" data-toggle="datetimepicker">
+            <label class="text-light" for="bath-filter-start">{% trans "Start" %}</label>
+            <div class="input-group date" id="bath-filter-datetimepicker_start" data-target-input="nearest">
+              <div class="input-group-prepend" data-target="#bath-filter-datetimepicker_start" data-toggle="datetimepicker">
                 <span class="input-group-text"><i class="fa fa-calendar"></i></span>
               </div>
-              <input type="text" class="form-control datetimepicker-input" id="diaperchange-filter-start" data-target="#diaperchange-filter-datetimepicker_start">
+              <input type="text" class="form-control datetimepicker-input" id="bath-filter-start" data-target="#bath-filter-datetimepicker_start">
             </div>
           </div>
         </div>
         <div class="col">
           <div class="form-group">
-            <label class="text-light" for="diaperchange-filter-end">{% trans "End" %}</label>
-            <div class="input-group date" id="diaperchange-filter-datetimepicker_end" data-target-input="nearest">
-              <div class="input-group-prepend" data-target="#diaperchange-filter-datetimepicker_end" data-toggle="datetimepicker">
+            <label class="text-light" for="bath-filter-end">{% trans "End" %}</label>
+            <div class="input-group date" id="bath-filter-datetimepicker_end" data-target-input="nearest">
+              <div class="input-group-prepend" data-target="#bath-filter-datetimepicker_end" data-toggle="datetimepicker">
                 <span class="input-group-text"><i class="fa fa-calendar"></i></span>
               </div>
-              <input type="text" class="form-control datetimepicker-input" id="diaperchange-filter-end" data-target="#diaperchange-filter-datetimepicker_end">
+              <input type="text" class="form-control datetimepicker-input" id="bath-filter-end" data-target="#bath-filter-datetimepicker_end">
             </div>
           </div>
         </div>
@@ -70,15 +70,12 @@
           <thead class="thead-inverse">
             <tr>
               <th class="text-center">{% trans "Time" %}</th>
-              <th class="text-center">{% trans "Wet" %}</th>
-              <th class="text-center">{% trans "Solid" %}</th>
-              <th class="text-center">{% trans "Color" %}</th>
               <th class="text-center">{% trans "Actions" %}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <th colspan="5" class="text-center">{% trans "No diaper changes found." %}</th>
+              <th colspan="2" class="text-center">{% trans "No baths found." %}</th>
             </tr>
           </tbody>
         </table>
@@ -107,12 +104,12 @@
     $(function () {
       var userId = {{ user.id }};
       var childId = {{ child.id }};
-      var diaperId = {% if obj %} obj.id {% else %} null {% endif %};
-      BabyBuddy.DiaperChange.init(
-        '#diaper-change',
+      var bathId = {% if obj %} obj.id {% else %} null {% endif %};
+      BabyBuddy.Bath.init(
+        '#bath',
         userId,
         childId,
-        diaperId
+        bathId
       );
     });
   </script>

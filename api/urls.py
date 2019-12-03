@@ -52,6 +52,15 @@ urlpatterns = [
     ),
     
     path(
+        'api/children/<int:child_id>/baths/',
+        views.BathListOrCreateAPIView.as_view()
+    ),
+    path(
+        'api/children/<int:child_id>/baths/<int:pk>/',
+        views.BathViewOrUpdateAPIView.as_view()
+    ),
+
+    path(
         'api/children/<int:child_id>/changes/',
         views.DiaperChangeListOrCreateAPIView.as_view()
     ),

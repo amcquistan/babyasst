@@ -7,6 +7,7 @@ BabyBuddy.ChildDetail = function(root) {
       $timelineNextBtn = null,
       $timelineContainer = null,
       $currentTimelineDate = null,
+      $baths = null,
       $diaperChanges = null,
       $feedings = null,
       $sleep = null,
@@ -23,14 +24,6 @@ BabyBuddy.ChildDetail = function(root) {
       timelineDays = [],
       timelineDate = moment().startOf('day'),
       currentTimeline = {},
-      changes = [],
-      feedings = [],
-      sleepSessions = [],
-      tummyTime = [],
-      fetchedAllChanges = false,
-      fetchedAllFeedings = false,
-      fetchedAllSleepSessions = false,
-      fetchedAllTummyTimeSessions = false,
       self = null;
 
   var ChildDetail = {
@@ -41,6 +34,7 @@ BabyBuddy.ChildDetail = function(root) {
       $timelineNextBtn = $el.find('#next-timeline-day');
       $timelineContainer = $el.find('#timeline-container');
       $currentTimelineDate = $el.find('#timeline-current-date');
+      $baths = $el.find('#bath-card');
       $diaperChanges = $el.find('#diaperchange-card');
       $feedings = $el.find('#feeding-card');
       $sleep = $el.find('#sleep-card');
@@ -71,7 +65,12 @@ BabyBuddy.ChildDetail = function(root) {
           childBirthDate = moment(response.birth_date).startOf('day');
           child = response;
 
-          const { last_change, last_feeding, last_sleep, last_temperature, last_tummytime, last_weight } = child;
+          const { last_bath, last_change, last_feeding, last_sleep, last_temperature, last_tummytime, last_weight } = child;
+
+          if (!_.isEmpty(last_bath)) {
+            const occured = moment().to(last_bath.time);
+            $baths.find('.card-title').html(occured);
+          }
 
           if (!_.isEmpty(last_change)) {
             let changeType;
