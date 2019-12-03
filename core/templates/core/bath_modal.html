@@ -1,0 +1,35 @@
+
+{% load bootstrap i18n %}
+
+<div class="modal fade" id="bath-modal">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-danger">
+        <h4 class="modal-title text-center"><i class="icon icon-bath mr-2" aria-hidden="true"></i> {% trans "Diaper Change" %}</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <p class="text-danger text-center" id="error-message"></p>
+        <div class="form-group">
+          <label class="text-dark" for="bath-time">{% trans "Time" %}</label>
+          <div class="input-group date" id="bath-datetimepicker_time" data-target-input="nearest">
+            <div class="input-group-prepend" data-target="#bath-datetimepicker_time" data-toggle="datetimepicker">
+              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+            </div>
+            <input type="text" class="form-control datetimepicker-input" id="bath-time" data-target="#bath-datetimepicker_time">
+          </div>
+        </div>
+
+        <div class="form-group mb-5">
+          <p class="text-right">
+            <button id="bath-save-btn" class="btn btn-primary btn-lg">{% trans "Save" %}</button>
+            <button type="button" class="btn btn-danger btn-lg" data-dismiss="modal">{% trans "Close" %}</button>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+

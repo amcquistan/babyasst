@@ -34,6 +34,31 @@
 
       {% include 'core/feeding_modal.html' %}
 
+      <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label class="text-light" for="feeding-filter-start">{% trans "Start" %}</label>
+            <div class="input-group date" id="feeding-filter-datetimepicker_start" data-target-input="nearest">
+              <div class="input-group-prepend" data-target="#feeding-filter-datetimepicker_start" data-toggle="datetimepicker">
+                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+              </div>
+              <input type="text" class="form-control datetimepicker-input" id="feeding-filter-start" data-target="#feeding-filter-datetimepicker_start">
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label class="text-light" for="feeding-filter-end">{% trans "End" %}</label>
+            <div class="input-group date" id="feeding-filter-datetimepicker_end" data-target-input="nearest">
+              <div class="input-group-prepend" data-target="#feeding-filter-datetimepicker_end" data-toggle="datetimepicker">
+                <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+              </div>
+              <input type="text" class="form-control datetimepicker-input" id="feeding-filter-end" data-target="#feeding-filter-datetimepicker_end">
+            </div>
+          </div>
+        </div>
+      </div>
+
       <p class="mt-5 mb-5 clearfix"></p>
 
       <div class="table-responsive mb-4">
@@ -54,19 +79,6 @@
             </tr>
           </tbody>
         </table>
-      </div>
-
-      <div class="row justify-content-center">
-        <div class="col-3">
-          <a id='prev-btn' class="btn btn-info pull-left" aria-label="Previous">
-            <i class="icon icon-chevron-left" aria-hidden="true"></i>
-          </a>
-        </div>
-        <div class="col-3">
-          <a id='next-btn' class="btn btn-info pull-right" aria-label="Previous">
-            <i class="icon icon-chevron-right" aria-hidden="true"></i>
-          </a>
-        </div>
       </div>
 
       <div id='confirm-delete-modal' class="modal" tabindex="-1" role="dialog" aria-hidden="true">
@@ -91,13 +103,11 @@
 <script type="text/javascript">
   $(function () {
     var userId = {{ user.id }};
-    var successUrl = "{% url 'core:child' child.slug %}";
     var childId = {{ child.id }};
     var feedingId = {% if obj %} obj.id {% else %} null {% endif %};
     BabyBuddy.Feeding.init(
       '#feeding',
       userId,
-      successUrl,
       childId,
       feedingId
     );

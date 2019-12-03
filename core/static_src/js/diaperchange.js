@@ -1,21 +1,17 @@
 
-BabyBuddy.DiaperChange = function(root) {
+BabyBuddy.DiaperChange = function() {
   let $el;
-  let successUrl;
   let userId;
   let childId;
   let diaperChangeId;
   let diaperChange;
   let diaperChanges = [];
-  let $time;
   let $timePicker;
   let $wet;
   let $solid;
   let $color;
   let $tableBody;
   let $saveBtn;
-  let $prevBtn;
-  let $nextBtn;
   let $addBtn;
   let $addModal;
   let $deleteModal;
@@ -27,20 +23,16 @@ BabyBuddy.DiaperChange = function(root) {
   let self;
 
   const DiaperChange = {
-    init: (el, uId, url, cId, dId=null) => {
+    init: (el, uId, cId, dId=null) => {
       $el = $(el);
       userId = uId;
-      successUrl = url;
       childId = cId;
       diaperChangeId = dId;
-      $time = $el.find('#diaperchange-time');
       $wet = $el.find('#diaperchange-wet');
       $solid = $el.find('#diaperchange-solid');
       $color = $el.find('#diaperchange-color');
       $saveBtn = $el.find('#diaperchange-save-btn');
       $tableBody = $el.find('tbody');
-      $prevBtn = $el.find('#prev-btn');
-      $nextBtn = $el.find('#next-btn');
       $addBtn = $el.find('#diaperchange-add-btn');
       $addModal = $el.find('#diaperchange-modal');
       $deleteModal = $el.find('#confirm-delete-modal');
@@ -59,14 +51,10 @@ BabyBuddy.DiaperChange = function(root) {
           }).then((response) => {
             self.clear();
             $deleteModal.modal('hide');
-            root.location.reload();
+            self.fetchAll();
           });
         }
       });
-
-      if (childId && diaperChangeId) {
-        self.fetch();
-      }
 
       $addBtn.click((evt) => {
         evt.preventDefault();
@@ -96,12 +84,10 @@ BabyBuddy.DiaperChange = function(root) {
 
       $startFilterPicker.on('change.datetimepicker', function(evt){
         $endFilterPicker.datetimepicker('minDate', moment(evt.date).add(1, 'days'));
-        console.log('start filter date changed');
         self.fetchAll();
       });
 
       $endFilterPicker.on('change.datetimepicker', function(evt) {
-        console.log('end filter date changed');
         self.fetchAll();
       });
 
@@ -121,7 +107,7 @@ BabyBuddy.DiaperChange = function(root) {
       $solid.prop('checked', !_.isEmpty(diaperChange) && diaperChange.solid);
       $wet.parent().toggleClass('active', !_.isEmpty(diaperChange) && diaperChange.wet);
       $solid.parent().toggleClass('active', !_.isEmpty(diaperChange) && diaperChange.solid);
-      $color.val(!_.isEmpty(diaperChange) && diaperChange.color ? diaperChange.color : '');
+      $color.val(!_.isEmpty(diaperChange) && diaperChange.color ? diaperChange.color : 'yellow');
     },
     syncTable: () => {
       if (!_.isEmpty(diaperChanges)) {
@@ -157,19 +143,15 @@ BabyBuddy.DiaperChange = function(root) {
         $el.find('.update-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('change'));
-          console.log('clicked update change ' + id);
-          diaperChangeId = id;
-          diaperChange = diaperChanges.find(c => c.id === id);
-          root.window.scrollTo(0, 0);
+          diaperChangeId = parseInt($target.data('change'));
+          diaperChange = diaperChanges.find(c => c.id === diaperChangeId);
+          window.scrollTo(0, 0);
           self.showAddModal();
         });
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('change'));
-          diaperChangeId = id;
-          console.log('clicked delete change ' + id);
+          diaperChangeId = parseInt($target.data('change'));
           $deleteModal.modal('show');
         });
       }
@@ -180,17 +162,17 @@ BabyBuddy.DiaperChange = function(root) {
           diaperChange = {};
         }
         diaperChange.child = childId;
-        diaperChange.time = moment($time.val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        diaperChange.time = $timePicker.datetimepicker('viewDate').toISOString();
         diaperChange.wet = $wet.prop('checked');
         diaperChange.solid = $solid.prop('checked');
         diaperChange.color = $color.val();
       }
     },
     isValidInputs: () => {
-      return $time.val() && ($wet.prop('checked') || $solid.prop('checked')) && $color.val();
+      return $timePicker.datetimepicker('viewDate').isValid() && ($wet.prop('checked') || $solid.prop('checked')) && $color.val();
     },
     fetch: () => {
-      $.get(BabyBuddy.ApiRoutes.diaperChangeDetail(childId, diaperChangeId))
+      return $.get(BabyBuddy.ApiRoutes.diaperChangeDetail(childId, diaperChangeId))
         .then((response) => {
           diaperChange = response;
           self.syncInputs();
@@ -212,13 +194,11 @@ BabyBuddy.DiaperChange = function(root) {
       });
     },
     create: () => {
-      $.post(BabyBuddy.ApiRoutes.diaperChanges(childId), diaperChange)
+      return $.post(BabyBuddy.ApiRoutes.diaperChanges(childId), diaperChange)
         .then((response) => {
-          diaperChange = response;
-          diaperChangeId = response.id;
           $addModal.modal('hide');
-          root.location.reload(true);
-          return response;
+          self.clear();
+          return self.fetchAll();
         })
         .catch(err => {
           if (err.responseJSON && err.responseJSON.error_message) {
@@ -227,11 +207,11 @@ BabyBuddy.DiaperChange = function(root) {
         });
     },
     update: () => {
-      $.post(BabyBuddy.ApiRoutes.diaperChangeDetail(childId, diaperChangeId), diaperChange)
+      return $.post(BabyBuddy.ApiRoutes.diaperChangeDetail(childId, diaperChangeId), diaperChange)
         .then((response) => {
-          diaperChange = response;
-          root.location.reload(true);
-          return response;
+          $addModal.modal('hide');
+          self.clear();
+          return self.fetchAll();
         })
         .catch(err => {
           if (err.responseJSON && err.responseJSON.error_message) {
@@ -242,9 +222,10 @@ BabyBuddy.DiaperChange = function(root) {
     clear: () => {
       diaperChange = {};
       diaperChangeId = null;
+      diaperChanges = [];
     }
   };
 
   self = DiaperChange;
   return self;
-}(window);
+}();

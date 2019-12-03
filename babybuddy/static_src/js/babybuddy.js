@@ -71,6 +71,12 @@ var BabyBuddy = function () {
         accounts: () => {
           return '/api/accounts/';
         },
+        baths: (childId) => {
+          return `/api/children/${childId}/baths/`;
+        },
+        bathDetail: (childId, bathId) => {
+          return `/api/children/${childId}/baths/${bathId}/`;
+        },
         diaperChanges: (childId) => {
           return `/api/children/${childId}/changes/`;
         },
@@ -120,7 +126,7 @@ var BabyBuddy = function () {
           return `/api/timers/${timerId}/`;
         }
       },
-      ChildTimeActivityDao: () => {
+      ChildTimeActivityDao: (timeField='time') => {
         let activitiesMap = new Map();
         let filteredActivitiesMap = new Map();
         let fetchedAllData = false;
@@ -128,7 +134,7 @@ var BabyBuddy = function () {
         const fetch = (url, start, end) => {
           let fetchMoreData = true;
           activitiesMap.forEach((activity, id) => {
-            const actTime = moment(activity.time);
+            const actTime = moment(activity[timeField]);
             if (start.isSameOrBefore(actTime) && end.isSameOrAfter(actTime) && !filteredActivitiesMap.has(activity.id)) {
               filteredActivitiesMap.set(activity.id, activity);
             } else if (start.isAfter(actTime)) {
@@ -149,6 +155,8 @@ var BabyBuddy = function () {
           }
           const copy = Array.from(filteredActivitiesMap.values());
           filteredActivitiesMap = new Map();
+          activitiesMap = new Map();
+          fetchedAllData = false;
           return new Promise((resolve, reject) => resolve(copy));
         };
 
@@ -186,6 +194,8 @@ var BabyBuddy = function () {
           }
           const copy = Array.from(filteredActivitiesMap.values());
           filteredActivitiesMap = new Map();
+          activitiesMap = new Map();
+          fetchedAllData = false;
           return new Promise((resolve, reject) => resolve(copy));
         };
   
@@ -236,11 +246,6 @@ var BabyBuddy = function () {
               wet,
               solid
             };
-          });
-
-          diaperChangesPerDay.forEach(c => {
-            const xVal = scaleX(c.day);
-            console.log(`${c.day} ${c.wet} ${c.solid} ${xVal}`);
           });
 
           const stack = d3.stack().keys(['wet','solid']);

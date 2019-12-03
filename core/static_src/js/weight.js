@@ -1,37 +1,47 @@
 
-BabyBuddy.Weight = function(root) {
+BabyBuddy.Weight = function() {
   let $el;
-  let successUrl;
   let userId;
   let childId;
   let weightId;
   let weight;
   let weights = [];
-  let $date;
+  let $datePicker;
   let $weight;
+  let $ounces;
+  let $units;
   let $tableBody;
   let $saveBtn;
-  let $prevBtn;
-  let $nextBtn;
-  let $modal;
+  let $addBtn;
+  let $addModal;
+  let $deleteModal;
   let $confirmDeleteBtn;
+  let $startFilterPicker;
+  let $endFilterPicker;
+  let weightDao;
+  let weightChart;
   let self;
 
   const Weight = {
-    init: (el, uId, url, cId, wId=null) => {
+    init: (el, uId, cId, wId=null) => {
       $el = $(el);
       userId = uId;
-      successUrl = url;
       childId = cId;
       weightId = wId;
-      $date = $el.find('#date');
       $weight= $el.find('#weight');
+      $ounces = $el.find('#ounces');
+      $units = $el.find('#units');
       $tableBody = $el.find('tbody');
-      $saveBtn = $el.find('#save-btn');
-      $prevBtn = $el.find('#prev-btn');
-      $nextBtn = $el.find('#next-btn');
-      $modal = $el.find('#confirm-delete-modal');
+      $saveBtn = $el.find('#weight-save-btn');
+      $addBtn = $el.find('#weight-add-btn');
+      $addModal = $el.find('#weight-modal');
+      $deleteModal = $el.find('#confirm-delete-modal');
       $confirmDeleteBtn = $el.find('#confirm-delete-btn');
+      $datePicker = $el.find('#weight-datetimepicker_date');
+      $startFilterPicker = $el.find('#weight-filter-datetimepicker_start');
+      $endFilterPicker = $el.find('#weight-filter-datetimepicker_end');
+      weightDao = BabyBuddy.ChildTimeActivityDao('date');
+      // weightChart = BabyBuddy.WeightChart();
 
       $confirmDeleteBtn.click((evt) => {
         if (childId && weightId) {
@@ -40,21 +50,17 @@ BabyBuddy.Weight = function(root) {
             type: 'DELETE'
           }).then((response) => {
             self.clear();
-            $modal.modal('hide');
-            root.location.reload();
+            $deleteModal.modal('hide');
+            self.fetchAll();
           });
         }
       });
 
-      if (childId && weightId) {
-        self.fetch();
-      }
-
-      $('#datetimepicker_date').datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD'
+      $addBtn.click((evt) => {
+        evt.preventDefault();
+        weight = {};
+        self.showAddModal();
       });
-
       $saveBtn.click((evt) => {
         if (self.isValidInputs()) {
           self.syncModel();
@@ -66,25 +72,57 @@ BabyBuddy.Weight = function(root) {
         }
       });
 
-      $prevBtn.click((evt) => {
-        evt.preventDefault();
-        self.fetchAll($prevBtn.prop('href'));
+      $startFilterPicker.datetimepicker({
+        defaultDate: moment().subtract(7, 'days'),
+        format: 'YYYY-MM-DD'
       });
 
-      $nextBtn.click((evt) => {
-        evt.preventDefault();
-        self.fetchAll($nextBtn.prop('href'));
+      $endFilterPicker.datetimepicker({
+        defaultDate: moment(),
+        format: 'YYYY-MM-DD'
       });
 
-      const fetchAllUrl = BabyBuddy.ApiRoutes.weight(childId);
-      self.fetchAll(`${fetchAllUrl}?limit=10`);
+      $startFilterPicker.on('change.datetimepicker', function(evt){
+        $endFilterPicker.datetimepicker('minDate', moment(evt.date).add(1, 'days'));
+        self.fetchAll();
+      });
+
+      $endFilterPicker.on('change.datetimepicker', function(evt) {
+        self.fetchAll();
+      });
+
+      $units.change(function(evt){
+        if ($units.val() === 'pounds') {
+          $ounces.parent().show();
+          $weight.parent().find('label').html('Pounds');
+        } else {
+          $ounces.parent().hide();
+          $weight.parent().find('label').html('Kilograms');
+        }
+      });
+
+      self.fetchAll();
+    },
+    showAddModal: () => {
+      $addModal.modal('show');
+      self.syncInputs();
     },
     syncInputs: () => {
-      if (!_.isEmpty(weight)) {
-        if (weight.date) {
-          $date.val(moment(weight.date).format('YYYY-MM-DD'));
-        }
-        $weight.val(weight.weight);
+      const empty = _.isEmpty(weight);
+      let defaultDate = !empty && weight.date ? moment(weight.date) : moment();
+      $datePicker.datetimepicker({
+        defaultDate: defaultDate,
+        format: 'YYYY-MM-DD'
+      });
+      const w = !empty ? weight.weight : 0;
+      $units.val(!empty ? weight.units : 'pounds');
+      if ($units.val() === 'pounds') {
+        const pounds = Math.floor(w);
+        const ounces = Math.round((w - pounds) * 16);
+        $weight.val(pounds);
+        $ounces.val(ounces);
+      } else {
+        $weight.val(w);
       }
     },
     syncTable: () => {
@@ -92,7 +130,14 @@ BabyBuddy.Weight = function(root) {
         $tableBody.empty();
         let html = weights.map(w => {
           const date = moment(w.date).format('YYYY-MM-DD');
-          const wt = w.weight || '';
+          let wt = parseFloat(w.weight || 0);
+          if (w.units === 'pounds') {
+            const pounds = Math.floor(wt);
+            const ounces = Math.round((wt - pounds) * 16);
+            wt = `${pounds} lbs ${ounces} oz`;
+          } else {
+            wt = `${wt.toFixed(3)} kg`;
+          }
           return `
             <tr>
               <td class="text-center">${wt}</td>
@@ -114,19 +159,17 @@ BabyBuddy.Weight = function(root) {
         $el.find('.update-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('weight'));
-          weightId = id;
-          weight = weights.find(c => c.id === id);
-          self.syncInputs();
-          root.scrollTo(0, 0);
+          weightId = parseInt($target.data('weight'));
+          weight = weights.find(c => c.id === weightId);
+          window.scrollTo(0, 0);
+          self.showAddModal();
         });
 
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('weight'));
-          weightId = id;
-          $modal.modal('show');
+          weightId = parseInt($target.data('weight'));
+          $deleteModal.modal('show');
         });
       }
     },
@@ -136,66 +179,88 @@ BabyBuddy.Weight = function(root) {
           weight = {};
         }
         weight.child = childId;
-        weight.date = $date.val();
-        weight.weight = $weight.val();
+        weight.date = $datePicker.datetimepicker('viewDate').format('YYYY-MM-DD');
+        weight.units = $units.val();
+        weight.weight = parseFloat($weight.val());
+        if (weight.units === 'pounds') {
+          const ounces = parseFloat($ounces.val()) / 16;
+          if (ounces && !isNaN(ounces)) {
+            weight.weight += ounces;
+          }
+        }
       }
     },
     isValidInputs: () => {
-      if (!$weight.val()) {
-        return false;
-      }
       try {
         const wt = parseFloat($weight.val());
         if (wt <= 0) {
           return false;
         }
+        if ($units.val() === 'pounds') {
+          const ounces = parseFloat($ounces.val());
+          if (ounces < 0) {
+            return false;
+          }
+        }
       } catch(err) {
         return false;
       }
-      return Boolean($date.val());
+      return $datePicker.datetimepicker('viewDate').isValid();
     },
     fetch: () => {
-      $.get(BabyBuddy.ApiRoutes.weightDetail(childId, weightId))
+      return $.get(BabyBuddy.ApiRoutes.weightDetail(childId, weightId))
         .then((response) => {
           weight = response;
           self.syncInputs();
           return response;
         });
     },
-    fetchAll: (url) => {
-      if (!_.isEmpty(url)) {
-        $.get(url)
-          .then((response) => {
-            weights = response.results;
-            self.syncTable();
-            $prevBtn.prop('href', response.previous || '#');
-            $nextBtn.prop('href', response.next || '#');
-            $prevBtn.toggleClass('disabled', !Boolean(response.previous));
-            $nextBtn.toggleClass('disabled', !Boolean(response.next));
-            self.syncTable();
-            return response;
-          });
-      }
+    fetchAll: () => {
+      const url = BabyBuddy.ApiRoutes.weight(childId);
+      const s = $startFilterPicker.datetimepicker('viewDate');
+      const e = $endFilterPicker.datetimepicker('viewDate');
+      return weightDao.fetch(url, s.startOf('day'), e.endOf('day')).then(response => {
+        weights = response;
+        self.syncTable();
+        // $(window).resize(() => {
+        //   weightChart.plot($el.find('#weight-chart'), $el.find('#weight-chart-container'), weights, s, e);
+        // });
+        // weightChart.plot($el.find('#weight-chart'), $el.find('#weight-chart-container'), weights, s, e);
+        return response;
+      });
     },
     create: () => {
-      $.post(BabyBuddy.ApiRoutes.weight(childId), weight)
+      return $.post(BabyBuddy.ApiRoutes.weight(childId), weight)
         .then((response) => {
-          root.location.href = successUrl;
-          return response;
+          $addModal.modal('hide');
+          self.clear();
+          return self.fetchAll();
+        })
+        .catch(err => {
+          if (err.responseJSON && err.responseJSON.error_message) {
+            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          }
         });
     },
     update: () => {
-      $.post(BabyBuddy.ApiRoutes.weightDetail(childId, weightId), weight)
+      return $.post(BabyBuddy.ApiRoutes.weightDetail(childId, weightId), weight)
         .then((response) => {
-          root.location.href = successUrl;
-          return response;
+          $addModal.modal('hide');
+          self.clear();
+          return self.fetchAll();
+        })
+        .catch(err => {
+          if (err.responseJSON && err.responseJSON.error_message) {
+            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          }
         });
     },
     clear: () => {
       weight = {};
       weightId = null;
+      weights = [];
     }
   };
   self = Weight;
   return self;
-}(window);
+}();

@@ -118,13 +118,11 @@
   <script type="text/javascript">
     $(function () {
       var userId = {{ user.id }};
-      var successUrl = "{% url 'core:child' child.slug %}";
       var childId = {{ child.id }};
       var sleepId = {% if obj %} obj.id {% else %} null {% endif %};
       BabyBuddy.Sleep.init(
         '#sleep',
         userId,
-        successUrl,
         childId,
         sleepId
       );

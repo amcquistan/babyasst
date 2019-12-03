@@ -1,7 +1,6 @@
 
-BabyBuddy.Sleep = function(root) {
+BabyBuddy.Sleep = function() {
   let $el;
-  let successUrl;
   let userId;
   let childId;
   let sleepId;
@@ -22,10 +21,9 @@ BabyBuddy.Sleep = function(root) {
   let self;
 
   const Sleep = {
-    init: (el, uId, url, cId, sId=null) => {
+    init: (el, uId, cId, sId=null) => {
       $el = $(el);
       userId = uId;
-      successUrl = url;
       childId = cId;
       sleepId = sId;
       $startPicker = $el.find('#sleep-datetimepicker_start');
@@ -49,18 +47,14 @@ BabyBuddy.Sleep = function(root) {
           }).then((response) => {
             self.clear();
             $deleteModal.modal('hide');
-            root.location.reload();
+            self.fetchAll();
           });
         }
       });
 
-      if (childId && sleepId) {
-        self.fetch();
-      }
-
       $addBtn.click((evt) => {
         evt.preventDefault();
-        sleep = {};
+        self.clear();
         self.showAddModal();
       });
       $saveBtn.click((evt) => {
@@ -85,12 +79,10 @@ BabyBuddy.Sleep = function(root) {
 
       $startFilterPicker.on('change.datetimepicker', function(evt){
         $endFilterPicker.datetimepicker('minDate', moment(evt.date).add(1, 'days'));
-        console.log('start filter date changed');
         self.fetchAll();
       });
 
       $endFilterPicker.on('change.datetimepicker', function(evt) {
-        console.log('end filter date changed');
         self.fetchAll();
       });
 
@@ -160,18 +152,16 @@ BabyBuddy.Sleep = function(root) {
         $el.find('.update-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('sleep'));
-          sleepId = id;
-          sleep = sleeps.find(c => c.id === id);
-          root.window.scrollTo(0, 0);
+          sleepId = parseInt($target.data('sleep'));
+          sleep = sleeps.find(c => c.id === sleepId);
+          window.scrollTo(0, 0);
           self.showAddModal();
         });
 
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('sleep'));
-          sleepId = id;
+          sleepId = parseInt($target.data('sleep'));
           $deleteModal.modal('show');
         });
       }
@@ -217,80 +207,12 @@ BabyBuddy.Sleep = function(root) {
         return response;
       });
     },
-    plotData: (sleepSessions, $container, $chart, $chartStartPicker, $chartEndPicker) => {
-      $chart.empty();
-      const w = $container.width();
-      const h = 350;
-      const marginX = 50;
-      const marginY = 50;
-      const startChartDate = $chartStartPicker.datetimepicker('viewDate');
-      const endChartDate = $chartEndPicker.datetimepicker('viewDate');
-      const svg = d3.select('#sleep-chart').attr('width', w).attr('height', h);
-      const curDate = startChartDate.clone();
-      const xDomain = [];
-      while(curDate.isSameOrBefore(endChartDate)) {
-        xDomain.push(curDate.toDate());
-        curDate.add(1, 'days');
-      }
-      const scaleX = d3.scaleBand()
-                        .domain(xDomain)
-                        .range([marginX, w - marginX]);
-      let grouped = _.groupBy(sleepSessions, (s) => moment(s.start).startOf('day'));
-      const sleepTotalPerDay = _.reduce(
-          grouped,
-          (days, sleepThatDay, day) => {
-            days.push(sleepThatDay.reduce((totalSleep, s) => {
-              totalSleep.hours += moment.duration(s.duration).asHours();
-              return totalSleep;
-            }, {day: day, hours: 0}))
-            return days;
-          }, [])
-
-      const maxSleep = d3.max(sleepTotalPerDay, (daySleep) => daySleep.hours);
-      const scaleY = d3.scaleLinear()
-                        .domain([0, maxSleep])
-                        .range([h - marginY, marginY]);
-      const xAxis = d3.axisBottom(scaleX).tickFormat(d3.timeFormat('%b-%e'));
-      const yAxis = d3.axisLeft(scaleY);
-
-      svg.append('g')
-          .attr('class', 'x-axis')
-          .attr('transform', 'translate(0, '+ (h - marginY) +')')
-          .call(xAxis);
-      svg.append('g')
-          .attr('class', 'y-axis')
-          .attr('transform', 'translate('+ marginX +',0)')
-          .call(yAxis);
-
-      sleepTotalPerDay.forEach(d => {
-        const maxY = scaleY(maxSleep);
-        const x = scaleX(moment(d.day).toDate());
-        
-        const ht = scaleY(d.hours);
-        const y = maxY - ht;
-        const w = scaleX.bandwidth();
-        console.log(`Day ${d.day} X ${x} Y ${y} maxY ${maxY} Ht ${ht} W ${w} Hrs ${d.hours}`);
-      });
-
-      svg.selectAll('.sleep-chart-bar')
-          .data(sleepTotalPerDay)
-            .enter()
-            .append('rect')
-            .classed('sleep-chart-bar', true)
-            .attr('x', d => scaleX(moment(d.day).toDate()))
-            .attr('y', d => scaleY(d.hours))
-            .attr('width', scaleX.bandwidth() * 0.98)
-            .attr('height', d => h - marginY - scaleY(d.hours))
-
-    },
     create: () => {
       $.post(BabyBuddy.ApiRoutes.sleeping(childId), sleep)
         .then((response) => {
-          sleep = response;
-          // sleepId = response.id;
-          // root.location.href = successUrl;
-          root.location.reload(true);
-          return response;
+          $addModal.modal('hide');
+          self.clear();
+          return self.fetchAll();
         })
         .catch(err => {
           console.log('error', err);
@@ -302,11 +224,9 @@ BabyBuddy.Sleep = function(root) {
     update: () => {
       $.post(BabyBuddy.ApiRoutes.sleepingDetail(childId, sleepId), sleep)
         .then((response) => {
-          sleep = response;
-          // self.syncInputs();
-          // root.location.href = successUrl;
-          root.location.reload(true);
-          return response;
+          $addModal.modal('hide');
+          self.clear();
+          return self.fetchAll();
         })
         .catch(err => {
           console.log('error', err);
@@ -318,10 +238,11 @@ BabyBuddy.Sleep = function(root) {
     clear: () => {
       sleepId = null;
       sleep = {};
+      sleeps = [];
     }
   };
 
   self = Sleep;
   return self;
-}(window);
+}();
 

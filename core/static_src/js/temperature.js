@@ -1,38 +1,44 @@
 
-BabyBuddy.Temperature = function(root) {
+BabyBuddy.Temperature = function() {
   let $el;
-  let successUrl;
   let userId;
   let childId;
   let temperatureId;
   let temperature;
   let temperatures = [];
-  let $time;
+  let $timePicker;
   let $temperature;
   let $tableBody;
+  let $addBtn;
   let $saveBtn;
-  let $prevBtn;
-  let $nextBtn;
-  let $modal;
+  let $addModal;
+  let $deleteModal;
   let $confirmDeleteBtn;
+  let $startFilterPicker;
+  let $endFilterPicker;
+  let temperatureDao;
+  let temperatureChart;
   let self;
 
   const Temperature = {
-    init: (el, uId, url, cId, tId=null) => {
+    init: (el, uId, cId, tId=null) => {
       $el = $(el);
       userId = uId;
-      successUrl = url;
       childId = cId;
       temperatureId = tId;
-      $time = $el.find('#time');
       $temperature = $el.find('#temperature');
+      $saveBtn = $el.find('#temperature-save-btn');
       $tableBody = $el.find('tbody');
-      $saveBtn = $el.find('#save-btn');
-      $prevBtn = $el.find('#prev-btn');
-      $nextBtn = $el.find('#next-btn');
-      $modal = $el.find('#confirm-delete-modal');
+      $addBtn = $el.find('#temperature-add-btn');
+      $addModal = $el.find('#temperature-modal');
+      $deleteModal = $el.find('#confirm-delete-modal');
       $confirmDeleteBtn = $el.find('#confirm-delete-btn');
-      
+      $timePicker = $el.find('#temperature-datetimepicker_time');
+      $startFilterPicker = $el.find('#temperature-filter-datetimepicker_start');
+      $endFilterPicker = $el.find('#temperature-filter-datetimepicker_end');
+      temperatureDao = BabyBuddy.ChildTimeActivityDao();
+      // temperatureChart = BabyBuddy.TemperatureChart();
+
       $confirmDeleteBtn.click((evt) => {
         if (childId && temperatureId) {
           $.ajax({
@@ -40,21 +46,17 @@ BabyBuddy.Temperature = function(root) {
             type: 'DELETE'
           }).then((response) => {
             self.clear();
-            $modal.modal('hide');
-            root.location.reload();
+            $deleteModal.modal('hide');
+            self.fetchAll();
           });
         }
       });
 
-      if (childId && temperatureId) {
-        self.fetch();
-      }
-
-      $('#datetimepicker_time').datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD hh:mm a'
+      $addBtn.click((evt) => {
+        evt.preventDefault();
+        self.clear();
+        self.showAddModal();
       });
-
       $saveBtn.click((evt) => {
         if (self.isValidInputs()) {
           self.syncModel();
@@ -66,26 +68,38 @@ BabyBuddy.Temperature = function(root) {
         }
       });
 
-      $prevBtn.click((evt) => {
-        evt.preventDefault();
-        self.fetchAll($prevBtn.prop('href'));
+      $startFilterPicker.datetimepicker({
+        defaultDate: moment().subtract(7, 'days'),
+        format: 'YYYY-MM-DD'
       });
 
-      $nextBtn.click((evt) => {
-        evt.preventDefault();
-        self.fetchAll($nextBtn.prop('href'));
+      $endFilterPicker.datetimepicker({
+        defaultDate: moment(),
+        format: 'YYYY-MM-DD'
       });
 
-      const fetchAllUrl = BabyBuddy.ApiRoutes.temperatures(childId);
-      self.fetchAll(`${fetchAllUrl}?limit=10`);
+      $startFilterPicker.on('change.datetimepicker', function(evt){
+        $endFilterPicker.datetimepicker('minDate', moment(evt.date).add(1, 'days'));
+        self.fetchAll();
+      });
+
+      $endFilterPicker.on('change.datetimepicker', function(evt) {
+        self.fetchAll();
+      });
+
+      self.fetchAll();
+    },
+    showAddModal: () => {
+      $addModal.modal('show');
+      self.syncInputs();
     },
     syncInputs: () => {
-      if (!_.isEmpty(temperature)) {
-        if (temperature.time) {
-          $time.val(moment(temperature.time).format('YYYY-MM-DD hh:mm a'));
-        }
-        $temperature.val(temperature.temperature);
-      }
+      let defaultTime = !_.isEmpty(temperature) && temperature.time ? moment(temperature.time) : moment();
+      $timePicker.datetimepicker({
+        defaultDate: defaultTime,
+        format: 'YYYY-MM-DD hh:mm a'
+      });
+      $temperature.val(!_.isEmpty(temperature) ? temperature.temperature : '');
     },
     syncTable: () => {
       if (!_.isEmpty(temperatures)) {
@@ -114,21 +128,19 @@ BabyBuddy.Temperature = function(root) {
         $el.find('.update-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('temperature'));
-          temperatureId = id;
-          temperature = temperatures.find(c => c.id === id);
+          temperatureId = parseInt($target.data('temperature'));
+          temperature = temperatures.find(t => t.id === temperatureId);
           self.syncInputs();
-          root.window.scrollTo(0, 0);
+          window.scrollTo(0, 0);
+          self.showAddModal();
         });
 
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('temperature'));
-          temperatureId = id;
-          $modal.modal('show');
+          temperatureId = parseInt($target.data('temperature'));
+          $deleteModal.modal('show');
         });
-
       }
     },
     syncModel: () => {
@@ -137,7 +149,7 @@ BabyBuddy.Temperature = function(root) {
           temperature = {};
         }
         temperature.child = childId;
-        temperature.time = moment($time.val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        temperature.time = $timePicker.datetimepicker('viewDate').toISOString();
         temperature.temperature = $temperature.val();
       }
     },
@@ -147,61 +159,62 @@ BabyBuddy.Temperature = function(root) {
       }
       try {
         const temp = parseFloat($temperature.val());
-        if (temp <= 20) {
+        if (temp <= 20 || temp > 110) {
           return false;
         }
       } catch(err) {
         return false;
       }
-      return Boolean($time.val());
+      return $timePicker.datetimepicker('viewDate').isValid();
     },
     fetch: () => {
-      $.get(BabyBuddy.ApiRoutes.temperatureDetail(childId, temperatureId))
+      return $.get(BabyBuddy.ApiRoutes.temperatureDetail(childId, temperatureId))
         .then((response) => {
           temperature = response;
           self.syncInputs();
           return response;
         });
     },
-    fetchAll: (url) => {
-      if (!_.isEmpty(url)) {
-        $.get(url)
-          .then((response) => {
-            temperatures = response.results;
-            self.syncTable();
-            $prevBtn.prop('href', response.previous || '#');
-            $nextBtn.prop('href', response.next || '#');
-            $prevBtn.toggleClass('disabled', !Boolean(response.previous));
-            $nextBtn.toggleClass('disabled', !Boolean(response.next));
-            self.syncTable();
-            return response;
-          });
-      }
+    fetchAll: () => {
+      const url = BabyBuddy.ApiRoutes.temperatures(childId);
+      const s = $startFilterPicker.datetimepicker('viewDate');
+      const e = $endFilterPicker.datetimepicker('viewDate');
+      return temperatureDao.fetch(url, s.startOf('day'), e.endOf('day')).then(response => {
+        temperatures = response;
+        self.syncTable();
+        // $(window).resize(() => {
+        //   temperatureChart.plot($el.find('#temperature-chart'), $el.find('#temperature-chart-container'), temperatures, s, e);
+        // });
+        // temperatureChart.plot($el.find('#temperature-chart'), $el.find('#temperature-chart-container'), temperatures, s, e);
+        return response;
+      });
     },
     create: () => {
-      $.post(BabyBuddy.ApiRoutes.temperatures(childId), temperature)
+      return $.post(BabyBuddy.ApiRoutes.temperatures(childId), temperature)
         .then((response) => {
           temperature = response;
           temperatureId = response.id;
-          root.location.href = successUrl;
-          return response;
+          $addModal.modal('hide');
+          self.clear();
+          return self.fetchAll();
         });
     },
     update: () => {
-      $.post(BabyBuddy.ApiRoutes.temperatureDetail(childId, temperatureId), temperature)
+      return $.post(BabyBuddy.ApiRoutes.temperatureDetail(childId, temperatureId), temperature)
         .then((response) => {
           temperature = response;
-          self.syncInputs();
-          root.location.href = successUrl;
-          return response;
+          $addModal.modal('hide');
+          self.clear();
+          return self.fetchAll();
         });
     },
     clear: () => {
       temperature = {};
       temperatureId = null;
+      temperatures = [];
     }
   };
 
   self = Temperature;
   return self;
-}(window);
+}();

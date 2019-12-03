@@ -1,0 +1,51 @@
+{% load bootstrap i18n %}
+
+<div class="modal fade" id="weight-modal">
+  <div class="modal-dialog modal-dialog-centered modal-xl">
+    <div class="modal-content">
+      <div class="modal-header bg-danger">
+        <h4 class="modal-title text-center"><i class="icon icon-weight mr-2" aria-hidden="true"></i> {% trans "Diaper Change" %}</h4>
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      
+      <div class="modal-body">
+        <p class="text-danger text-center" id="error-message"></p>
+        <div class="form-group mb-3">
+          <label class="text-dark" for="weight-date">{% trans "Date" %}</label>
+          <div class="input-group date" id="weight-datetimepicker_date" data-target-input="nearest">
+            <div class="input-group-prepend" data-target="#weight-datetimepicker_date" data-toggle="datetimepicker">
+              <span class="input-group-text"><i class="fa fa-calendar"></i></span>
+            </div>
+            <input type="text" class="form-control datetimepicker-input" id="weight-date" data-target="#weight-datetimepicker_date">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="units" class="text-dark">{% trans "Units" %}</label>
+          <select id="units" class="form-control">
+            <option value="pounds" selected>{% trans "Pounds" %}</option>
+            <option value="kilograms">{% trans "Kilograms" %}</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="text-dark" for="weight">{% trans "Pounds" %}</label>
+          <input type="number" class="form-control" id="weight">
+        </div>
+
+        <div class="form-group mb-3">
+          <label class="text-dark" for="ounces">{% trans "Ounces" %}</label>
+          <input type="number" class="form-control" id="ounces">
+        </div>
+
+        <div class="form-group mb-5">
+          <p class="text-right">
+            <button id="weight-save-btn" class="btn btn-primary btn-lg">{% trans "Save" %}</button>
+            <button type="button" class="btn btn-danger btn-lg" data-dismiss="modal">{% trans "Close" %}</button>
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

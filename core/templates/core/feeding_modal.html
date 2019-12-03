@@ -53,6 +53,14 @@
         </div>
 
         <div class="form-group">
+          <label for="units" class="text-dark">{% trans "Units" %}</label>
+          <select id="units" class="form-control">
+            <option value="ounces" selected>{% trans "Ounces" %}</option>
+            <option value="milliliters">{% trans "Milliliters" %}</option>
+          </select>
+        </div>
+
+        <div class="form-group">
           <label class="text-dark" for="feeding-amount">{% trans "Amount" %}</label>
           <input type="number" id="feeding-amount" class="form-control" step="any">
         </div>

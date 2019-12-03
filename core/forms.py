@@ -100,21 +100,22 @@ class ChildDeleteForm(forms.ModelForm):
         self.instance.delete()
         return instance
 
-class DiaperChangeQuickAddForm(forms.ModelForm):
+
+class BathForm(forms.ModelForm):
     class Meta:
-        model = models.DiaperChange
-        fields = ['child', 'time', 'wet', 'solid', 'color']
+        model = models.Bath
+        fields = ['time', 'child']
         widgets = {
             'time': forms.DateTimeInput(attrs={
                 'class': 'datetimepicker-input',
                 'data-target': '#datetimepicker_time',
             }),
+            'child': forms.HiddenInput()
         }
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user')
-        super(DiaperChangeQuickAddForm, self).__init__(*args, **kwargs)
-        self.fields['child'].queryset = user_children_queryset(user)
+        kwargs = set_default_child(kwargs)
+        super(BathForm, self).__init__(*args, **kwargs)
 
 
 class DiaperChangeForm(forms.ModelForm):
@@ -132,30 +133,6 @@ class DiaperChangeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         kwargs = set_default_child(kwargs)
         super(DiaperChangeForm, self).__init__(*args, **kwargs)
-
-
-class FeedingQuickAddForm(forms.ModelForm):
-    class Meta:
-        model = models.Feeding
-        fields = ['child', 'start', 'end', 'type', 'method', 'amount']
-        widgets = {
-            'start': forms.DateTimeInput(attrs={
-                'class': 'datetimepicker-input',
-                'data-target': '#datetimepicker_start',
-            }),
-            'end': forms.DateTimeInput(attrs={
-                'class': 'datetimepicker-input',
-                'data-target': '#datetimepicker_end',
-            }),
-        }
-
-    def __init__(self, *args, **kwargs):
-        user = kwargs.pop('user')
-        kwargs = set_default_feeding_type(kwargs)
-        self.timer_id = kwargs.get('timer', None)
-        kwargs = set_default_duration(kwargs)
-        super(FeedingQuickAddForm, self).__init__(*args, **kwargs)
-        self.fields['child'].queryset = user_children_queryset(user)
 
 
 class FeedingForm(forms.ModelForm):

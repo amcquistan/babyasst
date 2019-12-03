@@ -283,6 +283,16 @@ class AccountPromoCodeAPIView(APIView):
         return Response({'valid': True, 'message': msg, 'requires_purchase': promo_code.stripe})
 
 
+class BathListOrCreateAPIView(ListOrCreateChildActivityAPIView):
+    model = models.Bath
+    serializer_class = serializers.BathSerializer
+
+
+class BathViewOrUpdateAPIView(ViewOrUpdateChildActivityAPIView):
+    model = models.Bath
+    serializer_class = serializers.BathSerializer
+
+
 class DiaperChangeListOrCreateAPIView(ListOrCreateChildActivityAPIView):
     model = models.DiaperChange
     serializer_class = serializers.DiaperChangeSerializer

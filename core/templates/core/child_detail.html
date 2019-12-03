@@ -28,9 +28,22 @@
     <div class="col-lg-9 col-md-7">
       <h2 class="text-center">{% trans "Activities" %}</h2>
       <div class="card-deck mb-2">
+        <a href="{% url 'core:bath' slug=object.slug %}" class="card card-dashboard card-bath" id='bath-card'>
+          <div class="card-header text-center">
+            <h3 class="text-center"><i class="icon icon-bath mr-2" aria-hidden="true"></i> {% trans "Baths" %}</h3>
+          </div>
+          <div class="card-body text-center"">
+            <span class="card-title" style="font-weight: bolder;">
+              <i class="icon icon-sad" aria-hidden="true"></i>
+              Nothing Yet
+              <i class="icon icon-sad" aria-hidden="true"></i>
+            </span>
+            <div class="card-text"></div>
+          </div>
+        </a>
         <a href="{% url 'core:diaperchange' slug=object.slug %}" class="card card-dashboard card-diaperchange" id='diaperchange-card'>
           <div class="card-header text-center">
-            <h3 class="text-center"><i class="icon icon-diaperchange mr-2" aria-hidden="true"></i> {% trans "Diaper Changes" %}</h3>
+            <h3 class="text-center"><i class="icon icon-diaperchange mr-2" aria-hidden="true"></i> {% trans "Diapers" %}</h3>
           </div>
           <div class="card-body text-center"">
             <span class="card-title" style="font-weight: bolder;">
@@ -54,6 +67,22 @@
             <div class="card-text"></div>
           </div>
         </a>
+        <a href="{% url 'core:note' slug=child.slug %}" class="card card-dashboard card-note" id='note-card'>
+          <div class="card-header text-center">
+            <h3 class="text-center"><i class="icon icon-note mr-2" aria-hidden="true"></i> {% trans "Notes" %}</h3>
+          </div>
+          <div class="card-body text-center"">
+            <span class="card-title" style="font-weight: bolder;">
+              <i class="icon icon-sad" aria-hidden="true"></i>
+              Nothing Yet
+              <i class="icon icon-sad" aria-hidden="true"></i>
+            </span>
+            <div class="card-text"></div>
+          </div>
+        </a>
+      </div>
+      
+      <div class="card-deck mb-5">
         <a href="{% url 'core:sleep' slug=child.slug %}" class="card card-dashboard card-sleep" id='sleep-card'>
           <div class="card-header text-center">
             <h3 class="text-center"><i class="icon icon-sleep mr-2" aria-hidden="true"></i> {% trans "Sleep" %}</h3>
@@ -67,8 +96,6 @@
             <div class="card-text"></div>
           </div>
         </a>
-      </div>
-      <div class="card-deck mb-5">
         <a href="{% url 'core:temperature' slug=child.slug %}" class="card card-dashboard card-temperature" id='temperature-card'>
           <div class="card-header text-center">
             <h3 class="text-center"><i class="icon icon-temperature mr-2" aria-hidden="true"></i> {% trans "Temperature" %}</h3>

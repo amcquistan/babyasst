@@ -1,43 +1,46 @@
 
-BabyBuddy.TummyTime = function(root) {
+BabyBuddy.TummyTime = function() {
   let $el;
-  let successUrl;
   let userId;
   let childId;
   let tummyTimeId;
-  let tummyTime;
+  let tummyTime = {};
   let tummyTimes = [];
-  let $startPicker;
-  let $endPicker;
-  let $start;
-  let $end;
   let $milestone;
   let $tableBody;
+  let $startPicker;
+  let $endPicker;
+  let $addBtn;
   let $saveBtn;
-  let $prevBtn;
-  let $nextBtn;
-  let $modal;
+  let $addModal;
+  let $deleteModal;
   let $confirmDeleteBtn;
+  let $startFilterPicker;
+  let $endFilterPicker;
+  let tummytimeDao;
+  let tummytimeChart;
+
   let self;
 
   const TummyTime = {
-    init: (el, uId, url, cId, tId=null) => {
+    init: (el, uId, cId, tId=null) => {
       $el = $(el);
       userId = uId;
-      successUrl = url;
       childId = cId;
       tummyTimeId = tId;
-      $startPicker = $el.find('#datetimepicker_start');
-      $endPicker = $el.find('#datetimepicker_end');
-      $start = $el.find('#start');
-      $end = $el.find('#end');
+      $startPicker = $el.find('#tummytime-datetimepicker_start');
+      $endPicker = $el.find('#tummytime-datetimepicker_end');
       $milestone = $el.find('#milestone');
       $tableBody = $el.find('tbody');
-      $saveBtn = $el.find('#save-btn');
-      $prevBtn = $el.find('#prev-btn');
-      $nextBtn = $el.find('#next-btn');
-      $modal = $el.find('#confirm-delete-modal');
+      $addBtn = $el.find('#tummytime-add-btn');
+      $saveBtn = $el.find('#tummytime-save-btn');
+      $addModal = $el.find('#tummytime-modal');
+      $deleteModal = $el.find('#confirm-delete-modal');
       $confirmDeleteBtn = $el.find('#confirm-delete-btn');
+      $startFilterPicker = $el.find('#tummytime-filter-datetimepicker_start');
+      $endFilterPicker = $el.find('#tummytime-filter-datetimepicker_end');
+      tummytimeDao = BabyBuddy.ChildDurationActivityDao();
+      // tummytimeChart = BabyBuddyTummyTimeChart();
 
       $confirmDeleteBtn.click((evt) => {
         if (childId && tummyTimeId) {
@@ -46,30 +49,17 @@ BabyBuddy.TummyTime = function(root) {
             type: 'DELETE'
           }).then((response) => {
             self.clear();
-            $modal.modal('hide');
-            root.location.reload();
+            $deleteModal.modal('hide');
+            self.fetchAll();
           });
         }
       });
 
-      if (childId && tummyTimeId) {
-        self.fetch();
-      }
-
-      $startPicker.datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD hh:mm a'
+      $addBtn.click((evt) => {
+        evt.preventDefault();
+        self.clear();
+        self.showAddModal();
       });
-
-      $endPicker.datetimepicker({
-        defaultDate: 'now',
-        format: 'YYYY-MM-DD hh:mm a'
-      });
-
-      $startPicker.on('change.datetimepicker', function(evt){
-        $endPicker.datetimepicker('minDate', evt.date);
-      });
-
       $saveBtn.click((evt) => {
         if (self.isValidInputs()) {
           self.syncModel();
@@ -81,29 +71,49 @@ BabyBuddy.TummyTime = function(root) {
         }
       });
 
-      $prevBtn.click((evt) => {
-        evt.preventDefault();
-        self.fetchAll($prevBtn.prop('href'));
+      $startFilterPicker.datetimepicker({
+        defaultDate: moment().subtract(7, 'days'),
+        format: 'YYYY-MM-DD'
+      });
+      $endFilterPicker.datetimepicker({
+        defaultDate: moment(),
+        format: 'YYYY-MM-DD'
       });
 
-      $nextBtn.click((evt) => {
-        evt.preventDefault();
-        self.fetchAll($nextBtn.prop('href'));
+      $startFilterPicker.on('change.datetimepicker', function(evt){
+        $endFilterPicker.datetimepicker('minDate', moment(evt.date).add(1, 'days'));
+        self.fetchAll();
       });
 
-      const fetchAllUrl = BabyBuddy.ApiRoutes.tummyTime(childId);
-      self.fetchAll(`${fetchAllUrl}?limit=10`);
+      $endFilterPicker.on('change.datetimepicker', function(evt) {
+        self.fetchAll();
+      });
+
+      self.fetchAll();
+    },
+    showAddModal: () => {
+      $addModal.modal('show');
+      self.syncInputs();
     },
     syncInputs: () => {
-      if (!_.isEmpty(tummyTime)) {
-        if (tummyTime.start) {
-          $start.val(moment(tummyTime.start).format('YYYY-MM-DD hh:mm a'));
-        }
-        if (tummyTime.end) {
-          $end.val(moment(tummyTime.end).format('YYYY-MM-DD hh:mm a'));
-        }
-        $milestone.val(tummyTime.milestone);
-      }
+      let startDefault = !_.isEmpty(tummyTime) && tummyTime.start ? moment(tummyTime.start) : moment().subtract(2, 'minutes');
+      let endDefault = !_.isEmpty(tummyTime) && tummyTime.end ? moment(tummyTime.end) : moment();
+
+      $startPicker.datetimepicker({
+        defaultDate: startDefault,
+        format: 'YYYY-MM-DD hh:mm a'
+      });
+
+      $endPicker.datetimepicker({
+        defaultDate: endDefault,
+        format: 'YYYY-MM-DD hh:mm a'
+      });
+
+      $startPicker.on('change.datetimepicker', function(evt){
+        $endPicker.datetimepicker('minDate', moment(evt.date).add(1, 'minutes'));
+      });
+
+      $milestone.val(!_.isEmpty(tummyTime) && tummyTime.milestone ? tummyTime.milestone : '');
     },
     syncTable: () => {
       if (!_.isEmpty(tummyTimes)) {
@@ -146,20 +156,17 @@ BabyBuddy.TummyTime = function(root) {
         $el.find('.update-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('tummytime'));
-          tummyTimeId = id;
-          console.log('clicked update tummytime ' + id);
-          tummyTime = tummyTimes.find(c => c.id === id);
+          tummyTimeId = parseInt($target.data('tummytime'));
+          tummyTime = tummyTimes.find(c => c.id === tummyTimeId);
           self.syncInputs();
-          root.scrollTo(0, 0);
+          window.scrollTo(0, 0);
+          self.showAddModal();
         });
 
         $el.find('.delete-btn').click((evt) => {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
-          let id = parseInt($target.data('tummytime'));
-          tummyTimeId = id;
-          console.log('clicked delete tummytime ' + id);
+          tummyTimeId = parseInt($target.data('tummytime'));
           $modal.modal('show');
         });
       }
@@ -170,19 +177,15 @@ BabyBuddy.TummyTime = function(root) {
           tummyTime = {};
         }
         tummyTime.child = childId;
-        tummyTime.start = moment($start.val(), 'YYYY-MM-DD hh:mm a').toISOString();
-        tummyTime.end = moment($end.val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        tummyTime.start = $startPicker.datetimepicker('viewDate').toISOString();
+        tummyTime.end = $endPicker.datetimepicker('viewDate').toISOString();
         tummyTime.milestone = $milestone.val();
       }
     },
     isValidInputs: () => {
-      let datesValid = $start.val() && $end.val();
-      if (datesValid) {
-        const startDate = moment($start.val(), 'YYYY-MM-DD hh:mm a');
-        const endDate = moment($end.val(), 'YYYY-MM-DD hh:mm a');
-        datesValid = startDate.isSame(endDate) || startDate.isBefore(endDate);
-      }
-
+      const startDate = $startPicker.datetimepicker('viewDate');
+      const endDate = $endPicker.datetimepicker('viewDate');
+      const datesValid =  startDate.isValid() &&  endDate.isValid() && startDate.isBefore(endDate);
       return datesValid;
     },
     fetch: () => {
@@ -193,45 +196,40 @@ BabyBuddy.TummyTime = function(root) {
           return response;
         });
     },
-    fetchAll: (url) => {
-      if (!_.isEmpty(url)) {
-        $.get(url)
-          .then((response) => {
-            tummyTimes = response.results;
-            self.syncTable();
-            $prevBtn.prop('href', response.previous || '#');
-            $nextBtn.prop('href', response.next || '#');
-            $prevBtn.toggleClass('disabled', !Boolean(response.previous));
-            $nextBtn.toggleClass('disabled', !Boolean(response.next));
-            self.syncTable();
-            return response;
-          });
-      }
+    fetchAll: () => {
+      const url = BabyBuddy.ApiRoutes.tummyTime(childId);
+      const s = $startFilterPicker.datetimepicker('viewDate');
+      const e = $endFilterPicker.datetimepicker('viewDate');
+      return tummytimeDao.fetch(url, s.startOf('day'), e.endOf('day')).then(response => {
+        tummyTimes = response;
+        self.syncTable();
+        // tummyTimeChart.plot($el.find('#tummytime-chart'), $el.find('#tummytime-chart-container'), tummyTimes, s, e);
+        return response;
+      });
     },
     create: () => {
-      $.post(BabyBuddy.ApiRoutes.tummyTime(childId), tummyTime)
+      return $.post(BabyBuddy.ApiRoutes.tummyTime(childId), tummyTime)
         .then((response) => {
-          tummyTime = response;
-          tummyTimeId = response.id;
-          root.location.href = successUrl;
-          return response;
+          $addModal.modal('hide');
+          self.clear();
+          return self.fetchAll();
         });
     },
     update: () => {
-      $.post(BabyBuddy.ApiRoutes.tummyTimeDetail(childId, tummyTimeId), tummyTime)
+      return $.post(BabyBuddy.ApiRoutes.tummyTimeDetail(childId, tummyTimeId), tummyTime)
         .then((response) => {
-          tummyTime = response;
-          self.syncInputs();
-          root.location.href = successUrl;
-          return response;
+          $addModal.modal('hide');
+          self.clear();
+          return self.fetchAll();
         });
     },
     clear: () => {
       tummyTime = {};
       tummyTimeId = null;
+      tummyTimes = [];
     }
   };
 
   self = TummyTime;
   return self;
-}(window);
+}();

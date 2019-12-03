@@ -41,30 +41,17 @@ urlpatterns = [
         views.ChildDeleteView.as_view(),
         name='child-delete'
     ),
+
+    path(
+        'children/<slug:slug>/bath/',
+        views.BathAddListView.as_view(),
+        name='bath'
+    ),
+
     path(
         'children/<slug:slug>/changes/',
         views.DiaperChangeAddListView.as_view(),
         name='diaperchange'
-    ),
-    path(
-        'changes/add/',
-        views.DiaperChangeQuickAddView.as_view(),
-        name='diaperchange-quick-add'
-    ),
-    path(
-        'children/<slug:slug>/changes/<int:pk>/',
-        views.DiaperChangeUpdateView.as_view(),
-        name='diaperchange-update'
-    ),
-    path(
-        'children/<slug:slug>/changes/<int:pk>/delete/',
-        views.DiaperChangeDeleteView.as_view(),
-        name='diaperchange-delete'
-    ),
-    path(
-        'feeding/add/',
-        views.FeedingQuickAddView.as_view(),
-        name='feeding-quick-add'
     ),
     path(
         'children/<slug:slug>/feedings/',
@@ -72,24 +59,9 @@ urlpatterns = [
         name='feeding'
     ),
     path(
-        'children/<slug:slug>/feedings/<int:pk>/',
-        views.FeedingUpdateView.as_view(),
-        name='feeding-update'
-    ),
-    path(
-        'children/<slug:slug>/feedings/<int:pk>/delete/',
-        views.FeedingDeleteView.as_view(),
-        name='feeding-delete'
-    ),
-    path(
         'children/<slug:slug>/notes/',
         views.NoteAddListView.as_view(),
         name='note'
-    ),
-    path(
-        'notes/add/',
-        views.NoteQuickAddView.as_view(),
-        name='note-quick-add'
     ),
     path(
         'children/<slug:slug>/notes/<int:pk>/',
@@ -122,29 +94,9 @@ urlpatterns = [
         name='sleep'
     ),
     path(
-        'sleep/add/',
-        views.SleepQuickAddView.as_view(),
-        name='sleep-quick-add'
-    ),
-    path(
-        'children/<slug:slug>/sleep/<int:pk>/',
-        views.SleepUpdateView.as_view(),
-        name='sleep-update'
-    ),
-    path(
-        'children/<slug:slug>/sleep/<int:pk>/delete/',
-        views.SleepDeleteView.as_view(),
-        name='sleep-delete'
-    ),
-    path(
         'children/<slug:slug>/temperature/',
         views.TemperatureAddListView.as_view(),
         name='temperature'
-    ),
-    path(
-        'temperature/add/',
-        views.TemperatureQuickAddView.as_view(),
-        name='temperature-quick-add'
     ),
     path(
         'children/<slug:slug>/temperature/<int:pk>/',
@@ -167,11 +119,6 @@ urlpatterns = [
         views.TimerListView.as_view(),
         name='timer-list'
     ),
-    # path(
-    #     'timer/add/',
-    #     views.TimerAddQuickView.as_view(),
-    #     name='timer-quick-add'
-    # ),
     path(
         'timer/add/',
         views.TimerQuickAddView.as_view(),
@@ -203,21 +150,6 @@ urlpatterns = [
     #     name='timer-restart'
     # ),
     path(
-        'timer/<int:pk>/feeding/',
-        views.FeedingAddFromTimerView.as_view(),
-        name='feeding-add-from-timer'
-    ),
-    path(
-        'timer/<int:pk>/sleep/',
-        views.SleepAddFromTimerView.as_view(),
-        name='feeding-add-from-timer'
-    ),
-    path(
-        'timer/<int:pk>/tummy-time/',
-        views.TummyTimeAddFromTimerView.as_view(),
-        name='feeding-add-from-timer'
-    ),
-    path(
         'children/<slug:slug>/tummy-time/',
         views.TummyTimeAddListView.as_view(),
         name='tummytime'
@@ -242,11 +174,6 @@ urlpatterns = [
         'children/<slug:slug>/weight/',
         views.WeightAddListView.as_view(),
         name='weight'
-    ),
-    path(
-        'weight/add/',
-        views.WeightQuickAddView.as_view(),
-        name='weight-quick-add'
     ),
     path(
         'children/<slug:slug>/weight/<int:pk>/',
