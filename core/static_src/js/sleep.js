@@ -177,12 +177,10 @@ BabyBuddy.Sleep = function() {
       }
     },
     isValidInputs: () => {
-      const s = $startPicker.find('#sleep-start').val();
-      const e = $endPicker.find('#sleep-end').val();
-      let datesValid = s && e;
+      const s = $startPicker.datetimepicker('viewDate');
+      const e = $endPicker.datetimepicker('viewDate');
+      let datesValid = s.isValid() && e.isValid();
       if (datesValid) {
-        const startDate = moment(s, 'YYYY-MM-DD hh:mm a');
-        const endDate = moment(e, 'YYYY-MM-DD hh:mm a');
         datesValid = startDate.isSame(endDate) || startDate.isBefore(endDate);
       }
 
@@ -203,7 +201,7 @@ BabyBuddy.Sleep = function() {
       return sleepDao.fetch(url, s.startOf('day'), e.endOf('day')).then(response => {
         sleeps = response;
         self.syncTable();
-        sleepChart.plot($el.find('#sleep-chart'), $el.find('#sleep-chart-container'), sleeps, s, e);
+        sleepChart.plot($el.find('#sleep-container'), sleeps, s, e);
         return response;
       });
     },
