@@ -204,16 +204,18 @@ var BabyBuddy = function () {
         };
       },
       DiaperChangeChart: () => {
-        const plot = ($chart, $chartContainer, diaperChanges, startDate, endDate) => {
-          $chart.empty();
+        const plot = ($chartContainer, diaperChanges, startDate, endDate) => {
+          const $barChartDays = $chartContainer.find('#diaperchange-chart-days');
+          const $hoursChartWet = $chartContainer.find('#diaperchange-chart-wet-hours');
+          const $hoursChartSolid = $chartContainer.find('#diaperchange-chart-solid-hours');
+          $barChartDays.empty();
           const marginX = 46;
           const marginY = 40;
           const w = $chartContainer.width();
           const h = 380;
           const wetFill = '#007bff';
           const solidFill = '#ff8f00';
-          const chartId = $chart.prop('id');
-          const svg = d3.select(`#${chartId}`)
+          const svg = d3.select(`#${$barChartDays.prop('id')}`)
                         .attr('width', w)
                         .attr('height', h);
 
@@ -313,7 +315,10 @@ var BabyBuddy = function () {
           svg.append('g')
               .attr('class', 'x-axis')
               .attr('transform', 'translate(0, '+ (h - 2 * marginY) +')')
-              .call(xAxis);
+              .call(xAxis)
+              .selectAll('text')
+                .attr('transform', 'rotate(-40) translate(-10, 10)');
+
           svg.append('g')
               .attr('class', 'y-axis')
               .attr('transform', 'translate('+ marginX +',0)')
@@ -360,27 +365,80 @@ var BabyBuddy = function () {
         };
       },
       SleepChart: () => {
-        const plot = ($chart, $chartContainer, sleepSessions, startDate, endDate) => {
-          $chart.empty();
+        const plot = ($chartContainer, sleepSessions, startDate, endDate) => {
+          const $barChart = $chartContainer.find('#sleep-chart-days')
+          const $hoursChart = $chartContainer.find('#sleep-chart-hours');
+          $barChart.empty();
+          $hoursChart.empty();
           const w = $chartContainer.width();
           const h = 350;
+          const hoursHt = 70;
           const marginX = 50;
           const marginY = 50;
-          const chartId = $chart.prop('id');
-          const svg = d3.select(`#${chartId}`).attr('width', w).attr('height', h);
+          const barChartSVG = d3.select(`#${$barChart.prop('id')}`).attr('width', w).attr('height', h);
+          const hoursChartSVG = d3.select(`#${$hoursChart.prop('id')}`).attr('width', w).attr('height', hoursHt);
           const curDate = startDate.clone();
           const xDomain = [];
           while(curDate.isSameOrBefore(endDate)) {
             xDomain.push(curDate.toDate());
             curDate.add(1, 'days');
           }
-          const scaleX = d3.scaleBand()
+          const barChartScaleX = d3.scaleBand()
                             .padding(0.1)
                             .domain(xDomain)
                             .range([marginX, w - marginX]);
-          let grouped = _.groupBy(sleepSessions, (s) => moment(s.start).startOf('day'));
+          let groupedByDays = _.groupBy(sleepSessions, (s) => moment(s.start).startOf('day'));
+          let sleepingHours = {};
+          sleepSessions.forEach(s => {
+            const sleptDuringHour = moment(s.start);
+            const endedSleeping = moment(s.end);
+            while(sleptDuringHour.isValid() && endedSleeping.isValid() && sleptDuringHour.isBefore(endedSleeping)) {
+              const hr = sleptDuringHour.toDate().getHours();
+              if (hr in sleepingHours) {
+                sleepingHours[hr].count++;
+              } else {
+                sleepingHours[hr] = {
+                  count:1,
+                  hour:hr,
+                  hourOfDay: sleptDuringHour.format('hh a')
+                };
+              }
+              sleptDuringHour.add(1, 'hours');
+            }
+          });
+          
+          sleepingHours = Object.values(sleepingHours);
+          const startOfDay = moment().startOf('day');
+          const endOfDay = startOfDay.clone().endOf('day');
+          const hoursOfDay = [];
+          while(startOfDay.isBefore(endOfDay)) {
+            hoursOfDay.push(startOfDay.format('hh a'));
+            startOfDay.add(1, 'hours');
+          }
+          const hoursOfDayScaleX = d3.scaleBand().domain(hoursOfDay).range([marginX, w - marginX]);
+          const hoursOfDayScaleColor = d3.scaleLinear()
+                                      .domain([0, d3.max(sleepingHours, x => x.count)])
+                                      .range(["white", "#ff8f00"]);
+          
+          hoursChartSVG.selectAll('.hours-count')
+                    .data(sleepingHours)
+                    .enter()
+                      .append('rect')
+                      .classed('.hours-count', true)
+                      .attr('x', d => hoursOfDayScaleX(d.hourOfDay))
+                      .attr('y', (marginY * 0.5))
+                      .attr('height', hoursHt - marginY)
+                      .attr('width', hoursOfDayScaleX.bandwidth())
+                      .attr('fill', d => hoursOfDayScaleColor(d.count));
+          
+          const xAxisHoursChart = d3.axisBottom(hoursOfDayScaleX);
+          hoursChartSVG.append('g')
+                        .attr('class', 'x-axis')
+                        .attr('transform', 'translate(0, ' + (hoursHt - (marginY * 0.5)) +')')
+                        .call(xAxisHoursChart);
+
           const sleepTotalPerDay = _.reduce(
-              grouped,
+              groupedByDays,
               (days, sleepThatDay, day) => {
                 days.push(sleepThatDay.reduce((totalSleep, s) => {
                   totalSleep.hours += moment.duration(s.duration).asHours();
@@ -390,24 +448,27 @@ var BabyBuddy = function () {
               }, [])
 
           const maxSleep = d3.max(sleepTotalPerDay, (daySleep) => daySleep.hours);
-          const scaleY = d3.scaleLinear()
+          const barChartScaleY = d3.scaleLinear()
                             .domain([0, maxSleep])
                             .range([h - marginY, marginY]);
-          const xAxis = d3.axisBottom(scaleX).tickFormat(d3.timeFormat('%b-%e'));
-          const yAxis = d3.axisLeft(scaleY);
+          const xAxisBarChart = d3.axisBottom(barChartScaleX).tickFormat(d3.timeFormat('%b-%e'));
+          const yAxisBarChart = d3.axisLeft(barChartScaleY);
     
-          svg.append('g')
+          barChartSVG.append('g')
               .attr('class', 'x-axis')
               .attr('transform', 'translate(0, '+ (h - marginY) +')')
-              .call(xAxis);
+              .call(xAxisBarChart)
+              .selectAll('text')
+                .attr('transform', 'rotate(-40) translate(-10, 10)');
+              
         
-          svg.append('g')
+          barChartSVG.append('g')
               .attr('class', 'y-axis')
               .attr('transform', 'translate('+ marginX +',0)')
-              .call(yAxis);
+              .call(yAxisBarChart);
           
           const labelY = Math.floor(h * 0.5);
-          svg.append('text')
+          barChartSVG.append('text')
               .attr('x', 14)
               .attr('y', labelY)
               .attr('fill', 'white')
@@ -415,15 +476,15 @@ var BabyBuddy = function () {
               .attr('transform', 'rotate(-90, 14, ' + labelY + ')')
               .text('Hours per Day');
     
-          svg.selectAll('.sleep-chart-bar')
+          barChartSVG.selectAll('.sleep-chart-bar')
               .data(sleepTotalPerDay)
                 .enter()
                 .append('rect')
                 .classed('sleep-chart-bar', true)
-                .attr('x', d => scaleX(moment(d.day).toDate()))
-                .attr('y', d => scaleY(d.hours))
-                .attr('width', scaleX.bandwidth())
-                .attr('height', d => h - marginY - scaleY(d.hours));
+                .attr('x', d => barChartScaleX(moment(d.day).toDate()))
+                .attr('y', d => barChartScaleY(d.hours))
+                .attr('width', barChartScaleX.bandwidth())
+                .attr('height', d => h - marginY - barChartScaleY(d.hours));
         };
   
         return {

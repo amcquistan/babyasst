@@ -99,20 +99,21 @@ BabyBuddy.ChildDetail = function(root) {
 
             let amount = '';
             if (last_feeding.amount && duration) {
-              amount = `(${duration.humanize()}, ${last_feeding.amount} oz)`;
+              const units = last_feeding.units === 'ounces' ? 'oz' : 'ml';
+              amount = `(${duration.asMinutes()} mins, ${last_feeding.amount} ${units})`;
             } else if (last_feeding.amount) {
               amount = `(${last_feeding.amount} oz)`;
-            } else if (duration) {
-              amount = `(${duration.humanize()})`;
+            } else if (duration && duration.isValid()) {
+              amount = `(${duration.asMinutes()} mins)`;
             }
-            $feedings.find('.card-text').html(`${last_feeding.type} ${last_feeding.method} ${amount}`);
+            $feedings.find('.card-text').html(`${last_feeding.type}, ${last_feeding.method} ${amount}`);
           } 
 
           if (!_.isEmpty(last_sleep)) {
             const occured = moment().to(last_sleep.start);
             const duration = moment.duration(last_sleep.duration).humanize();
             $sleep.find('.card-title').html(occured);
-            $sleep.find('.card-text').html(duration);
+            $sleep.find('.card-text').html(`for ${duration}`);
           }
 
           if (!_.isEmpty(last_temperature)) {
@@ -126,7 +127,7 @@ BabyBuddy.ChildDetail = function(root) {
             $tummyTime.find('.card-title').html(occured);
 
             const duration = moment.duration(last_tummytime.duration).humanize();
-            $tummyTime.find('.card-text').html(duration);
+            $tummyTime.find('.card-text').html(`for ${duration}`);
           }
 
           if (!_.isEmpty(last_weight)) {
@@ -304,8 +305,9 @@ BabyBuddy.ChildDetail = function(root) {
                 return dy < minTextDy ? minTextDy : dy;
             })
             .text(d => {
-              if (d.type !== 'breast milk') {
-                return `${d.amount} oz`;
+              if (d.method === 'bottle') {
+                const units = d.units === 'ounces' ? 'oz' : 'ml';
+                return `${d.amount} ${units}`;
               }
 
               let text;
@@ -405,6 +407,7 @@ BabyBuddy.ChildDetail = function(root) {
       const $type = $feedingModal.find('#feeding-type');
       const $method = $feedingModal.find('#feeding-method');
       const $amount = $feedingModal.find('#feeding-amount');
+      const $units = $feedingModal.find('#feeding-units');
       $type.val(d.type);
       $method.val(d.method);
       $amount.val(d.amount);
@@ -415,27 +418,38 @@ BabyBuddy.ChildDetail = function(root) {
             $this.prop('disabled', false);
             $this.prop('selected', i === 0);
           });
-        } else if ($type.val() === 'breast milk') {
-          const validOptions = ['left breast', 'right breast', 'both breasts'];
+        } else if ($type.val() !== 'breast milk') {
+          const breastOptions = ['left breast', 'right breast', 'both breasts'];
           $method.find('option').each((i, el) => {
             const $this = $(el);
-            $this.prop('disabled', !validOptions.includes($this.prop('value')));
-            $this.prop('selected', false);
+            $this.prop('disabled', breastOptions.includes($this.prop('value')));
+            $this.prop('selected', $this.prop('value') === 'bottle');
           });
         } else {
           $method.find('option').each((i, el) => {
             const $this = $(el);
-            $this.prop('disabled', $this.prop('value') !== 'bottle');
-            $this.prop('selected', $this.prop('value') === 'bottle');
+            $this.prop('disabled', false);
+            $this.prop('selected', i === 0);
           });
         }
       });
+      $method.change(function(evt){
+        if ($method.val() === 'bottle') {
+          $amount.parent().show();
+          $units.parent().show();
+        } else {
+          $amount.parent().hide();
+          $units.parent().hide();
+        }
+      });
+
       $feedingModal.find('#feeding-save-btn').click((evt) => {
         const feedingCopy = Object.assign({}, d);
         feedingCopy.start = moment($feedingModal.find('#feeding-start').val(), 'YYYY-MM-DD hh:mm a').toISOString();
         feedingCopy.end = moment($feedingModal.find('#feeding-end').val(), 'YYYY-MM-DD hh:mm a').toISOString();
         feedingCopy.type = $type.val();
         feedingCopy.method = $method.val();
+        feedingCopy.units = $units.val();
         feedingCopy.amount = $feedingModal.find('#feeding-amount').val();
         if (feedingCopy.type !== 'breast milk' && !feedingCopy.amount) {
           return;

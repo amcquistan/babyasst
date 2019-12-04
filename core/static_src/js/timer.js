@@ -124,6 +124,7 @@ BabyBuddy.Timer = function (root) {
                     defaultDate: feedingEnd,
                     format: 'YYYY-MM-DD hh:mm a'
                   });
+                  const $units = $feedingModal.find('#feeding-units');
                   const $type = $feedingModal.find('#feeding-type');
                   const $method = $feedingModal.find('#feeding-method');
                   const $amount = $feedingModal.find('#feeding-amount');
@@ -134,19 +135,28 @@ BabyBuddy.Timer = function (root) {
                         $this.prop('disabled', false);
                         $this.prop('selected', i === 0);
                       });
-                    } else if ($type.val() === 'breast milk') {
-                      const validOptions = ['left breast', 'right breast', 'both breasts'];
+                    } else if ($type.val() !== 'breast milk') {
+                      const breastOptions = ['left breast', 'right breast', 'both breasts'];
                       $method.find('option').each((i, el) => {
                         const $this = $(el);
-                        $this.prop('disabled', !validOptions.includes($this.prop('value')));
-                        $this.prop('selected', false);
+                        $this.prop('disabled', breastOptions.includes($this.prop('value')));
+                        $this.prop('selected', $this.prop('value') === 'bottle');
                       });
                     } else {
                       $method.find('option').each((i, el) => {
                         const $this = $(el);
-                        $this.prop('disabled', $this.prop('value') !== 'bottle');
-                        $this.prop('selected', $this.prop('value') === 'bottle');
+                        $this.prop('disabled', false);
+                        $this.prop('selected', i === 0);
                       });
+                    }
+                  });
+                  $method.change(function(evt){
+                    if ($method.val() === 'bottle') {
+                      $amount.parent().show();
+                      $units.parent().show();
+                    } else {
+                      $amount.parent().hide();
+                      $units.parent().hide();
                     }
                   });
                   $feedingModal.find('#feeding-save-btn').click(e => {
@@ -157,6 +167,7 @@ BabyBuddy.Timer = function (root) {
                       type: $type.val(),
                       method: $method.val(),
                       amount: $amount.val(),
+                      units: $units.val()
                     };
                     if (feeding.method === 'bottle' && !feeding.amount) {
                       return;

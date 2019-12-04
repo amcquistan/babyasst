@@ -34,7 +34,7 @@ BabyBuddy.Feeding = function() {
       $endPicker = $el.find('#feeding-datetimepicker_end');
       $type = $el.find('#feeding-type');
       $method = $el.find('#feeding-method');
-      $units = $el.find('#units');
+      $units = $el.find('#feeding-units');
       $amount = $el.find('#feeding-amount');
       $tableBody = $el.find('tbody');
       $addBtn = $el.find('#feeding-add-btn');
@@ -81,7 +81,15 @@ BabyBuddy.Feeding = function() {
           });
         }
       });
-
+      $method.change(function(evt){
+        if ($method.val() === 'bottle') {
+          $amount.parent().show();
+          $units.parent().show();
+        } else {
+          $amount.parent().hide();
+          $units.parent().hide();
+        }
+      });
       $addBtn.click((evt) => {
         evt.preventDefault();
         feeding = {};
@@ -114,16 +122,6 @@ BabyBuddy.Feeding = function() {
 
       $endFilterPicker.on('change.datetimepicker', function(evt) {
         self.fetchAll();
-      });
-
-      $type.change(function(evt){
-        if ($type.val() !== 'breast milk') {
-          $amount.parent().show();
-          $units.parent().show();
-        } else {
-          $amount.parent().hide();
-          $units.parent().hide();
-        }
       });
 
       self.fetchAll();
