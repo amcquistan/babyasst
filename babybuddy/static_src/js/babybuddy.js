@@ -433,9 +433,17 @@ var BabyBuddy = function () {
           
           const xAxisHoursChart = d3.axisBottom(hoursOfDayScaleX);
           hoursChartSVG.append('g')
-                        .attr('class', 'x-axis')
+                        .attr('class', 'x-axis hours-axis')
                         .attr('transform', 'translate(0, ' + (hoursHt - (marginY * 0.5)) +')')
                         .call(xAxisHoursChart);
+          d3.selectAll('.hours-axis text')
+                              .each(function(x, i){
+                                const remove = i > 0 && i % 3 !== 0;
+                                if (remove) {
+                                  d3.select(this).remove();
+                                }
+                              });
+
 
           const sleepTotalPerDay = _.reduce(
               groupedByDays,
