@@ -35,11 +35,11 @@
       {% include 'core/diaperchange_modal.html' %}
 
       <div id="diaperchange-chart-container">
+        <h4 class="text-center">{% trans "Diaper Changes per Day" %}</h4>
         <svg id="diaperchange-chart-days"></svg>
-        <!-- 
-        <svg id="diaperchange-chart-wet-hours"></svg>
-        <svg id="diaperchange-chart-solid-hours"></svg>
-        -->
+
+        <h4 class="text-center">{% trans "Diaper Changes per Hour of Day" %}</h4>
+        <svg id="diaperchange-chart-hours"></svg>
       </div>
 
       <div class="row">

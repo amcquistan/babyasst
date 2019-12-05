@@ -206,18 +206,102 @@ var BabyBuddy = function () {
       DiaperChangeChart: () => {
         const plot = ($chartContainer, diaperChanges, startDate, endDate) => {
           const $barChartDays = $chartContainer.find('#diaperchange-chart-days');
-          const $hoursChartWet = $chartContainer.find('#diaperchange-chart-wet-hours');
-          const $hoursChartSolid = $chartContainer.find('#diaperchange-chart-solid-hours');
+          const $hoursChart = $chartContainer.find('#diaperchange-chart-hours');
+          
           $barChartDays.empty();
+          $hoursChart.empty();
+          const hoursHt = 80;
           const marginX = 46;
           const marginY = 40;
           const w = $chartContainer.width();
           const h = 380;
+          const hoursBandHt = 20;
           const wetFill = '#007bff';
           const solidFill = '#ff8f00';
-          const svg = d3.select(`#${$barChartDays.prop('id')}`)
-                        .attr('width', w)
-                        .attr('height', h);
+
+          const barChartSVG = d3.select(`#${$barChartDays.prop('id')}`).attr('width', w).attr('height', h);
+          const hoursChartSVG = d3.select(`#${$hoursChart.prop('id')}`).attr('width', w).attr('height', hoursHt);
+          
+          let diaperChangeHrs = {};
+          diaperChanges.forEach(dc => {
+            const diaperChangeTime = moment(dc.time);
+            const hr = diaperChangeTime.toDate().getHours();
+            if (diaperChangeTime.isValid()) {
+              if (hr in diaperChangeHrs) {
+                diaperChangeHrs[hr].wet += (dc.wet ? 1 : 0);
+                diaperChangeHrs[hr].solid += (dc.solid ? 1 : 0);
+              } else {
+                diaperChangeHrs[hr] = {
+                  wet: (dc.wet ? 1 : 0),
+                  solid: (dc.solid ? 1 : 0),
+                  hour: hr,
+                  hourOfDay: removeZeroFromHour(diaperChangeTime.format('hh a'))
+                };
+              }
+            }
+          });
+          
+          diaperChangeHrs = Object.values(diaperChangeHrs);
+          const startOfDay = moment().startOf('day');
+          const endOfDay = startOfDay.clone().endOf('day');
+          const hoursOfDay = [];
+          while(startOfDay.isBefore(endOfDay)) {
+            let hrOfDay = removeZeroFromHour(startOfDay.format('hh a'));
+            hoursOfDay.push(hrOfDay);
+            const match = diaperChangeHrs.find(c => c.hourOfDay === hrOfDay);
+            if (!match) {
+              diaperChangeHrs.push({
+                wet: 0,
+                solid: 0,
+                hour: startOfDay.toDate().getHours(),
+                hourOfDay: hrOfDay
+              });
+            }
+
+            startOfDay.add(1, 'hours');
+          }
+          const hoursOfDayScaleX = d3.scaleBand().domain(hoursOfDay).range([marginX, w]);
+          const hoursOfDayScaleWetColor = d3.scaleLinear()
+                                      .domain([0, d3.max(diaperChangeHrs, x => x.wet)])
+                                      .range(["white", wetFill]);
+          const hoursOfDayScaleSolidColor = d3.scaleLinear()
+                                      .domain([0, d3.max(diaperChangeHrs, x => x.solid)])
+                                      .range(["white", solidFill]);
+
+          hoursChartSVG.selectAll('.hours-count')
+                        .data(diaperChangeHrs)
+                        .enter()
+                          .append('rect')
+                            .classed('.hours-count', true)
+                            .attr('x', d => hoursOfDayScaleX(d.hourOfDay))
+                            .attr('y', 0)
+                            .attr('height', hoursBandHt)
+                            .attr('width', hoursOfDayScaleX.bandwidth())
+                            .attr('fill', d => hoursOfDayScaleSolidColor(d.solid));
+          hoursChartSVG.selectAll('.hours-count')
+                          .data(diaperChangeHrs)
+                          .enter()
+                            .append('rect')
+                            .classed('.hours-count', true)
+                            .attr('x', d => hoursOfDayScaleX(d.hourOfDay))
+                            .attr('y', hoursBandHt)
+                            .attr('height', hoursBandHt)
+                            .attr('width', hoursOfDayScaleX.bandwidth())
+                            .attr('fill', d => hoursOfDayScaleWetColor(d.wet));
+                            
+          const xAxisHoursChart = d3.axisBottom(hoursOfDayScaleX);
+          hoursChartSVG.append('g')
+                        .attr('class', 'x-axis hours-axis')
+                        .attr('transform', `translate(0, ${hoursBandHt * 2})`)
+                        .call(xAxisHoursChart);
+          d3.selectAll('.hours-axis text')
+                              .each(function(x, i){
+                                const remove = w < 800 && i > 0 && i % 3 !== 0;
+                                if (remove) {
+                                  d3.select(this).remove();
+                                }
+                              });
+
 
           const curDate = startDate.clone();
           const xDomain = [];
@@ -226,7 +310,7 @@ var BabyBuddy = function () {
             curDate.add(1, 'days');
           }
 
-          const scaleX = d3.scaleBand()
+          const barChartScaleX = d3.scaleBand()
                             .padding(0.1)
                             .domain(xDomain)
                             .range([marginX, w]);
@@ -254,11 +338,11 @@ var BabyBuddy = function () {
           const series = stack(diaperChangesPerDay);
 
           const maxChanges = d3.max(diaperChangesPerDay, (change) => change.wet + change.solid);
-          const scaleY = d3.scaleLinear()
+          const barChartScaleY = d3.scaleLinear()
                             .domain([0, maxChanges])
                             .range([h - 2 * marginY, marginY]);
 
-          svg.selectAll('g').data(series)
+          barChartSVG.selectAll('g').data(series)
               .enter()
                 .append('g')
                 .attr('fill', d => d.key === 'wet' ? wetFill : solidFill)
@@ -267,22 +351,20 @@ var BabyBuddy = function () {
                 .enter()
                   .append('rect')
                   .attr('x', d => {
-                    const xDay = scaleX(d.data.day);
-                    console.log('day ' + d.data.day + ' xDay ' + xDay);
+                    const xDay = barChartScaleX(d.data.day);
                     return xDay;
                   })
                   .attr('y', d => {
-                    const y = scaleY(d[1]);
-                    console.log('y', y);
+                    const y = barChartScaleY(d[1]);
                     return y;
                   })
                   .attr('height', d => {
-                    const gHt = scaleY(d[0]) - scaleY(d[1]);
+                    const gHt = barChartScaleY(d[0]) - barChartScaleY(d[1]);
                     return gHt;
                   })
-                  .attr('width', scaleX.bandwidth());
+                  .attr('width', barChartScaleX.bandwidth());
 
-          svg.selectAll('.diaperchange-bar-text').data(series)
+          barChartSVG.selectAll('.diaperchange-bar-text').data(series)
               .enter()
                 .append('g')
                 .selectAll('text')
@@ -291,17 +373,16 @@ var BabyBuddy = function () {
                   .append('text')
                   .classed('diaperchange-bar-text', true)
                   .attr('x', d => {
-                    const xDay = scaleX(d.data.day);
+                    const xDay = barChartScaleX(d.data.day);
                     return xDay;
                   })
-                  .attr('dx', scaleX.bandwidth() * 0.5)
+                  .attr('dx', barChartScaleX.bandwidth() * 0.5)
                   .attr('y', d => {
-                    const y = scaleY(d[1]);
-                    console.log('y', y);
+                    const y = barChartScaleY(d[1]);
                     return y;
                   })
                   .attr('dy', d => {
-                    const gHt = scaleY(d[0]) - scaleY(d[1]);
+                    const gHt = barChartScaleY(d[0]) - barChartScaleY(d[1]);
                     return gHt * (gHt < 140 ? 0.7 : 0.52);
                   })
                   .attr('fill', 'white')
@@ -309,24 +390,23 @@ var BabyBuddy = function () {
                     const cnt = d[0] === 0 ? d.data.wet : d.data.solid;
                     return '' + (cnt > 0 ? cnt : '');
                   });
-          const xAxis = d3.axisBottom(scaleX).tickFormat(d3.timeFormat('%b-%e'));
-          const yAxis = d3.axisLeft(scaleY);
+          const xAxisBarChart = d3.axisBottom(barChartScaleX).tickFormat(d3.timeFormat('%b-%e'));
+          const yAxisBarChart = d3.axisLeft(barChartScaleY);
     
-          svg.append('g')
+          barChartSVG.append('g')
               .attr('class', 'x-axis')
               .attr('transform', 'translate(0, '+ (h - 2 * marginY) +')')
-              .call(xAxis)
+              .call(xAxisBarChart)
               .selectAll('text')
                 .attr('transform', 'rotate(-40) translate(-10, 10)');
 
-          svg.append('g')
+          barChartSVG.append('g')
               .attr('class', 'y-axis')
               .attr('transform', 'translate('+ marginX +',0)')
-              .call(yAxis);
-
+              .call(yAxisBarChart);
 
           const labelY = Math.floor(h * 0.5);
-          svg.append('text')
+          barChartSVG.append('text')
               .attr('x', 14)
               .attr('y', labelY)
               .attr('fill', 'white')
@@ -336,23 +416,23 @@ var BabyBuddy = function () {
 
           const wetCX = w * 0.32;
           const solidCX = w * 0.62;
-          svg.append('circle')
+          barChartSVG.append('circle')
                   .attr('cx', wetCX)
                   .attr('cy', 10)
                   .attr('r', 10)
                   .attr('fill', wetFill);
-          svg.append('circle')
+          barChartSVG.append('circle')
                   .attr('cx', solidCX)
                   .attr('cy', 10)
                   .attr('r', 10)
                   .attr('fill', solidFill);
-          svg.append('text')
+          barChartSVG.append('text')
                   .classed('diaperchange-legend-text', true)
                   .attr('x', wetCX + 36)
                   .attr('y', 15)
                   .attr('fill', 'white')
                   .text('wet');
-          svg.append('text')
+          barChartSVG.append('text')
                   .classed('diaperchange-legend-text', true)
                   .attr('x', solidCX + 40)
                   .attr('y', 15)
@@ -374,20 +454,10 @@ var BabyBuddy = function () {
           const h = 350;
           const hoursHt = 70;
           const marginX = 50;
-          const marginY = 50;
+          const marginY = 40;
           const barChartSVG = d3.select(`#${$barChart.prop('id')}`).attr('width', w).attr('height', h);
           const hoursChartSVG = d3.select(`#${$hoursChart.prop('id')}`).attr('width', w).attr('height', hoursHt);
-          const curDate = startDate.clone();
-          const xDomain = [];
-          while(curDate.isSameOrBefore(endDate)) {
-            xDomain.push(curDate.toDate());
-            curDate.add(1, 'days');
-          }
-          const barChartScaleX = d3.scaleBand()
-                            .padding(0.1)
-                            .domain(xDomain)
-                            .range([marginX, w - marginX]);
-          let groupedByDays = _.groupBy(sleepSessions, (s) => moment(s.start).startOf('day'));
+          
           let sleepingHours = {};
           sleepSessions.forEach(s => {
             const sleptDuringHour = moment(s.start);
@@ -400,7 +470,7 @@ var BabyBuddy = function () {
                 sleepingHours[hr] = {
                   count:1,
                   hour:hr,
-                  hourOfDay: sleptDuringHour.format('hh a')
+                  hourOfDay: removeZeroFromHour(sleptDuringHour.format('hh a'))
                 };
               }
               sleptDuringHour.add(1, 'hours');
@@ -412,7 +482,18 @@ var BabyBuddy = function () {
           const endOfDay = startOfDay.clone().endOf('day');
           const hoursOfDay = [];
           while(startOfDay.isBefore(endOfDay)) {
-            hoursOfDay.push(startOfDay.format('hh a'));
+            let hrOfDay = removeZeroFromHour(startOfDay.format('hh a'));
+            hoursOfDay.push(hrOfDay);
+            const match = sleepingHours.find(c => c.hourOfDay === hrOfDay);
+            if (!match) {
+              sleepingHours.push({
+                count: 0,
+                hour: startOfDay.toDate().getHours(),
+                hourOfDay: hrOfDay
+              });
+            }
+
+            hoursOfDay.push(hrOfDay);
             startOfDay.add(1, 'hours');
           }
           const hoursOfDayScaleX = d3.scaleBand().domain(hoursOfDay).range([marginX, w - marginX]);
@@ -438,12 +519,23 @@ var BabyBuddy = function () {
                         .call(xAxisHoursChart);
           d3.selectAll('.hours-axis text')
                               .each(function(x, i){
-                                const remove = i > 0 && i % 3 !== 0;
+                                const remove = w < 800 && i > 0 && i % 3 !== 0;
                                 if (remove) {
                                   d3.select(this).remove();
                                 }
                               });
-
+          
+          const curDate = startDate.clone();
+          const xDomain = [];
+          while(curDate.isSameOrBefore(endDate)) {
+            xDomain.push(curDate.toDate());
+            curDate.add(1, 'days');
+          }
+          const barChartScaleX = d3.scaleBand()
+                            .padding(0.1)
+                            .domain(xDomain)
+                            .range([marginX, w - marginX]);
+          let groupedByDays = _.groupBy(sleepSessions, (s) => moment(s.start).startOf('day'));
 
           const sleepTotalPerDay = _.reduce(
               groupedByDays,
@@ -563,5 +655,12 @@ var BabyBuddy = function () {
 
     return BabyBuddy;
 }();
+
+function removeZeroFromHour(hourOfDay) {
+  if (hourOfDay.startsWith('0', '')) {
+    return hourOfDay.replace('0', '');
+  }
+  return hourOfDay;
+} 
 
 setUpAJAX();

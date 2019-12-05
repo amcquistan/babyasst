@@ -201,6 +201,12 @@ BabyBuddy.Sleep = function() {
       return sleepDao.fetch(url, s.startOf('day'), e.endOf('day')).then(response => {
         sleeps = response;
         self.syncTable();
+        $(window).resize(() => {
+          sleepChart.plot($el.find('#sleep-container'), sleeps, s, e);
+        });
+        $(window).on('orientationchange', () => {
+          sleepChart.plot($el.find('#sleep-container'), sleeps, s, e);
+        });
         sleepChart.plot($el.find('#sleep-container'), sleeps, s, e);
         return response;
       });

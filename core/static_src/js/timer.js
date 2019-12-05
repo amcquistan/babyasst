@@ -304,7 +304,7 @@ BabyBuddy.Timer = function (root) {
         },
 
         handleVisibilityChange: function() {
-          if (!document[hidden] && moment().diff(lastUpdate) > 15000) {
+          if (!document[hidden] && moment().diff(lastUpdate) > 5000) {
             self.updateTimerDisplay();
           }
         },
