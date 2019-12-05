@@ -29,8 +29,8 @@ def timer_mobile_nav(context):
     timers = Timer.unfinished_account_timers(request.user)
     timers_cnt = len(timers)
 
-    url = reverse('core:timer-quick-add')
-    if timers_cnt:
-        url = reverse('core:timer-list')
+    # url = reverse('core:timer-quick-add')
+    # if timers_cnt:
+    #     url = reverse('core:timer-list')
 
-    return {'timers_cnt': timers_cnt, 'url': url}
+    return {'timers_cnt': timers_cnt, 'url': reverse('core:timer-list')}

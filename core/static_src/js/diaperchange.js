@@ -189,6 +189,9 @@ BabyBuddy.DiaperChange = function() {
         $(window).resize(() => {
           diaperChangeChart.plot($el.find('#diaperchange-chart-container'), diaperChanges, s, e);
         });
+        $(window).on('orientationchange', () => {
+          diaperChangeChart.plot($el.find('#diaperchange-chart-container'), diaperChanges, s, e);
+        });
         diaperChangeChart.plot($el.find('#diaperchange-chart-container'), diaperChanges, s, e);
         return response;
       });
