@@ -377,6 +377,13 @@ class TimersAPIView(ListOrCreateModelWithAccountAPIView):
     model = models.Timer
     serializer_class = serializers.TimerSerializer
 
+    def post(self, request, format=None):
+        acct = babybuddy_models.Account.objects.get(pk=request.POST.get('account'))
+        if not acct.can_start_timer():
+            return Response(None, status=status.HTTP_403_FORBIDDEN)
+        
+        return super(TimersAPIView, self).post(request)
+
 
 class TimerAPIView(ViewOrUpdateModelWithAccountAPIView):
     model = models.Timer

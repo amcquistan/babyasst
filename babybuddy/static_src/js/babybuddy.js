@@ -41,6 +41,7 @@ function csrfSafeMethod (method) {
 
 var BabyBuddy = function () {
     const $timerCountSpan = $('#timers-count');
+    let timerCheckIntervalId;
 
     var BabyBuddy = {
       host: () => {
@@ -144,13 +145,13 @@ var BabyBuddy = function () {
           
           if (!fetchedAllData && fetchMoreData && url) {
             return $.get(url).then(response => {
-              fetchedAllData = !Boolean(response.previous);
+              fetchedAllData = !Boolean(response.next);
               response.results.forEach((activity) => {
                 if (!activitiesMap.has(activity.id)) {
                   activitiesMap.set(activity.id, activity);
                 }
               });
-              return fetch(response.previous, start, end);
+              return fetch(response.next, start, end);
             });
           }
           const copy = Array.from(filteredActivitiesMap.values());
@@ -183,13 +184,13 @@ var BabyBuddy = function () {
           });
           if (!fetchedAllData && fetchMoreData && url) {
             return $.get(url).then(response => {
-              fetchedAllData = !Boolean(response.previous);
+              fetchedAllData = !Boolean(response.next);
               response.results.forEach((activity) => {
                 if (!activitiesMap.has(activity.id)) {
                   activitiesMap.set(activity.id, activity);
                 }
               });
-              return fetch(response.previous, start, end);
+              return fetch(response.next, start, end);
             });
           }
           const copy = Array.from(filteredActivitiesMap.values());
@@ -645,13 +646,23 @@ var BabyBuddy = function () {
       updateTimerNavSpan: () => {
         if ($timerCountSpan) {
           return $.get(BabyBuddy.ApiRoutes.activeTimersCount()).then(response => {
-            $timerCountSpan.html(''+response.length);
+            const n = response.length;
+            $timerCountSpan.html(''+n);
+            if (n) {
+              $timerCountSpan.show();
+            } else {
+              $timerCountSpan.hide();
+            }
           });
         }
       }
     };
 
     window.addEventListener('focus', BabyBuddy.updateTimerNavSpan, false);
+    if (!timerCheckIntervalId && $timerCountSpan) {
+      BabyBuddy.updateTimerNavSpan();
+      timerCheckIntervalId = setInterval(BabyBuddy.updateTimerNavSpan, 5000);
+    }
 
     return BabyBuddy;
 }();
