@@ -185,6 +185,8 @@ BabyBuddy.Account = function(root) {
               root.location.reload(true);
             }
             return response;
+          }).catch(err => {
+            $promoCodeHelpText.html("Promo code not found");
           });
         }
       });

@@ -184,6 +184,10 @@ class UserAccountInviteMemberView(CanManageAccountTestMixin, View):
                     mail = EmailMessage(_('Baby Asst Account Member Invite'), message, to=[invitee_user.email], from_email='noreply@babyasst.com')
                     mail.content_subtype = 'html'
                     mail.send()
+                    acct_member_settings = models.AccountMemberSettings.objects.create(
+                        user=invitee_user,
+                        account=acct
+                    )
                 else:
                     invitee_user = User.objects.create(username=invitee, email=invitee)
                     

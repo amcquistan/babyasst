@@ -26,6 +26,8 @@ BabyBuddy.Timer = function (root) {
         $endFeedingPicker = null,
         debounceTimer = null,
         lastUpdate = moment(),
+        periodicUpdateIntervalId = null,
+        duration = null,
         hidden = null,
         children = [],
         accounts = [],
@@ -248,10 +250,12 @@ BabyBuddy.Timer = function (root) {
               return self.fetchAccounts();
             })
 
-            window.addEventListener('beforeunload', () => {
+            $(window).on('beforeunload', () => {
               if (!_.isEmpty(timer)) {
                 self.save();
               }
+              clearInterval(periodicUpdateIntervalId);
+              clearInterval(runIntervalId);
             });
         },
 
@@ -279,7 +283,7 @@ BabyBuddy.Timer = function (root) {
           if ($seconds.length == 0
               || $minutes.length == 0
               || $hours.length == 0) {
-              console.error('BBTimer: Element does not contain expected children.');
+              console.error('Timer element does not contain expected children.');
               return false;
           }
 
@@ -288,7 +292,12 @@ BabyBuddy.Timer = function (root) {
           if (runIntervalId) {
             clearInterval(runIntervalId);
           }
-          runIntervalId = setInterval(this.tick, 1000);
+          runIntervalId = setInterval(self.tick, 1000);
+
+          if (periodicUpdateIntervalId) {
+            clearInterval(periodicUpdateIntervalId);
+          }
+          periodicUpdateIntervalId = setInterval(self.fetchTimer, 5000);
 
           // If the page just came in to view, update the timer data with the
           // current actual duration. This will (potentially) help mobile
@@ -300,34 +309,41 @@ BabyBuddy.Timer = function (root) {
           } else if (typeof document.webkitHidden !== "undefined") {
             hidden = "webkitHidden";
           }
-          window.addEventListener('focus', Timer.handleVisibilityChange, false);
+          window.addEventListener('focus', self.handleVisibilityChange, false);
         },
 
         handleVisibilityChange: function() {
-          if (!document[hidden] && moment().diff(lastUpdate) > 5000) {
+          if (!document[hidden] || moment().diff(lastUpdate) > 5000) {
             self.updateTimerDisplay();
           }
         },
 
         tick: function() {
-          var seconds = Number($seconds.text());
-          if (seconds < 59) {
-            $seconds.text(seconds + 1);
-            return;
-          } else {
-            $seconds.text('0');
+          if (duration && !_.isEmpty(timer) && timer.active) {
+            duration.add(1, 'seconds');
+            $seconds.text(duration.seconds());
+            $minutes.text(duration.minutes());
+            $hours.text((duration.days() * 24) + duration.hours());
           }
 
-          var minutes = Number($minutes.text());
-          if (minutes < 59) {
-            $minutes.text(minutes + 1);
-            return;
-          } else {
-            $minutes.text('0');
-          }
+          // var seconds = Number( );
+          // if (seconds < 59) {
+          //   $seconds.text(seconds + 1);
+          //   return;
+          // } else {
+          //   $seconds.text('0');
+          // }
+          // $minutes.text($duration.minutes())
+          // var minutes = Number($minutes.text());
+          // if (minutes < 59) {
+          //   $minutes.text(minutes + 1);
+          //   return;
+          // } else {
+          //   $minutes.text('0');
+          // }
 
-          var hours = Number($hours.text());
-          $hours.text(hours + 1);
+          // var hours = Number($hours.text());
+          // $hours.text(hours + 1);
         },
         updateTimerDisplay: function() {
           if (!_.isEmpty(timer)) {
@@ -340,8 +356,8 @@ BabyBuddy.Timer = function (root) {
         },
         syncUI: function() {
           if (!_.isEmpty(timer)) {
-            var duration = moment.duration(timer.duration);
-            $hours.text(duration.hours());
+            duration = moment.duration(timer.duration);
+            $hours.text((duration.days() * 24) + duration.hours());
             $minutes.text(duration.minutes());
             $seconds.text(duration.seconds());
             lastUpdate = moment();
@@ -383,6 +399,7 @@ BabyBuddy.Timer = function (root) {
             return $.get(BabyBuddy.ApiRoutes.timerDetail(timerId))
             .then(function(response){
               timer = response;
+              duration = moment.duration(timer.duration);
               self.reportTimerStatusMessage();
               self.syncUI();
               return response;
@@ -429,6 +446,7 @@ BabyBuddy.Timer = function (root) {
           return $.post(BabyBuddy.ApiRoutes.timerDetail(timerId), timer)
             .then((response) => {
               timer = response;
+              duration = moment.duration(timer.duration);
               self.reportTimerStatusMessage();
               self.syncUI();
               return response;
@@ -447,6 +465,7 @@ BabyBuddy.Timer = function (root) {
           return $.post(BabyBuddy.ApiRoutes.timers(), timer)
             .then((response) => {
               timer = response;
+              duration = moment.duration(timer.duration);
               timerId = timer.id;
               $endBtn.show();
               $startBtn.hide();
