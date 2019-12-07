@@ -108,6 +108,9 @@ BabyBuddy.Sleep = function() {
       $startPicker.on('change.datetimepicker', function(evt){
         $endPicker.datetimepicker('minDate', moment(evt.date).add(1, 'minutes'));
       });
+      $endPicker.on('change.datetimepicker', function(evt){
+        $startPicker.datetimepicker('maxDate', moment(evt.date).subtract(1, 'minutes'));
+      });
     },
     syncTable: () => {
       if (!_.isEmpty(sleeps)){
@@ -172,8 +175,8 @@ BabyBuddy.Sleep = function() {
           sleep = {};
         }
         sleep.child = childId;
-        sleep.start = moment($startPicker.find('#sleep-start').val(), 'YYYY-MM-DD hh:mm a').toISOString();
-        sleep.end = moment($endPicker.find('#sleep-end').val(), 'YYYY-MM-DD hh:mm a').toISOString();
+        sleep.start = $startPicker.datetimepicker('viewDate').toISOString();
+        sleep.end = $endPicker.datetimepicker('viewDate').toISOString();
       }
     },
     isValidInputs: () => {
@@ -181,7 +184,7 @@ BabyBuddy.Sleep = function() {
       const e = $endPicker.datetimepicker('viewDate');
       let datesValid = s.isValid() && e.isValid();
       if (datesValid) {
-        datesValid = startDate.isSame(endDate) || startDate.isBefore(endDate);
+        datesValid = s.isBefore(e);
       }
 
       return datesValid;
