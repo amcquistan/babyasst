@@ -211,12 +211,12 @@ var BabyBuddy = function () {
           
           $barChartDays.empty();
           $hoursChart.empty();
-          const hoursHt = 80;
-          const marginX = 46;
-          const marginY = 40;
+          const hoursHt = 85;
+          const marginX = 38;
+          const marginY = 30;
           const w = $chartContainer.width();
-          const h = 380;
-          const hoursBandHt = 20;
+          const h = 320;
+          const hoursBandHt = 17;
           const wetFill = '#007bff';
           const solidFill = '#ff8f00';
 
@@ -302,6 +302,13 @@ var BabyBuddy = function () {
                                   d3.select(this).remove();
                                 }
                               });
+          
+          hoursChartSVG.append('text')
+                          .classed('diaperchange-legend-text', true)
+                          .attr('x', marginX + ((w - marginX) * 0.5))
+                          .attr('y', hoursHt - 8)
+                          .attr('fill', 'white')
+                          .text('Hourly Frequency');
 
 
           const curDate = startDate.clone();
@@ -399,7 +406,7 @@ var BabyBuddy = function () {
               .attr('transform', 'translate(0, '+ (h - 2 * marginY) +')')
               .call(xAxisBarChart)
               .selectAll('text')
-                .attr('transform', 'rotate(-40) translate(-10, 10)');
+                .attr('transform', 'rotate(-45) translate(-22, 2)');
 
           barChartSVG.append('g')
               .attr('class', 'y-axis')
@@ -415,8 +422,8 @@ var BabyBuddy = function () {
               .attr('transform', 'rotate(-90, 14, ' + labelY + ')')
               .text('Changes per Day');
 
-          const wetCX = w * 0.32;
-          const solidCX = w * 0.62;
+          const wetCX = w * (w < 600 ? 0.32 : 0.42);
+          const solidCX = w * (w < 600 ? 0.62 : 0.54);
           barChartSVG.append('circle')
                   .attr('cx', wetCX)
                   .attr('cy', 10)
@@ -452,10 +459,10 @@ var BabyBuddy = function () {
           $barChart.empty();
           $hoursChart.empty();
           const w = $chartContainer.width();
-          const h = 350;
-          const hoursHt = 70;
-          const marginX = 50;
-          const marginY = 40;
+          const h = 320;
+          const hoursHt = 68;
+          const marginX = 44;
+          const marginY = 44;
           const barChartSVG = d3.select(`#${$barChart.prop('id')}`).attr('width', w).attr('height', h);
           const hoursChartSVG = d3.select(`#${$hoursChart.prop('id')}`).attr('width', w).attr('height', hoursHt);
           
@@ -508,15 +515,15 @@ var BabyBuddy = function () {
                       .append('rect')
                       .classed('.hours-count', true)
                       .attr('x', d => hoursOfDayScaleX(d.hourOfDay))
-                      .attr('y', (marginY * 0.5))
-                      .attr('height', hoursHt - marginY)
+                      .attr('y', 0)
+                      .attr('height', hoursHt - 45)
                       .attr('width', hoursOfDayScaleX.bandwidth())
                       .attr('fill', d => hoursOfDayScaleColor(d.count));
           
           const xAxisHoursChart = d3.axisBottom(hoursOfDayScaleX);
           hoursChartSVG.append('g')
                         .attr('class', 'x-axis hours-axis')
-                        .attr('transform', 'translate(0, ' + (hoursHt - (marginY * 0.5)) +')')
+                        .attr('transform', 'translate(0, ' + (hoursHt - 45) +')')
                         .call(xAxisHoursChart);
           d3.selectAll('.hours-axis text')
                               .each(function(x, i){
@@ -525,6 +532,12 @@ var BabyBuddy = function () {
                                   d3.select(this).remove();
                                 }
                               });
+          hoursChartSVG.append('text')
+                        .classed('sleep-chart-axis-label', true)
+                        .attr('x', marginX + ((w - marginX) * 0.5))
+                        .attr('y', hoursHt - 8)
+                        .attr('fill', 'white')
+                        .text('Hourly Frequency');
           
           const curDate = startDate.clone();
           const xDomain = [];
@@ -560,7 +573,7 @@ var BabyBuddy = function () {
               .attr('transform', 'translate(0, '+ (h - marginY) +')')
               .call(xAxisBarChart)
               .selectAll('text')
-                .attr('transform', 'rotate(-40) translate(-10, 10)');
+                .attr('transform', 'rotate(-45) translate(-22, 2)');
               
         
           barChartSVG.append('g')
@@ -570,7 +583,7 @@ var BabyBuddy = function () {
           
           const labelY = Math.floor(h * 0.5);
           barChartSVG.append('text')
-              .attr('x', 14)
+              .attr('x', 12)
               .attr('y', labelY)
               .attr('fill', 'white')
               .classed('sleep-chart-axis-label', true)
