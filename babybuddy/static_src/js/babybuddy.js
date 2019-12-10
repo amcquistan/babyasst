@@ -658,15 +658,15 @@ var BabyBuddy = function () {
       },
       updateTimerNavSpan: () => {
         if ($timerCountSpan) {
-          // return $.get(BabyBuddy.ApiRoutes.activeTimersCount()).then(response => {
-          //   const n = response.length;
-          //   $timerCountSpan.html(''+n);
-          //   if (n) {
-          //     $timerCountSpan.show();
-          //   } else {
-          //     $timerCountSpan.hide();
-          //   }
-          // });
+          return $.get(BabyBuddy.ApiRoutes.activeTimersCount()).then(response => {
+            const n = response.length;
+            $timerCountSpan.html(''+n);
+            if (n) {
+              $timerCountSpan.show();
+            } else {
+              $timerCountSpan.hide();
+            }
+          });
         }
       }
     };
