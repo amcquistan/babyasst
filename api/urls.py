@@ -47,7 +47,7 @@ urlpatterns = [
     ),
 
     path(
-        'api/children/<int:child_id>/timeline/<str:date_str>/',
+        'api/children/<int:child_id>/timeline/<str:start>/<str:end>/',
         views.ChildTimelineAPIView.as_view()
     ),
     

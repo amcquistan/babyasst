@@ -57,8 +57,8 @@ var BabyBuddy = function () {
         child: (childId) => {
           return `/api/children/${childId}/`;
         },
-        childTimeline: (childId, dateStr) => {
-          return `/api/children/${childId}/timeline/${dateStr}/`;
+        childTimeline: (childId, start, end) => {
+          return `/api/children/${childId}/timeline/${start}/${end}/`;
         },
         notification: (notificationId) => {
           return `/api/notifications/${notificationId}/`;

@@ -167,7 +167,7 @@ BabyBuddy.TummyTime = function() {
           evt.preventDefault();
           const $target = $(evt.currentTarget);
           tummyTimeId = parseInt($target.data('tummytime'));
-          $modal.modal('show');
+          $deleteModal.modal('show');
         });
       }
     },
