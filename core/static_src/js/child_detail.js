@@ -55,7 +55,7 @@ BabyBuddy.ChildDetail = function(root) {
         self.showNextDayTimeline();
       });
       $currentTimelineDate.html(timelineDate.format('LL'));
-      self.fetchTimeline(timelineDate.toISOString());
+      self.fetchTimeline();
       self.fetchChild();
     },
     fetchChild: function() {
@@ -139,15 +139,17 @@ BabyBuddy.ChildDetail = function(root) {
           return response;
         });
     },
-    fetchTimeline: function(dateStr) {
+    fetchTimeline: function() {
+      const s = timelineDate.clone().startOf('day');
+      const e = timelineDate.clone().add(1, 'days').startOf('day');
       var timeline = timelineDays.filter(function(tl){
-        return tl.date === dateStr;
+        return tl.start === s.toISOString();
       });
       if (timeline && timeline.lengh) {
         currentTimeline = timeline[0];
         self.showTimeline();
       } else {
-        $.get(BabyBuddy.ApiRoutes.childTimeline(childId, dateStr))
+        $.get(BabyBuddy.ApiRoutes.childTimeline(childId, s.toISOString(), e.toISOString()))
           .then(function(response){
             console.log('fetchTimeline', response);
             timelineDays.push(response);
@@ -160,14 +162,14 @@ BabyBuddy.ChildDetail = function(root) {
     showPrevDayTimeline: function() {
       if (!childBirthDate.isSame(timelineDate)) {
         timelineDate.subtract('days', 1);
-        self.fetchTimeline(timelineDate.toISOString());
+        self.fetchTimeline();
       }
       self.validateTimelineNavigation();
     },
     showNextDayTimeline: function() {
       if (!today.isSame(timelineDate)) {
         timelineDate.add('days', 1);
-        self.fetchTimeline(timelineDate.toISOString());
+        self.fetchTimeline();
       }
       self.validateTimelineNavigation();
     },
@@ -378,7 +380,7 @@ BabyBuddy.ChildDetail = function(root) {
         $.post(BabyBuddy.ApiRoutes.diaperChangeDetail(childId, diaperCopy.id), diaperCopy)
           .then((response) => {
             $diaperChangeModal.modal('hide');
-            self.fetchTimeline(timelineDate.toISOString());
+            self.fetchTimeline();
             return response;
           })
           .catch(err => {
@@ -457,7 +459,7 @@ BabyBuddy.ChildDetail = function(root) {
         $.post(BabyBuddy.ApiRoutes.feedingDetail(childId, feedingCopy.id), feedingCopy)
           .then((response) => {
             $feedingModal.modal('hide');
-            self.fetchTimeline(timelineDate.toISOString());
+            self.fetchTimeline();
             return response;
           })
           .catch(err => {
@@ -491,7 +493,7 @@ BabyBuddy.ChildDetail = function(root) {
         $.post(BabyBuddy.ApiRoutes.sleepingDetail(childId, sleepCopy.id), sleepCopy)
           .then((response) => {
             $sleepModal.modal('hide');
-            self.fetchTimeline(timelineDate.toISOString());
+            self.fetchTimeline();
             return response;
           })
           .catch(err => {

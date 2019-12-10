@@ -180,14 +180,14 @@ class ChildTimelineAPIView(APIView):
     model = models.Child
     serializer_class = serializers.TimeLineSerializer
 
-    def get(self, request, child_id, date_str, format=None):
+    def get(self, request, child_id, start, end, format=None):
         child = get_object_or_404(self.model, pk=child_id)
 
         permission_check = api_permissions.can_view_update_obj_with_acct(request, child)
         if not permission_check.passed_check:
             return Response({'message': permission_check.message}, status=status.HTTP_403_FORBIDDEN)
 
-        serializer = self.serializer_class(child=child, data={'date': date_str})
+        serializer = self.serializer_class(child=child, data={'start': start, 'end': end})
         if serializer.is_valid():
             data = serializer.data
             return Response(data)

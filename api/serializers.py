@@ -212,7 +212,8 @@ class TemperatureSerializer(CoreModelSerializer):
 
 class TimeLineSerializer(serializers.Serializer):
     child = None
-    date = serializers.DateTimeField()
+    start = serializers.DateTimeField()
+    end = serializers.DateTimeField()
     items = serializers.SerializerMethodField()
 
     def __init__(self, **kwargs):
@@ -220,7 +221,7 @@ class TimeLineSerializer(serializers.Serializer):
         super(TimeLineSerializer, self).__init__(**kwargs)
 
     def get_items(self, instance):
-        changes, feedings, sleep = timeline.get_timeline(self.child, instance['date'])
+        changes, feedings, sleep = timeline.get_timeline(self.child, instance['start'], instance['end'])
         data = {
           'changes': DiaperChangeSerializer(changes, many=True).data,
           'feedings': FeedingSerializer(feedings, many=True).data,

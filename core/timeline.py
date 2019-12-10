@@ -1,17 +1,16 @@
 # -*- coding: utf-8 -*-
+from datetime import timedelta
+
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from core.models import DiaperChange, Feeding, Sleep, TummyTime
 from core.utils import duration_parts, duration_string
 
-def get_timeline(child, date):
-    min_date = date
-    max_date = date.replace(hour=23, minute=59, second=59)
-    
+def get_timeline(child, min_date, max_date):
     changes = DiaperChange.objects.filter(
         child=child, 
-        time__range=(min_date, max_date)
+        time__range=(min_date, max_date + timedelta(minutes=1))
       ).order_by('time')
     feedings = Feeding.objects.filter(
         child=child, 
