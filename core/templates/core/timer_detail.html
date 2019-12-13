@@ -184,6 +184,6 @@
 <script type="application/javascript">
   var timerId = {% if timer %} {{ timer.id }} {% else %} null {% endif %};
   var userId = {{ user.id }};
-  BabyBuddy.Timer.init(timerId, userId, 'timer');
+  BabyBuddy.TimerDetail.init(timerId, userId, 'timer');
 </script>
 {% endblock %}

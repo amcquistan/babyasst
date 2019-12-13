@@ -55,7 +55,75 @@ BabyBuddy.ChildDetail = function(root) {
         self.showNextDayTimeline();
       });
       $currentTimelineDate.html(timelineDate.format('LL'));
-      self.fetchTimeline();
+      self.fetchTimeline().then(response => {
+        const endOfDay = moment().endOf('day');
+        console.log('response', response);
+        const { sleep, feedings } = response.items;
+        const sleepDuration = sleep.map(s => {
+          const e = moment(s.end);
+          if (e.isAfter(endOfDay)) {
+            return moment.duration(endOfDay.diff(moment(s.start)));
+          }
+          return moment.duration(s.duration);
+        }).reduce((acc, d) => acc.add(d), moment.duration());
+
+        // id = todays-sleep
+        if (sleepDuration.asMilliseconds()) {
+          let durationDisplay;
+          if (sleepDuration.hours() && sleepDuration.minutes()) {
+            durationDisplay = `${sleepDuration.hours()} hrs, ${sleepDuration.minutes()} mins`;
+          } else if (sleepDuration.hours()) {
+            durationDisplay = `${sleepDuration.hours()} hrs`;
+          } else if (sleepDuration.minutes()) {
+            durationDisplay = `${sleepDuration.minutes()} mins`;
+          }
+          $el.find('#todays-sleep').find('.card-title').html(durationDisplay);
+        }
+
+        if (!_.isEmpty(feedings)) {
+          const feedingAmt = feedings.filter(f => f.amount)
+                                      .reduce((acc, f) => acc + f.amount, 0);
+          const lftDuration = feedings.filter(f => ['both breasts', 'left breast'].includes(f.method))
+                      .map(f => {
+                        const d = moment.duration();
+                        const k = f.method === 'both breasts' ? 0.5 : 1;
+                        d.add(moment.duration(f.duration).asMilliseconds() * k, 'ms');
+                        return d;
+                      }).reduce((acc, d) => acc.add(d), moment.duration());
+          const rtDuration = feedings.filter(f => ['both breasts', 'right breast'].includes(f.method))
+                      .map(f => {
+                        const d = moment.duration();
+                        const k = f.method === 'both breasts' ? 0.5 : 1;
+                        d.add(moment.duration(f.duration).asMilliseconds() * k, 'ms');
+                        return d;
+                      }).reduce((acc, d) => acc.add(d), moment.duration());
+          let feedingTitle;
+          if (lftDuration.asMinutes() && rtDuration.asMinutes()) {
+            if (feedingAmt) {
+              feedingTitle = `Left: ${lftDuration.asMinutes()} mins; Right: ${rtDuration.asMinutes()} mins; ${feedingAmt} oz;`;
+            } else {
+              feedingTitle = `Left: ${lftDuration.asMinutes()} mins; Right: ${rtDuration.asMinutes()} mins; ${feedingAmt} oz;`;
+            }
+          } else if (lftDuration.asMinutes()) {
+            if (feedingAmt) {
+              feedingTitle = `Left: ${lftDuration.asMinutes()} mins; ${feedingAmt} oz;`;
+            } else {
+              feedingTitle = `Left: ${lftDuration.asMinutes()} mins`;
+            }
+          } else if (rtDuration.asMinutes()) {
+            if (feedingAmt) {
+              feedingTitle = `Right: ${rtDuration.asMinutes()} mins; ${feedingAmt} oz;`;
+            } else {
+              feedingTitle = `Right: ${rtDuration.asMinutes()} mins`;
+            }
+          } else if (feedingAmt) {
+            feedingTitle = `${feedingAmt} oz`;
+          }
+          const $feedingCard = $el.find('#todays-feedings');
+          $feedingCard.find('.card-title').html(feedingTitle)
+          $feedingCard.find('.card-text').html(`total feeds: ${feedings.length}`);
+        }
+      });
       self.fetchChild();
     },
     fetchChild: function() {
@@ -94,8 +162,8 @@ BabyBuddy.ChildDetail = function(root) {
                 duration = '';
               }
             }
-            const occured = moment().to(last_feeding.start);
-            $feedings.find('.card-title').html(`${occured}`);
+            const occured = moment().to(last_feeding.end);
+            $feedings.find('.card-title').html(`finished ${occured.replace('hours', 'hrs').replace('minutes', 'mins')}`);
 
             let amount = '';
             if (last_feeding.amount && duration) {
@@ -110,9 +178,9 @@ BabyBuddy.ChildDetail = function(root) {
           } 
 
           if (!_.isEmpty(last_sleep)) {
-            const occured = moment().to(last_sleep.start);
+            const occured = moment().to(last_sleep.end);
             const duration = moment.duration(last_sleep.duration).humanize();
-            $sleep.find('.card-title').html(occured);
+            $sleep.find('.card-title').html(`woke ${occured.replace('hours', 'hrs').replace('minutes', 'mins')}`);
             $sleep.find('.card-text').html(`for ${duration}`);
           }
 
@@ -149,7 +217,7 @@ BabyBuddy.ChildDetail = function(root) {
         currentTimeline = timeline[0];
         self.showTimeline();
       } else {
-        $.get(BabyBuddy.ApiRoutes.childTimeline(childId, s.toISOString(), e.toISOString()))
+        return $.get(BabyBuddy.ApiRoutes.childTimeline(childId, s.toISOString(), e.toISOString()))
           .then(function(response){
             console.log('fetchTimeline', response);
             timelineDays.push(response);
