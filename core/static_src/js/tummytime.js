@@ -17,6 +17,7 @@ BabyBuddy.TummyTime = function() {
   let $confirmDeleteBtn;
   let $startFilterPicker;
   let $endFilterPicker;
+  let detailPickerInitialized = false;
   let tummytimeDao;
   let tummytimeChart;
 
@@ -101,11 +102,13 @@ BabyBuddy.TummyTime = function() {
       const endDefault = hasTummyTime && tummyTime.end ? moment(tummyTime.end) : moment();
 
       BabyBuddy.setDurationPickerConstraints(
+        detailPickerInitialized,
         startDefault,
         endDefault,
         $startPicker,
         $endPicker
       );
+      detailPickerInitialized = true;
 
       $milestone.val(!_.isEmpty(tummyTime) && tummyTime.milestone ? tummyTime.milestone : '');
     },
@@ -220,7 +223,19 @@ BabyBuddy.TummyTime = function() {
     clear: () => {
       tummyTime = {};
       tummyTimeId = null;
-      tummyTimes = [];
+      const startDefault = moment().subtract(2, 'minutes');
+      const endDefault = moment();
+
+      BabyBuddy.setDurationPickerConstraints(
+        detailPickerInitialized,
+        startDefault,
+        endDefault,
+        $startPicker,
+        $endPicker
+      );
+      detailPickerInitialized = true;
+
+      $milestone.val('');
     }
   };
 

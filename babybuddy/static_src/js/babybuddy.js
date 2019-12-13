@@ -127,19 +127,24 @@ var BabyBuddy = function () {
           return `/api/timers/${timerId}/`;
         }
       },
-      setDurationPickerConstraints: (startDefault, endDefault, $startPicker, $endPicker) => {
-        $startPicker.datetimepicker({
-          defaultDate: startDefault,
-          format: 'YYYY-MM-DD hh:mm a'
-        });
-  
-        $endPicker.datetimepicker({
-          defaultDate: endDefault,
-          format: 'YYYY-MM-DD hh:mm a'
-        });
-  
-        $startPicker.datetimepicker('viewDate', startDefault);
-        $endPicker.datetimepicker('viewDate', endDefault);
+      setDurationPickerConstraints: (initialized, startDefault, endDefault, $startPicker, $endPicker) => {
+        if (!initialized) {
+          $startPicker.datetimepicker({
+            defaultDate: startDefault,
+            format: 'YYYY-MM-DD hh:mm a'
+          });
+    
+          $endPicker.datetimepicker({
+            defaultDate: endDefault,
+            format: 'YYYY-MM-DD hh:mm a'
+          });
+        } else {
+          $startPicker.datetimepicker('date', startDefault);
+          $endPicker.datetimepicker('date', endDefault);
+        }
+
+        // $startPicker.datetimepicker('viewDate', startDefault);
+        // $endPicker.datetimepicker('viewDate', endDefault);
   
         $startPicker.on('change.datetimepicker', function(evt){
           let minEndDate = moment(evt.date).add(1, 'minutes');

@@ -120,7 +120,7 @@ class UserPasswordForm(PasswordChangeForm):
 class UserSettingsForm(forms.ModelForm):
     class Meta:
         model = Settings
-        fields = ['dashboard_refresh_rate', 'phone_number', 'language']
+        fields = ['phone_number']
 
 
 class AccountMemberSettingsForm(forms.ModelForm):

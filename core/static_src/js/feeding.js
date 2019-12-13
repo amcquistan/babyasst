@@ -20,6 +20,7 @@ BabyBuddy.Feeding = function() {
   let $confirmDeleteBtn;
   let $startFilterPicker;
   let $endFilterPicker;
+  let detailPickerInitialized = false;
   let feedingDao;
   let feedingChart;
   let self;
@@ -92,7 +93,7 @@ BabyBuddy.Feeding = function() {
       });
       $addBtn.click((evt) => {
         evt.preventDefault();
-        feeding = {};
+        self.clear();
         self.showAddModal();
       });
       $saveBtn.click((evt) => {
@@ -140,11 +141,13 @@ BabyBuddy.Feeding = function() {
       $units.val(hasFeeding && feeding.units ? feeding.units : 'ounces');
       
       BabyBuddy.setDurationPickerConstraints(
+        detailPickerInitialized,
         startDefault,
         endDefault,
         $startPicker,
         $endPicker
       );
+      detailPickerInitialized = true;
     },
     syncTable: () => {
       if (!_.isEmpty(feedings)) {
@@ -297,10 +300,21 @@ BabyBuddy.Feeding = function() {
     clear: () => {
       feeding = {};
       feedingId = null;
-      feedings = [];
       $type.val('');
       $method.val('');
       $amount.val('');
+
+      const startDefault = moment().subtract(10, 'minutes');
+      const endDefault = moment();
+      
+      BabyBuddy.setDurationPickerConstraints(
+        detailPickerInitialized,
+        startDefault,
+        endDefault,
+        $startPicker,
+        $endPicker
+      );
+      detailPickerInitialized = true;
     }
   };
 

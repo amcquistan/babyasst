@@ -10,6 +10,7 @@ BabyBuddy.ChildDetail = function(root) {
       $baths = null,
       $diaperChanges = null,
       $feedings = null,
+      $note = null,
       $sleep = null,
       $temperature = null,
       $tummyTime = null,
@@ -37,6 +38,7 @@ BabyBuddy.ChildDetail = function(root) {
       $baths = $el.find('#bath-card');
       $diaperChanges = $el.find('#diaperchange-card');
       $feedings = $el.find('#feeding-card');
+      $note = $el.find('#note-card');
       $sleep = $el.find('#sleep-card');
       $temperature = $el.find('#temperature-card');
       $tummyTime = $el.find('#tummytime-card');
@@ -133,7 +135,7 @@ BabyBuddy.ChildDetail = function(root) {
           childBirthDate = moment(response.birth_date).startOf('day');
           child = response;
 
-          const { last_bath, last_change, last_feeding, last_sleep, last_temperature, last_tummytime, last_weight } = child;
+          const { last_bath, last_change, last_feeding, last_note, last_sleep, last_temperature, last_tummytime, last_weight } = child;
 
           if (!_.isEmpty(last_bath)) {
             const occured = moment().to(last_bath.time);
@@ -175,7 +177,17 @@ BabyBuddy.ChildDetail = function(root) {
               amount = `(${duration.asMinutes()} mins)`;
             }
             $feedings.find('.card-text').html(`${last_feeding.type}, ${last_feeding.method} ${amount}`);
-          } 
+          }
+
+          if (!_.isEmpty(last_note)) {
+            const occured = moment().to(last_note.time);
+            $note.find('.card-title').html(occured);
+            let note = '';
+            if (last_note.note) {
+              note = last_note.note.length > 30 ? `${last_note.note.substr(0, 27)} ...` : last_note.note;
+            }
+            $note.find('.card-text').html(note);
+          }
 
           if (!_.isEmpty(last_sleep)) {
             const occured = moment().to(last_sleep.end);

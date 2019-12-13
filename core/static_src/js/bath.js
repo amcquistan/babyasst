@@ -16,6 +16,7 @@ BabyBuddy.Bath = function() {
   let $endFilterPicker;
   let bathDao;
   let sleepChart;
+  let detailPickerInitialized = false;
   let self;
 
   const Bath = {
@@ -87,18 +88,23 @@ BabyBuddy.Bath = function() {
       self.fetchAll();
     },
     showAddModal: () => {
-      $addModal.modal('show');
       self.syncInputs();
+      $addModal.modal('show');
     },
     isValidInputs: () => {
       return $timePicker.datetimepicker('viewDate').isSameOrBefore(moment());
     },
     syncInputs: () => {
       const defaultTime = !_.isEmpty(bath) && bath.time ? moment(bath.time) : moment();
-      $timePicker.datetimepicker({
-        defaultDate: defaultTime,
-        format: 'YYYY-MM-DD'
-      });
+      if (!detailPickerInitialized) {
+        $timePicker.datetimepicker({
+          defaultDate: defaultTime,
+          format: 'YYYY-MM-DD'
+        });
+        detailPickerInitialized = true;
+      } else {
+        $timePicker.datetimepicker('date', defaultTime);
+      }
     },
     syncTable: () => {
       if (!_.isEmpty(baths)) {
@@ -199,6 +205,16 @@ BabyBuddy.Bath = function() {
     clear: () => {
       bathId = null;
       bath = {};
+      const defaultTime = moment();
+      if (!detailPickerInitialized) {
+        $timePicker.datetimepicker({
+          defaultDate: defaultTime,
+          format: 'YYYY-MM-DD'
+        });
+        detailPickerInitialized = true;
+      } else {
+        $timePicker.datetimepicker('date', defaultTime);
+      }
     }
   };
 

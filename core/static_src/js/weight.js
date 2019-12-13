@@ -19,6 +19,7 @@ BabyBuddy.Weight = function() {
   let $startFilterPicker;
   let $endFilterPicker;
   let weightDao;
+  let detailPickerInitialized = false;
   let weightChart;
   let self;
 
@@ -58,7 +59,7 @@ BabyBuddy.Weight = function() {
 
       $addBtn.click((evt) => {
         evt.preventDefault();
-        weight = {};
+        self.clear();
         self.showAddModal();
       });
       $saveBtn.click((evt) => {
@@ -110,10 +111,16 @@ BabyBuddy.Weight = function() {
     syncInputs: () => {
       const empty = _.isEmpty(weight);
       let defaultDate = !empty && weight.date ? moment(weight.date) : moment();
-      $datePicker.datetimepicker({
-        defaultDate: defaultDate,
-        format: 'YYYY-MM-DD'
-      });
+      if (!detailPickerInitialized) {
+        $datePicker.datetimepicker({
+          defaultDate: defaultDate,
+          format: 'YYYY-MM-DD'
+        });
+        detailPickerInitialized = true;
+      } else {
+        $datePicker.datetimepicker('date', defaultDate);
+      }
+
       const w = !empty ? weight.weight : 0;
       $units.val(!empty ? weight.units : 'pounds');
       if ($units.val() === 'pounds') {
@@ -258,7 +265,17 @@ BabyBuddy.Weight = function() {
     clear: () => {
       weight = {};
       weightId = null;
-      weights = [];
+      let defaultDate =  moment();
+      if (!detailPickerInitialized) {
+        $datePicker.datetimepicker({
+          defaultDate: defaultDate,
+          format: 'YYYY-MM-DD'
+        });
+        detailPickerInitialized = true;
+      } else {
+        $datePicker.datetimepicker('date', defaultDate);
+      }
+      $weight.val(0);
     }
   };
   self = Weight;

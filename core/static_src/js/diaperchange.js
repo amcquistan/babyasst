@@ -18,6 +18,7 @@ BabyBuddy.DiaperChange = function() {
   let $confirmDeleteBtn;
   let $startFilterPicker;
   let $endFilterPicker;
+  let detailPickerInitialized = false;
   let diaperChangeDao;
   let diaperChangeChart;
   let self;
@@ -58,7 +59,7 @@ BabyBuddy.DiaperChange = function() {
 
       $addBtn.click((evt) => {
         evt.preventDefault();
-        diaperChange = {};
+        self.clear();
         self.showAddModal();
       });
       $saveBtn.click((evt) => {
@@ -99,10 +100,16 @@ BabyBuddy.DiaperChange = function() {
     },
     syncInputs: () => {
       let defaultTime = !_.isEmpty(diaperChange) && diaperChange.time ? moment(diaperChange.time) : moment();
-      $timePicker.datetimepicker({
-        defaultDate: defaultTime,
-        format: 'YYYY-MM-DD hh:mm a'
-      });
+      if (!detailPickerInitialized) {
+        $timePicker.datetimepicker({
+          defaultDate: defaultTime,
+          format: 'YYYY-MM-DD hh:mm a'
+        });
+        detailPickerInitialized = true;
+      } else {
+        $timePicker.datetimepicker('date', defaultTime);
+      }
+
       $wet.prop('checked', !_.isEmpty(diaperChange) && diaperChange.wet);
       $solid.prop('checked', !_.isEmpty(diaperChange) && diaperChange.solid);
       $wet.parent().toggleClass('active', !_.isEmpty(diaperChange) && diaperChange.wet);
@@ -225,7 +232,21 @@ BabyBuddy.DiaperChange = function() {
     clear: () => {
       diaperChange = {};
       diaperChangeId = null;
-      diaperChanges = [];
+      let defaultTime = moment();
+      if (!detailPickerInitialized) {
+        $timePicker.datetimepicker({
+          defaultDate: defaultTime,
+          format: 'YYYY-MM-DD hh:mm a'
+        });
+        detailPickerInitialized = true;
+      } else {
+        $timePicker.datetimepicker('date', defaultTime);
+      }
+      $wet.prop('checked', false);
+      $solid.prop('checked', false);
+      $wet.parent().toggleClass('active', false);
+      $solid.parent().toggleClass('active', false);
+      $color.val('yellow');
     }
   };
 

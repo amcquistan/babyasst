@@ -86,11 +86,11 @@ BabyBuddy.Note = function() {
       self.fetchAll();
     },
     showAddModal: () => {
-      $addModal.modal('show');
       self.syncInputs();
+      $addModal.modal('show');
     },
     syncInputs: () => {
-      if (_.isEmpty(note)) {
+      if (!_.isEmpty(note)) {
         $note.val(note.note);
       }
     },
@@ -166,8 +166,7 @@ BabyBuddy.Note = function() {
     create: () => {
       return $.post(BabyBuddy.ApiRoutes.notes(childId), note)
         .then((response) => {
-          note = response;
-          noteId = response.id;
+          self.clear();
           $addModal.modal('hide');
           return self.fetchAll();
         })
@@ -180,7 +179,7 @@ BabyBuddy.Note = function() {
     update: () => {
       return $.post(BabyBuddy.ApiRoutes.noteDetail(childId, noteId), note)
         .then((response) => {
-          note = response;
+          self.clear();
           $addModal.modal('hide');
           return self.fetchAll();
         })
@@ -193,7 +192,7 @@ BabyBuddy.Note = function() {
     clear: () => {
       note = {};
       noteId = null;
-      notes = [];
+      $note.val('');
     }
   };
   self = Note;

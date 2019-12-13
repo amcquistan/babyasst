@@ -18,6 +18,7 @@ BabyBuddy.Sleep = function() {
   let $endFilterPicker;
   let sleepDao;
   let sleepChart;
+  let detailPickerInitialized = false;
   let self;
 
   const Sleep = {
@@ -97,11 +98,13 @@ BabyBuddy.Sleep = function() {
       const startDefault = hasSleep && sleep.start ? moment(sleep.start) : moment().subtract(2, 'minutes');
       const endDefault = hasSleep && sleep.end ? moment(sleep.end) : moment();
       BabyBuddy.setDurationPickerConstraints(
+        detailPickerInitialized,
         startDefault,
         endDefault,
         $startPicker,
         $endPicker
       );
+      detailPickerInitialized = true;
     },
     syncTable: () => {
       if (!_.isEmpty(sleeps)){
@@ -236,7 +239,16 @@ BabyBuddy.Sleep = function() {
     clear: () => {
       sleepId = null;
       sleep = {};
-      sleeps = [];
+      const startDefault = moment().subtract(2, 'minutes');
+      const endDefault = moment();
+      BabyBuddy.setDurationPickerConstraints(
+        detailPickerInitialized,
+        startDefault,
+        endDefault,
+        $startPicker,
+        $endPicker
+      );
+      detailPickerInitialized = true;
     }
   };
 
