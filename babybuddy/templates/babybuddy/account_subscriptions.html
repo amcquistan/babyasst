@@ -1,0 +1,32 @@
+{% load i18n %}
+
+{% if subscription_items %}
+<div class="table-responsive mb-5">
+  <table class="table table-striped table-hover">
+    <thead>
+      <tr>
+        <th>{% trans "Plan" %}</th>
+        <th>{% trans "Quantity" %}</th>
+        <th>{% trans "Started On" %}</th>
+        <th>{% trans "Renews On" %}</th>
+        <th>{% trans "Amount" %}</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in subscription_items %}
+      <tr>
+          <td>{{ item.plan }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ item.started|date:"" }}</td>
+          <td>{{ item.renew_date|date:"" }}</td>
+          <td>${{ item.amount }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="table-info text-dark">
+        <td colspan="4" align="right">{% trans "Total" %}</td>
+        <td>$ {{ subscription_total }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+{% endif %}

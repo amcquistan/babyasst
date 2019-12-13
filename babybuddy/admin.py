@@ -4,7 +4,9 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
 
+from core import models as core_models
 from babybuddy import models
+
 
 
 class SettingsInline(admin.StackedInline):
@@ -26,10 +28,16 @@ class UserAdmin(BaseUserAdmin):
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
 
+class ChildrenInline(admin.TabularInline):
+    model = core_models.Child
+
 @admin.register(models.Account)
 class AccountAdmin(admin.ModelAdmin):
-    list_display = ('name', 'owner', 'approved_terms', 'slug')
-    fields = ('name', 'owner')
+    inlines = (ChildrenInline,)
+
+    list_display = ('name', 'owner', 'approved_terms', 'slug', 'payment_processor_id')
+    fields = ('name', 'owner', 'payment_processor_id', 'users')
+    readonly_fields = ('users',)
     search_fields = ('owner__first_name', 'owner__last_name')
 
 

@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+
+from datetime import datetime
+
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.signals import user_logged_in
@@ -206,14 +209,14 @@ class Account(models.Model):
         return promo_expires[-1]
 
 
-    def is_premium_subscriber(self):
+    def is_premium_subscriber(self, stripe_customer=None):
         if self.is_free_premium_subscriber():
             return True
 
         if not self.payment_processor_id:
             return False
 
-        stripe_customer = self.find_or_create_stripe_customer()
+        stripe_customer = self.find_or_create_stripe_customer() if stripe_customer is None else stripe_customer
         if not stripe_customer:
             return False
 
