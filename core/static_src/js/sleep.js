@@ -93,24 +93,15 @@ BabyBuddy.Sleep = function() {
       self.syncInputs();
     },
     syncInputs: () => {
-      let startDefault = !_.isEmpty(sleep) && sleep.start ? moment(sleep.start) : moment().subtract(2, 'minutes');
-      let endDefault = !_.isEmpty(sleep) && sleep.end ? moment(sleep.end) : moment();
-      $startPicker.datetimepicker({
-        defaultDate: startDefault,
-        format: 'YYYY-MM-DD hh:mm a'
-      });
-
-      $endPicker.datetimepicker({
-        defaultDate: endDefault,
-        format: 'YYYY-MM-DD hh:mm a'
-      });
-
-      $startPicker.on('change.datetimepicker', function(evt){
-        $endPicker.datetimepicker('minDate', moment(evt.date).add(1, 'minutes'));
-      });
-      $endPicker.on('change.datetimepicker', function(evt){
-        $startPicker.datetimepicker('maxDate', moment(evt.date).subtract(1, 'minutes'));
-      });
+      const hasSleep = !_.isEmpty(sleep);
+      const startDefault = hasSleep && sleep.start ? moment(sleep.start) : moment().subtract(2, 'minutes');
+      const endDefault = hasSleep && sleep.end ? moment(sleep.end) : moment();
+      BabyBuddy.setDurationPickerConstraints(
+        startDefault,
+        endDefault,
+        $startPicker,
+        $endPicker
+      );
     },
     syncTable: () => {
       if (!_.isEmpty(sleeps)){

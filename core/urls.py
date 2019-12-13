@@ -155,11 +155,6 @@ urlpatterns = [
         name='tummytime'
     ),
     path(
-        'tummy-time/add/',
-        views.TummyTimeQuickAddView.as_view(),
-        name='tummytime-quick-add'
-    ),
-    path(
         'children/<slug:slug>/tummy-time/<int:pk>/',
         views.TummyTimeUpdateView.as_view(),
         name='tummytime-update'

@@ -72,7 +72,7 @@ BabyBuddy.TummyTime = function() {
       });
 
       $startFilterPicker.datetimepicker({
-        defaultDate: moment().subtract(7, 'days'),
+        defaultDate: moment().subtract(30, 'days'),
         format: 'YYYY-MM-DD'
       });
       $endFilterPicker.datetimepicker({
@@ -96,22 +96,16 @@ BabyBuddy.TummyTime = function() {
       self.syncInputs();
     },
     syncInputs: () => {
-      let startDefault = !_.isEmpty(tummyTime) && tummyTime.start ? moment(tummyTime.start) : moment().subtract(2, 'minutes');
-      let endDefault = !_.isEmpty(tummyTime) && tummyTime.end ? moment(tummyTime.end) : moment();
+      const hasTummyTime = !_.isEmpty(tummyTime);
+      const startDefault = hasTummyTime && tummyTime.start ? moment(tummyTime.start) : moment().subtract(2, 'minutes');
+      const endDefault = hasTummyTime && tummyTime.end ? moment(tummyTime.end) : moment();
 
-      $startPicker.datetimepicker({
-        defaultDate: startDefault,
-        format: 'YYYY-MM-DD hh:mm a'
-      });
-
-      $endPicker.datetimepicker({
-        defaultDate: endDefault,
-        format: 'YYYY-MM-DD hh:mm a'
-      });
-
-      $startPicker.on('change.datetimepicker', function(evt){
-        $endPicker.datetimepicker('minDate', moment(evt.date).add(1, 'minutes'));
-      });
+      BabyBuddy.setDurationPickerConstraints(
+        startDefault,
+        endDefault,
+        $startPicker,
+        $endPicker
+      );
 
       $milestone.val(!_.isEmpty(tummyTime) && tummyTime.milestone ? tummyTime.milestone : '');
     },
@@ -198,9 +192,9 @@ BabyBuddy.TummyTime = function() {
     },
     fetchAll: () => {
       const url = BabyBuddy.ApiRoutes.tummyTime(childId);
-      const s = $startFilterPicker.datetimepicker('viewDate');
-      const e = $endFilterPicker.datetimepicker('viewDate');
-      return tummytimeDao.fetch(url, s.startOf('day'), e.endOf('day')).then(response => {
+      const s = $startFilterPicker.datetimepicker('viewDate').startOf('day');
+      const e = $endFilterPicker.datetimepicker('viewDate').endOf('day');
+      return tummytimeDao.fetch(url, s, e).then(response => {
         tummyTimes = response;
         self.syncTable();
         // tummyTimeChart.plot($el.find('#tummytime-chart'), $el.find('#tummytime-chart-container'), tummyTimes, s, e);

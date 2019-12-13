@@ -32,44 +32,6 @@ class BaseChildActivityView(LoginRequiredMixin, View):
         return self.child
 
 
-class ChildActivityQuickAddView(UserPassesTestMixin, SuccessMessageMixin, BaseChildActivityView):
-    success_url_name = 'core:child'
-
-    def test_func(self):
-        if self.request.method == 'POST':
-            obj = models.Child.objects.get(pk=self.request.POST['child'])
-            try:
-              acct_member_settings = obj.account.account_member_settings.get(user=self.request.user)
-              return acct_member_settings.is_active and obj.is_active
-            except:
-                pass
-
-        return False
-
-    def get_success_message(self, cleaned_data):
-        cleaned_data['model'] = self.model._meta.verbose_name.title()
-        if 'child' in cleaned_data:
-            self.success_message = _('%(model)s entry for %(child)s added!')
-        else:
-            self.success_message = _('%(model)s entry added!')
-        return self.success_message % cleaned_data
-
-    def get(self, request):
-        return render(request, self.template_name, {
-          'form': self.form_class(user=request.user)
-        })
-
-    def post(self, request):
-        form = self.form_class(request.POST, user=request.user)
-        if form.is_valid():
-            obj = form.save()
-            return redirect(reverse(self.success_url_name, args=(obj.child.slug,)))
-
-        return render(request, self.template_name, {
-          'form': form
-        })
-
-
 class ChildActivityAddFromTimerView(UserPassesTestMixin, SuccessMessageMixin, BaseChildActivityView):
     success_url_name = 'core:child'
 
@@ -121,15 +83,8 @@ class ChildActivityAddListView(ChildActivityTestMixin, SuccessMessageMixin, Base
         return self.success_message % cleaned_data
 
     def get_context_data(self, **kwargs):
-        object_list = self.get_queryset()
-        if self.request.method == "GET":
-            page = self.request.GET.get('page', 1)
-            paginator = Paginator(object_list, 5)
-            object_list = paginator.get_page(page)
-
         context = {
-          'child': kwargs.get('child', self.get_child()),
-          'object_list': object_list
+          'child': kwargs.get('child', self.get_child())
         }
         if 'form' in kwargs:
             context['form'] = kwargs.get('form')
@@ -356,12 +311,6 @@ class FeedingAddListView(ChildActivityAddListView):
     success_url_name = 'core:child'
 
 
-class NoteQuickAddView(ChildActivityQuickAddView):
-    model = models.Note
-    form_class = forms.NoteQuickAddForm
-    template_name = 'core/note_form.html'
-
-
 class NoteAddListView(ChildActivityAddListView):
     model = models.Note
     template_name = 'core/note.html'
@@ -482,12 +431,6 @@ class SleepAddListView(ChildActivityAddListView):
     success_url_name = 'core:child'
 
 
-class TemperatureQuickAddView(ChildActivityQuickAddView):
-    model = models.Temperature
-    form_class = forms.TemperatureQuickAddForm
-    template_name = 'core/temperature_form.html'
-
-
 class TemperatureAddListView(ChildActivityAddListView):
     model = models.Temperature
     form_class = forms.TemperatureForm
@@ -549,7 +492,7 @@ class TimerDeleteView(ChildActivityDeleteView):
 class TimerListView(LoginRequiredMixin, View):
     def get(self, request):
         timers = models.Timer.objects.filter(account__in=request.user.accounts.all())
-        return render(request, 'core/timer_list.html', {
+        return render(request, 'core/timer.html', {
           'timers': timers
         })
 
@@ -607,12 +550,6 @@ class TimerCompleteView(UserPassesTestMixin, View):
         return redirect(reverse('core:timer-list'))
 
 
-class TummyTimeQuickAddView(ChildActivityQuickAddView):
-    model = models.TummyTime
-    form_class = forms.TummyTimeQuickAddForm
-    template_name = 'core/tummytime_form.html'
-
-
 class TummyTimeAddListView(ChildActivityAddListView):
     model = models.TummyTime
     form_class = forms.TummyTimeForm
@@ -630,12 +567,6 @@ class TummyTimeUpdateView(ChildActivityUpdateView):
 class TummyTimeDeleteView(ChildActivityDeleteView):
     model = models.TummyTime
     success_url_name = 'core:child'
-
-
-class WeightQuickAddView(ChildActivityQuickAddView):
-    model = models.Weight
-    form_class = forms.WeightQuickAddForm
-    template_name = 'core/weight_form.html'
 
 
 class WeightAddListView(ChildActivityAddListView):

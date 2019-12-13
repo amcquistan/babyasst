@@ -150,8 +150,38 @@
         </div>
         <div class="col-lg-6 col-sm-12">
           {% card_statistics object %}
-          {% card_sleep_day object %}
-          {% card_feeding_day object %}
+          {% comment %}{% card_sleep_day object %}{% endcomment %}
+
+          <div class="card card-dashboard card-sleep" id="todays-sleep">
+            <div class="card-header">
+                <i class="icon icon-sleep pull-left" aria-hidden="true"></i>
+                Today's Sleep
+            </div>
+            <div class="card-body text-center">
+              <span class="card-title text-center" style="font-weight: bolder;">
+                <i class="icon icon-sad" aria-hidden="true"></i>
+                None yet today
+                <i class="icon icon-sad" aria-hidden="true"></i>
+              </span>
+              <div class="card-text text-center"></div>
+            </div>
+          </div>
+
+          <div class="card card-dashboard card-feeding" id="todays-feedings">
+              <div class="card-header">
+                <i class="icon icon-feeding pull-left" aria-hidden="true"></i>
+                Today's Feeding
+              </div>
+              <div class="card-body text-center">
+                <span class="card-title text-center" style="font-weight: bolder;">
+                    <i class="icon icon-sad" aria-hidden="true"></i>
+                    None yet today
+                    <i class="icon icon-sad" aria-hidden="true"></i>
+                </span>
+                <div class="card-text text-center"></div>
+              </div>
+          </div>
+          {% comment %}{% card_feeding_day object %}{% endcomment %}
         </div>
 
       </div>

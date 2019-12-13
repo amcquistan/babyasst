@@ -10,7 +10,6 @@ import pandas as pd
 
 from core import models
 
-
 register = template.Library()
 
 
@@ -383,14 +382,14 @@ def _weight_statistics(child):
     return weight
 
 
-@register.inclusion_tag('cards/timer_list.html')
-def card_timer_list():
-    """
-    Filters for currently active Timer instances.
-    :returns: a dictionary with a list of active Timer instances.
-    """
-    instances = models.Timer.objects.filter(active=True).order_by('-start')
-    return {'type': 'timer', 'instances': list(instances)}
+# @register.inclusion_tag('cards/timer_list.html')
+# def card_timer_list():
+#     """
+#     Filters for currently active Timer instances.
+#     :returns: a dictionary with a list of active Timer instances.
+#     """
+#     instances = models.Timer.objects.filter(active=True).order_by('-start')
+#     return {'type': 'timer', 'instances': list(instances)}
 
 
 @register.inclusion_tag('cards/tummytime_last.html')

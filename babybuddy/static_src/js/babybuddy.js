@@ -127,6 +127,31 @@ var BabyBuddy = function () {
           return `/api/timers/${timerId}/`;
         }
       },
+      setDurationPickerConstraints: (startDefault, endDefault, $startPicker, $endPicker) => {
+        $startPicker.datetimepicker({
+          defaultDate: startDefault,
+          format: 'YYYY-MM-DD hh:mm a'
+        });
+  
+        $endPicker.datetimepicker({
+          defaultDate: endDefault,
+          format: 'YYYY-MM-DD hh:mm a'
+        });
+  
+        $startPicker.datetimepicker('viewDate', startDefault);
+        $endPicker.datetimepicker('viewDate', endDefault);
+  
+        $startPicker.on('change.datetimepicker', function(evt){
+          let minEndDate = moment(evt.date).add(1, 'minutes');
+          if (minEndDate.isAfter(moment())) {
+            minEndDate = moment();
+          }
+          $endPicker.datetimepicker('minDate', minEndDate);
+        });
+        $endPicker.on('change.datetimepicker', function(evt){
+          $startPicker.datetimepicker('maxDate', moment(evt.date).subtract(1, 'minutes'));
+        });
+      },
       ChildTimeActivityDao: (timeField='time') => {
         let activitiesMap = new Map();
         let filteredActivitiesMap = new Map();

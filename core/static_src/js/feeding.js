@@ -131,26 +131,20 @@ BabyBuddy.Feeding = function() {
       self.syncInputs();
     },
     syncInputs: () => {
-      const empty = _.isEmpty(feeding);
-      let startDefault = !empty && feeding.start ? moment(feeding.start) : moment().subtract(10, 'minutes');
-      let endDefault = !empty && feeding.end ? moment(feeding.end) : moment();
-      $type.val(!empty && feeding.type ? feeding.type : '');
-      $method.val(!empty && feeding.method ? feeding.method : '');
-      $amount.val(!empty && feeding.amount ? feeding.amount : '');
-      $units.val(!empty && feeding.units ? feeding.units : 'ounces');
-      $startPicker.datetimepicker({
-        defaultDate: startDefault,
-        format: 'YYYY-MM-DD hh:mm a'
-      });
-
-      $endPicker.datetimepicker({
-        defaultDate: endDefault,
-        format: 'YYYY-MM-DD hh:mm a'
-      });
-
-      $startPicker.on('change.datetimepicker', function(evt){
-        $endPicker.datetimepicker('minDate', moment(evt.date).add(1, 'minutes'));
-      });
+      const hasFeeding = !_.isEmpty(feeding);
+      const startDefault = hasFeeding && feeding.start ? moment(feeding.start) : moment().subtract(10, 'minutes');
+      const endDefault = hasFeeding && feeding.end ? moment(feeding.end) : moment();
+      $type.val(hasFeeding && feeding.type ? feeding.type : '');
+      $method.val(hasFeeding && feeding.method ? feeding.method : '');
+      $amount.val(hasFeeding && feeding.amount ? feeding.amount : '');
+      $units.val(hasFeeding && feeding.units ? feeding.units : 'ounces');
+      
+      BabyBuddy.setDurationPickerConstraints(
+        startDefault,
+        endDefault,
+        $startPicker,
+        $endPicker
+      );
     },
     syncTable: () => {
       if (!_.isEmpty(feedings)) {

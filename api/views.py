@@ -373,16 +373,39 @@ class NotificationAPIView(ViewOrUpdateModelWithAccountAPIView):
     serializer = serializers.NotificationSerializer
 
 
-class TimersAPIView(ListOrCreateModelWithAccountAPIView):
+class TimersAPIView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
     model = models.Timer
     serializer_class = serializers.TimerSerializer
+    
+    def get(self, request, format=None):
+        objects = get_list_or_404(self.model, account__in=request.user.accounts.all())
 
+        page = self.paginate_queryset(objects)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(objects, many=True)
+        return Response(serializer.data)
+    
     def post(self, request, format=None):
         acct = babybuddy_models.Account.objects.get(pk=request.POST.get('account'))
         if not acct.can_start_timer():
             return Response(None, status=status.HTTP_403_FORBIDDEN)
+
+        account_id = request.data.get('account')
+        if account_id:
+            obj_account = get_object_or_404(babybuddy_models.Account, pk=account_id)
         
-        return super(TimersAPIView, self).post(request)
+        if not api_permissions.can_create_obj_with_acct(request, obj_account=obj_account):
+            return Response(None, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class TimerAPIView(ViewOrUpdateModelWithAccountAPIView):

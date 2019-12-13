@@ -69,7 +69,7 @@ BabyBuddy.Temperature = function() {
       });
 
       $startFilterPicker.datetimepicker({
-        defaultDate: moment().subtract(7, 'days'),
+        defaultDate: moment().subtract(90, 'days'),
         format: 'YYYY-MM-DD'
       });
 
