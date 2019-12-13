@@ -184,7 +184,7 @@ BabyBuddy.ChildDetail = function(root) {
             $note.find('.card-title').html(occured);
             let note = '';
             if (last_note.note) {
-              note = last_note.note.length > 30 ? `${last_note.note.substr(0, 27)} ...` : last_note.note;
+              note = last_note.note.length > 35 ? `${last_note.note.substr(0, 32)} ...` : last_note.note;
             }
             $note.find('.card-text').html(note);
           }
