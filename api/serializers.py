@@ -81,8 +81,9 @@ class AccountDetailSerializer(serializers.ModelSerializer):
 
 class ChildSerializer(serializers.ModelSerializer):
     last_bath = serializers.SerializerMethodField()
-    last_feeding = serializers.SerializerMethodField()
     last_change = serializers.SerializerMethodField()
+    last_feeding = serializers.SerializerMethodField()
+    last_note = serializers.SerializerMethodField()
     last_sleep = serializers.SerializerMethodField()
     last_temperature = serializers.SerializerMethodField()
     last_tummytime = serializers.SerializerMethodField()
@@ -99,8 +100,9 @@ class ChildSerializer(serializers.ModelSerializer):
             'account',
             'is_active',
             'last_bath',
-            'last_feeding',
             'last_change',
+            'last_feeding',
+            'last_note',
             'last_sleep',
             'last_temperature',
             'last_tummytime',
@@ -115,6 +117,13 @@ class ChildSerializer(serializers.ModelSerializer):
             data = BathSerializer(bath).data
         return data
 
+    def get_last_change(self, instance):
+        change = instance.diaper_change.order_by('-time').first()
+        data = {}
+        if change:
+            data = DiaperChangeSerializer(change).data
+        return data
+
     def get_last_feeding(self, instance):
         feeding = instance.feeding.order_by('-start').first()
         data = {}
@@ -122,11 +131,11 @@ class ChildSerializer(serializers.ModelSerializer):
             data = FeedingSerializer(feeding).data
         return data
 
-    def get_last_change(self, instance):
-        change = instance.diaper_change.order_by('-time').first()
+    def get_last_note(self, instance):
+        note = instance.note.order_by('-time').first()
         data = {}
-        if change:
-            data = DiaperChangeSerializer(change).data
+        if note:
+            data = NoteSerializer(note).data
         return data
 
     def get_last_sleep(self, instance):

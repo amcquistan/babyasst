@@ -16,6 +16,7 @@ BabyBuddy.Temperature = function() {
   let $confirmDeleteBtn;
   let $startFilterPicker;
   let $endFilterPicker;
+  let detailPickerInitialized = false;
   let temperatureDao;
   let temperatureChart;
   let self;
@@ -95,10 +96,16 @@ BabyBuddy.Temperature = function() {
     },
     syncInputs: () => {
       let defaultTime = !_.isEmpty(temperature) && temperature.time ? moment(temperature.time) : moment();
-      $timePicker.datetimepicker({
-        defaultDate: defaultTime,
-        format: 'YYYY-MM-DD hh:mm a'
-      });
+      if (!detailPickerInitialized) {
+        $timePicker.datetimepicker({
+          defaultDate: defaultTime,
+          format: 'YYYY-MM-DD hh:mm a'
+        });
+        detailPickerInitialized = true;
+      } else {
+        $timePicker.datetimepicker('date', defaultTime);
+      }
+
       $temperature.val(!_.isEmpty(temperature) ? temperature.temperature : '');
     },
     syncTable: () => {
@@ -211,7 +218,16 @@ BabyBuddy.Temperature = function() {
     clear: () => {
       temperature = {};
       temperatureId = null;
-      temperatures = [];
+      const defaultTime = moment();
+      if (!detailPickerInitialized) {
+        $timePicker.datetimepicker({
+          defaultDate: defaultTime,
+          format: 'YYYY-MM-DD hh:mm a'
+        });
+        detailPickerInitialized = true;
+      } else {
+        $timePicker.datetimepicker('date', defaultTime);
+      }
     }
   };
 
