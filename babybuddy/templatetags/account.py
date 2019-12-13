@@ -26,7 +26,7 @@ def subscriptions(context, account):
                 quantity = item.quantity
                 prod = stripe.Product.retrieve(item.plan.product)
                 unit_label = prod.name
-                amount = round(float(item.plan.amount) / 100.0, 2)
+                amount = round(float(item.plan.amount * quantity) / 100.0, 2)
                 subscription_items.append({
                   'renew_date': renew_date,
                   'started': started,
