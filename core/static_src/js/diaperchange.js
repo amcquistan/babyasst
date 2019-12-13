@@ -211,8 +211,8 @@ BabyBuddy.DiaperChange = function() {
           return self.fetchAll();
         })
         .catch(err => {
-          if (err.responseJSON && err.responseJSON.error_message) {
-            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          if (err.responseJSON && err.responseJSON.message) {
+            $addModal.find('#error-message').html(err.responseJSON.message);
           }
         });
     },
@@ -224,8 +224,8 @@ BabyBuddy.DiaperChange = function() {
           return self.fetchAll();
         })
         .catch(err => {
-          if (err.responseJSON && err.responseJSON.error_message) {
-            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          if (err.responseJSON && err.responseJSON.message) {
+            $addModal.find('#error-message').html(err.responseJSON.message);
           }
         });
     },

@@ -123,6 +123,10 @@ class ChildActivityTestMixin(UserPassesTestMixin):
         if self.request.method in SAFE_METHODS:
             return True
 
+        account = child.account.owner
+        if account.owner.id != user.id and not account.is_premium_subscriber():
+            return False
+
         if self.request.method == 'DELETE' and user.account == child.account:
             return True
 

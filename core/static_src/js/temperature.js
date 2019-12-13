@@ -204,6 +204,11 @@ BabyBuddy.Temperature = function() {
           $addModal.modal('hide');
           self.clear();
           return self.fetchAll();
+        }).catch(err => {
+          console.log('error', err);
+          if (err.responseJSON && err.responseJSON.message) {
+            $addModal.find('#error-message').html(err.responseJSON.message);
+          }
         });
     },
     update: () => {
@@ -213,6 +218,11 @@ BabyBuddy.Temperature = function() {
           $addModal.modal('hide');
           self.clear();
           return self.fetchAll();
+        }).catch(err => {
+          console.log('error', err);
+          if (err.responseJSON && err.responseJSON.message) {
+            $addModal.find('#error-message').html(err.responseJSON.message);
+          }
         });
     },
     clear: () => {

@@ -313,6 +313,9 @@ class UserAccountView(UserPassesTestMixin, View):
     template_name = 'babybuddy/account.html'
 
     def test_func(self):
+        if not self.request.user.is_authenticated:
+            return False
+            
         if self.request.method == 'POST':
             acct = models.Account.objects.get(pk=self.request.POST.get('account'))
             return self.request.user.account.id == acct.id

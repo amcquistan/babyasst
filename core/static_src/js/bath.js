@@ -4,6 +4,7 @@ BabyBuddy.Bath = function() {
   let userId;
   let childId;
   let bathId;
+  let bath = {};
   let baths = [];
   let $timePicker;
   let $tableBody;
@@ -184,8 +185,8 @@ BabyBuddy.Bath = function() {
           return self.fetchAll();
         })
         .catch(err => {
-          if (err.responseJSON && err.responseJSON.error_message) {
-            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          if (err.responseJSON && err.responseJSON.message) {
+            $addModal.find('#error-message').html(err.responseJSON.message);
           }
         });
     },
@@ -197,8 +198,8 @@ BabyBuddy.Bath = function() {
           return self.fetchAll();
         })
         .catch(err => {
-          if (err.responseJSON && err.responseJSON.error_message) {
-            $addModal.find('#error-message').html(err.responseJSON.error_message);
+          if (err.responseJSON && err.responseJSON.message) {
+            $addModal.find('#error-message').html(err.responseJSON.message);
           }
         });
     },

@@ -56,7 +56,6 @@ BabyBuddy.Timers = function() {
       if (!_.isEmpty(timers)) {
         $tableBody.empty();
         let html = timers.map(t => {
-          debugger
           const start = moment(t.created).format('YYYY-MM-DD hh:mm a');
           const end = t.end ? moment(t.end).format('YYYY-MM-DD hh:mm a') : '';
           let duration = moment.duration(t.duration);

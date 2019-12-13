@@ -225,12 +225,18 @@ BabyBuddy.Account = function(root) {
       
       var $useExistingPaymentSourceSection = $paymentModal.find('#existing-payment-source-section');
       var $useExistingPaymentSourceCB = $paymentModal.find('#use-existing-payment-source');
-      var hasPaymentSource = account && account.payment_source && account.payment_source.has_payment_source;
+      var hasPaymentSource = account 
+              && account.payment_source 
+              && account.payment_source.has_payment_source
+              && account.payment_source.payment_source.brand
+              && account.payment_source.payment_source.exp_month
+              && account.payment_source.payment_source.exp_year
+              && account.payment_source.payment_source.last4;
       if (hasPaymentSource) {
-        var paymentSource = account.payment_source;
+        var paymentSource = account.payment_source.payment_source;
         $paymentModal.find('#payment-brand').html(paymentSource.brand);
-        $paymentModal.find('#payment-expmo').html(paymentSource.exp_mo);
-        $paymentModal.find('#payment-expyr').html(paymentSource.exp_yr);
+        $paymentModal.find('#payment-expmo').html(paymentSource.exp_month);
+        $paymentModal.find('#payment-expyr').html(paymentSource.exp_year);
         $paymentModal.find('#payment-last4').html(paymentSource.last4);
       } else {
         $useExistingPaymentSourceSection.empty();
