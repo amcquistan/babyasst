@@ -679,7 +679,7 @@ class Timer(models.Model):
 
     class Meta:
         default_permissions = ('view', 'add', 'change', 'delete')
-        ordering = ['complete', '-id']
+        ordering = ['-active', '-id']
         verbose_name = _('Timer')
         verbose_name_plural = _('Timers')
 

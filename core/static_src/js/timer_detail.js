@@ -366,7 +366,7 @@ BabyBuddy.TimerDetail = function (root) {
               if (runIntervalId) {
                 clearInterval(runIntervalId);
               }
-              runIntervalId = setInterval(Timer.tick, 1000);
+              runIntervalId = setInterval(TimerDetail.tick, 1000);
               $pauseBtn.show();
               $startBtn.hide();
               $endBtn.show();

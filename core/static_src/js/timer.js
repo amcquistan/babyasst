@@ -14,7 +14,7 @@ BabyBuddy.Timers = function() {
     init: (el, uId) => {
       $el = $(el);
       userId = uId;
-      timerDao = BabyBuddy.ChildDurationActivityDao();
+      timerDao = BabyBuddy.ChildTimeActivityDao('created');
       $tableBody = $el.find('tbody');
       $startFilterPicker = $el.find('#timer-filter-datetimepicker_start');
       $endFilterPicker = $el.find('#timer-filter-datetimepicker_end');
@@ -56,18 +56,26 @@ BabyBuddy.Timers = function() {
       if (!_.isEmpty(timers)) {
         $tableBody.empty();
         let html = timers.map(t => {
-          const start = moment(t.start).format('YYYY-MM-DD hh:mm a');
-          const end = moment(t.end).format('YYYY-MM-DD hh:mm a');
+          debugger
+          const start = moment(t.created).format('YYYY-MM-DD hh:mm a');
+          const end = t.end ? moment(t.end).format('YYYY-MM-DD hh:mm a') : '';
           let duration = moment.duration(t.duration);
           let durationStr = self.makeDuration(duration);
-          let icon = t.active ? 'icon-true text-success' : 'icon-false text-danger';
+          let status;
+          if (t.active) {
+            status = 'Active';
+          } else if (!t.complete) {
+            status = 'Paused';
+          } else {
+            status = 'Complete';
+          }
           return `
             <tr>
               <th scope="row">
                 <a href="/timer/${t.id}/">${t.name}</a>
               </th>
+              <td class="text-center">${status}</td>
               <td class="text-center">${durationStr}</td>
-              <td class="text-center"><i class="icon ${icon}" aria-hidden="true"></i></td>
               <td class="text-center">${start}</td>
               <td class="text-center">${end}</td>
             </tr>
@@ -80,7 +88,7 @@ BabyBuddy.Timers = function() {
     fetchAll: () => {
       const url = BabyBuddy.ApiRoutes.timers();
       const s = $startFilterPicker.datetimepicker('viewDate').startOf('day');
-      const e = $endFilterPicker.datetimepicker('viewDate').endOf('day');
+      const e = $endFilterPicker.datetimepicker('viewDate').clone().add(1, 'days').endOf('day');
       return timerDao.fetch(url, s, e).then(response => {
         timers = response;
         self.syncTable();

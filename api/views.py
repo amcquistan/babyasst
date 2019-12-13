@@ -379,8 +379,9 @@ class TimersAPIView(GenericAPIView):
     serializer_class = serializers.TimerSerializer
     
     def get(self, request, format=None):
-        objects = get_list_or_404(self.model, account__in=request.user.accounts.all())
-
+        objects = models.Timer.objects.filter(account__in=request.user.accounts.all()).all()
+        # objects = get_list_or_404(self.model, account__in=request.user.accounts.all())
+        # objects = objects.order_by('active', 'complete', '-start')
         page = self.paginate_queryset(objects)
         if page is not None:
             serializer = self.get_serializer(page, many=True)
@@ -393,7 +394,8 @@ class TimersAPIView(GenericAPIView):
         acct = babybuddy_models.Account.objects.get(pk=request.POST.get('account'))
         if not acct.can_start_timer():
             return Response(None, status=status.HTTP_403_FORBIDDEN)
-
+        
+        obj_account = None
         account_id = request.data.get('account')
         if account_id:
             obj_account = get_object_or_404(babybuddy_models.Account, pk=account_id)
