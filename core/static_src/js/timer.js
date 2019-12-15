@@ -75,7 +75,6 @@ BabyBuddy.Timers = function() {
               </th>
               <td class="text-center">${status}</td>
               <td class="text-center">${durationStr}</td>
-              <td class="text-center">${start}</td>
               <td class="text-center">${end}</td>
             </tr>
           `;
