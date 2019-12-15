@@ -193,18 +193,19 @@ BabyBuddy.Sleep = function() {
     },
     fetchAll: () => {
       const url = BabyBuddy.ApiRoutes.sleeping(childId);
-      const s = $startFilterPicker.datetimepicker('viewDate');
-      const e = $endFilterPicker.datetimepicker('viewDate');
-      return sleepDao.fetch(url, s.startOf('day'), e.endOf('day')).then(response => {
+      const s = $startFilterPicker.datetimepicker('viewDate').startOf('day');
+      const e = $endFilterPicker.datetimepicker('viewDate').endOf('day');
+      return sleepDao.fetch(url, s, e).then(response => {
         sleeps = response;
         self.syncTable();
+        const $chartContainer = $el.find('#sleep-container');
         $(window).resize(() => {
-          sleepChart.plot($el.find('#sleep-container'), sleeps, s, e);
+          sleepChart.plot($chartContainer, sleeps, s, e);
         });
         $(window).on('orientationchange', () => {
-          sleepChart.plot($el.find('#sleep-container'), sleeps, s, e);
+          sleepChart.plot($chartContainer, sleeps, s, e);
         });
-        sleepChart.plot($el.find('#sleep-container'), sleeps, s, e);
+        sleepChart.plot($chartContainer, sleeps, s, e);
         return response;
       });
     },

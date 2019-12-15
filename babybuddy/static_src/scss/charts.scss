@@ -1,16 +1,21 @@
 
-.diaperchange-legend-text {
+.diaperchange-legend-text, .breast-feeding-legend-text {
   font-size: 22px;
   text-anchor: middle;
 }
 
-.diaperchange-bar-text {
+.diaperchange-bar-text, .breast-feeding-bar-text {
   font-size: 18px;
   text-anchor: middle;
 }
 
-.sleep-chart-axis-label {
+.sleep-chart-axis-label, .chart-axis-label {
   font-size: 18px;
   text-anchor: middle;
   fill: white;
+}
+
+.tummytime-chart-bar {
+  fill: #239556;
+  shape-rendering: crispEdges;
 }

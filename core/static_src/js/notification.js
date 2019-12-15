@@ -2,7 +2,7 @@
 BabyBuddy.Notification = function (root) {
   var $ = root.jQuery;
   var _ = root._;
-  var DurationFormHandler = root.BabyBuddy.DurationFormHandler;
+  // var DurationFormHandler = root.BabyBuddy.DurationFormHandler;
   var runIntervalId = null,
       notificationId = null,
       $el = null,
@@ -69,7 +69,7 @@ BabyBuddy.Notification = function (root) {
 
           }, 1200));
 
-          DurationFormHandler($notificationForm, $start, $end);
+          // DurationFormHandler($notificationForm, $start, $end);
 
           $frequencyInHours.change(_.debounce(function(evt){
             self.updateEndDate();
