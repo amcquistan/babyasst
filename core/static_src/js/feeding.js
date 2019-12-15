@@ -46,6 +46,7 @@ BabyBuddy.Feeding = function() {
       $startFilterPicker = $el.find('#feeding-filter-datetimepicker_start');
       $endFilterPicker = $el.find('#feeding-filter-datetimepicker_end');
       feedingDao = BabyBuddy.ChildDurationActivityDao();
+      feedingChart = BabyBuddy.FeedingChart();
 
       $confirmDeleteBtn.click((evt) => {
         if (childId && feedingId) {
@@ -87,6 +88,7 @@ BabyBuddy.Feeding = function() {
           $amount.parent().show();
           $units.parent().show();
         } else {
+          $amount.val(0);
           $amount.parent().hide();
           $units.parent().hide();
         }
@@ -232,7 +234,7 @@ BabyBuddy.Feeding = function() {
         return false;
       }
 
-      if ($type.val() !== 'breast milk') {
+      if ($method.val() === 'bottle') {
         try {
           const amt = parseFloat($amount.val());
           if (amt <= 0) {
@@ -257,15 +259,19 @@ BabyBuddy.Feeding = function() {
     },
     fetchAll: () => {
       const url = BabyBuddy.ApiRoutes.feedings(childId);
-      const s = $startFilterPicker.datetimepicker('viewDate');
-      const e = $endFilterPicker.datetimepicker('viewDate');
-      return feedingDao.fetch(url, s.startOf('day'), e.endOf('day')).then(response => {
+      const s = $startFilterPicker.datetimepicker('viewDate').startOf('day');
+      const e = $endFilterPicker.datetimepicker('viewDate').endOf('day');
+      return feedingDao.fetch(url, s, e).then(response => {
         feedings = response;
         self.syncTable();
-        // $(window).resize(() => {
-        //   feedingChart.plot($el.find('#feeding-chart'), $el.find('#feeding-chart-container'), feedings, s, e);
-        // });
-        // feedingChart.plot($el.find('#feeding-chart'), $el.find('#feeding-chart-container'), feedings, s, e);
+        const $chartContainer = $el.find('#feeding-container');
+        $(window).resize(() => {
+          feedingChart.plot($chartContainer, feedings, s, e);
+        });
+        $(window).on('orientationchange', () => {
+          feedingChart.plot($chartContainer, feedings, s, e);
+        });
+        feedingChart.plot($chartContainer, feedings, s, e);
         return response;
       });
     },

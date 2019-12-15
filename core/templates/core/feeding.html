@@ -17,7 +17,7 @@
 
 {% block content %}
   <div class="row" id="feeding">
-    <div class="col-md-10 offset-1">
+    <div class="col-md-10 offset-1" id="feeding-container">
       <div class="row">
         <div class="col-lg-10 col-sm-12">
           <h2 class='mb-3'>{% trans "Feedings" %}</h2>
@@ -33,6 +33,10 @@
       </div>
 
       {% include 'core/feeding_modal.html' %}
+
+      <svg class="mb-1" id="feeding-chart-duration"></svg>
+      <svg class="mb-2" id="feeding-chart-bottle"></svg>
+      <svg class="mb-4 mt-1" id="feeding-chart-hours"></svg>
 
       <div class="row">
         <div class="col">

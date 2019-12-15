@@ -41,7 +41,7 @@ BabyBuddy.TummyTime = function() {
       $startFilterPicker = $el.find('#tummytime-filter-datetimepicker_start');
       $endFilterPicker = $el.find('#tummytime-filter-datetimepicker_end');
       tummytimeDao = BabyBuddy.ChildDurationActivityDao();
-      // tummytimeChart = BabyBuddyTummyTimeChart();
+      tummytimeChart = BabyBuddy.TummyTimeChart();
 
       $confirmDeleteBtn.click((evt) => {
         if (childId && tummyTimeId) {
@@ -200,7 +200,15 @@ BabyBuddy.TummyTime = function() {
       return tummytimeDao.fetch(url, s, e).then(response => {
         tummyTimes = response;
         self.syncTable();
-        // tummyTimeChart.plot($el.find('#tummytime-chart'), $el.find('#tummytime-chart-container'), tummyTimes, s, e);
+        const $chartContainer = $el.find('#tummytime-chart-container');
+
+        $(window).resize(() => {
+          tummytimeChart.plot($chartContainer, tummyTimes, s, e);
+        });
+        $(window).on('orientationchange', () => {
+          tummytimeChart.plot($chartContainer, tummyTimes, s, e);
+        });
+        tummytimeChart.plot($chartContainer, tummyTimes, s, e);
         return response;
       });
     },
