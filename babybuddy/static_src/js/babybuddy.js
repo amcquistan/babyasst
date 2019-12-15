@@ -492,8 +492,6 @@ var BabyBuddy = function () {
           const marginY = 44;
 
           const hoursChartSVG = d3.select(`#${$hoursChart.prop('id')}`).attr('width', w).attr('height', hoursHt);
-          const durationChartSVG = d3.select(`#${$durationChart.prop('id')}`).attr('width', w).attr('height', h);
-          const bottleChartSVG = d3.select(`#${$bottleChart.prop('id')}`).attr('width', w).attr('height', h);
 
           const hourlyData = BabyBuddy.makeHourlyChartingData(feedings, hoursChartSVG, '#226f97', { w, h:hoursHt, marginX, marginY });
 
@@ -509,7 +507,7 @@ var BabyBuddy = function () {
           const bottleFeedings = feedings.filter(f => !matcher.test(f.method));
 
           if (!_.isEmpty(breastFeedings)) {
-          // if (10 === 11) {
+            const durationChartSVG = d3.select(`#${$durationChart.prop('id')}`).attr('width', w).attr('height', h);
             const leftFill = '#d77fa1';
             const rightFill = '#e6b2c6';
             const grouped = _.groupBy(breastFeedings, (s) => moment(s.start).startOf('day').toDate());
@@ -589,7 +587,7 @@ var BabyBuddy = function () {
                     .attr('fill', 'white')
                     .text(d => {
                       const cnt = d[0] === 0 ? d.data.left : d.data.right;
-                      return '' + (cnt > 0 ? cnt : '');
+                      return '' + (cnt > 0 ? Math.round(cnt) : '');
                     });
             const xAxisBarChart = d3.axisBottom(barChartScaleX).tickFormat(d3.timeFormat('%b-%e'));
             const yAxisBarChart = d3.axisLeft(scaleY);
@@ -643,6 +641,7 @@ var BabyBuddy = function () {
 
 
           if (!_.isEmpty(bottleFeedings)) {
+            const bottleChartSVG = d3.select(`#${$bottleChart.prop('id')}`).attr('width', w).attr('height', h);
             let groupedByDays = _.groupBy(bottleFeedings, (s) => moment(s.start).startOf('day'));
 
             const amountPerDay = _.reduce(

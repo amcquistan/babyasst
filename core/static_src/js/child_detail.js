@@ -170,11 +170,11 @@ BabyBuddy.ChildDetail = function(root) {
             let amount = '';
             if (last_feeding.amount && duration) {
               const units = last_feeding.units === 'ounces' ? 'oz' : 'ml';
-              amount = `(${duration.asMinutes()} mins, ${last_feeding.amount} ${units})`;
+              amount = `(${Math.floor(duration.asMinutes())} mins, ${last_feeding.amount} ${units})`;
             } else if (last_feeding.amount) {
               amount = `(${last_feeding.amount} oz)`;
             } else if (duration && duration.isValid()) {
-              amount = `(${duration.asMinutes()} mins)`;
+              amount = `(${Math.floot(duration.asMinutes())} mins)`;
             }
             $feedings.find('.card-text').html(`${last_feeding.type}, ${last_feeding.method} ${amount}`);
           }
