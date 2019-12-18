@@ -59,6 +59,11 @@ urlpatterns = [
         name='feeding'
     ),
     path(
+        'children/<slug:slug>/feedings/info/',
+        views.FeedingAddListView.as_view(),
+        name='feeding-info'
+    ),
+    path(
         'children/<slug:slug>/notes/',
         views.NoteAddListView.as_view(),
         name='note'
@@ -144,11 +149,6 @@ urlpatterns = [
         views.TimerCompleteView.as_view(),
         name='timer-complete'
     ),
-    # path(
-    #     'timer/<int:pk>/restart/',
-    #     views.TimerRestartView.as_view(),
-    #     name='timer-restart'
-    # ),
     path(
         'children/<slug:slug>/tummy-time/',
         views.TummyTimeAddListView.as_view(),

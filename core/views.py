@@ -106,6 +106,12 @@ class ChildActivityAddListView(ChildActivityTestMixin, SuccessMessageMixin, Base
         return render(request, self.template_name, context)
 
 
+class ChildActivityInfoView(ChildActivityTestMixin, BaseChildActivityView):
+    def get(self, request, slug):
+        child = self.get_child()
+        return render(request, self.template_name, {'child': child})
+
+
 class ChildActivityUpdateView(ChildActivityTestMixin, BaseChildActivityView):
     success_url_name = 'core:child'
 
@@ -309,6 +315,10 @@ class FeedingAddListView(ChildActivityAddListView):
     form_class = forms.FeedingForm
     template_name = 'core/feeding.html'
     success_url_name = 'core:child'
+
+
+class FeedingInfoView(ChildActivityInfoView):
+    template_name = 'core/feeding_info.html'
 
 
 class NoteAddListView(ChildActivityAddListView):

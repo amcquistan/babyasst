@@ -1,0 +1,99 @@
+{% extends 'babybuddy/page.html' %}
+{% load bootstrap duration i18n widget_tweaks %}
+
+{% block title %}
+  {% trans "Feedings" %}
+{% endblock %}
+
+{% block breadcrumbs %}
+  <li class="breadcrumb-item"><a href="{% url 'core:child-list' %}">{% trans "Children" %}</a></li>
+  <li class="breadcrumb-item">
+    <a href="{% url 'core:child' slug=child.slug %}">
+      {{ child }}
+    </a>
+  </li>
+  <li class="breadcrumb-item" aria-current="page">
+    <a href="{% url 'core:feeding' slug=child.slug %}">{% trans "Feedings" %}</a>
+  </li>
+  <li class="breadcrumb-item active" aria-current="page">{% trans "Info" %}</li>
+{% endblock %}
+
+{% block content %}
+  <div class="row" id="feeding">
+    <div class="col-md-10 offset-1" id="feeding-container">
+      <div class="row">
+        <div class="col-lg-10 col-sm-12">
+          <h2 class='mb-3'>
+            {% trans "Feeding Info" %}
+          </h2>
+        </div>
+      </div>
+
+      <ul class="nav">
+        <li class="nav-item">
+          <a class="nav-link" id='breast-link' href="#">Breast</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" id='formula-link' href="#">Formula</a>
+        </li>
+      </ul>
+
+      <div id="breast-content">
+        <h3>Phases of Breast Milk</h3>
+       
+        <h5>Colostrum</h5>
+        <p>The initial milk present when baby is first born and remains the prominent type for the first few days consisting of high protein and antibodies yet lower sugar and fat concentrations<super>1</super>.</p>
+        
+        <h5>Transitional Milk</h5>
+        <p>Colostrum changes composition to that of a higher fat and sugar content with less relative amounts of protein between a few days to a couple weeks after baby is born <super>1</super></p>
+
+        <h5>Mature Milk</h5>
+        <p>Usually within the first couple of weeks of baby's arrival milk production will fully mature and remain relatively consistent following the transitional period from colostrum to mature milk <super>1</super></p>
+
+        <h3>Frequency of Breast Feeding</h3>
+        <p>In the first few hours of being born baby will instinctively know to suckle and it's often recommended to begin first feeding soon during this period with repeated attempts being frequent, every hour or so, since both baby and mother are learning to establish consitency and familarity for the first couple of days after birth<super>2, 3</super>.</p>
+        <p>After the first few days feedings should be repeated every few (2-3) hours during the day with slighly longer intervals of roughly four hours in the night<super>3</super>.</p>
+
+        <h3>References</h3>
+        <ol>
+          <li>Ballard O, Morrow A. Human Milk Compositiion: Nutrients and Bioactive Factors. Pediatric Clinics of North America. 2013 Feb; https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3586783/</li>
+          <li>Colostrun: Your Baby's First Meal. https://www.healthychildren.org/English/ages-stages/baby/breastfeeding/Pages/Colostrum-Your-Babys-First-Meal.aspx</li>
+          <li>How Often to Breastfeed. https://www.healthychildren.org/English/ages-stages/baby/breastfeeding/Pages/How-Often-to-Breastfeed.aspx</li>
+        </ol>
+      </div>
+
+      <div id="formula-content">
+
+      </div>
+
+    </div>
+  </div>
+{% endblock %}
+
+{% block javascript %}
+<script>
+$(function(){
+  var $breastContent = $('#breast-content');
+  var $formulaContent = $('#formula-content');
+  var $breastLink = $('#breast-link');
+  var $formulaLink = $('#formula-link');
+
+  $breastLink.click(function(evt){
+    evt.preventDefault();
+    $breastLink.toggleClass('active', true);
+    $formulaLink.toggleClass('active', false);
+
+  });
+
+  $formulaLink.click(function(evt){
+    evt.preventDefault();
+    $breastLink.toggleClass('active', false);
+    $formulaLink.toggleClass('active', true);
+
+
+
+  });
+});
+</script>
+{% endblock %}
+

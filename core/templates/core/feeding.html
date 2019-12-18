@@ -20,7 +20,12 @@
     <div class="col-md-10 offset-1" id="feeding-container">
       <div class="row">
         <div class="col-lg-10 col-sm-12">
-          <h2 class='mb-3'>{% trans "Feedings" %}</h2>
+          <h2 class='mb-3'>
+            {% trans "Feedings" %}
+            <a href="{% url 'core:feeding-info' slug=child.slug %}">
+              <i class="icon icon-info text-light ml-1" style="font-size: 0.6em;"></i>
+            </a>
+          </h2>
         </div>
         <div class="col-lg-2 col-sm-12">
           <h2 class="text-center">

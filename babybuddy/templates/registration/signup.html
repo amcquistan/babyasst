@@ -90,11 +90,13 @@
           <a id='privacy-policy-link' href="{% url 'babybuddy:privacy' %}" target="_BLANK">Privacy Statement</a>
         </div>
       </div>
+      {% comment %}
       <div class="input-group mb-1 fade-in">
         <p>
           {% trans "* You must click, read, and agree the terms of service and privacy policy to signup and use this service." %}
         </p>
       </div>
+      {% endcomment %}
 
       <button class="btn btn-primary w-100 fade-in" type="submit" name="login">
         {% trans "Signup" %}
@@ -119,8 +121,10 @@ $(function(){
   var termsCheckBox = $('#accept-terms');
   termsCheckBox.prop("disabled", true);
 
-  var tosLinkClicked = false;
-  var privacyLinkClicked = false;
+  // set to false if want to force people to click on tos and privacy before signing up
+  var tosLinkClicked = true;
+  var privacyLinkClicked = true;
+
   var tosLink = $('#terms-of-service-link').click(function(){
     tosLinkClicked = true;
     termsCheckBox.prop("disabled", !(tosLinkClicked && privacyLinkClicked));
