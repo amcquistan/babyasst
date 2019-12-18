@@ -40,7 +40,7 @@ function csrfSafeMethod (method) {
 }
 
 var BabyBuddy = function () {
-    const $timerCountSpan = $('#timers-count');
+    let $timerCountSpan = $('#timers-count');
     let timerCheckIntervalId;
 
     var BabyBuddy = {
@@ -960,6 +960,11 @@ var BabyBuddy = function () {
               $timerCountSpan.show();
             } else {
               $timerCountSpan.hide();
+            }
+          }).catch(err => {
+            $timerCountSpan = null;
+            if (timerCheckIntervalId) {
+              clearInterval(timerCheckIntervalId);
             }
           });
         }

@@ -59,6 +59,7 @@
           <span class="input-group-text"><i class="icon icon-lock" aria-hidden="true"></i></span>
         </div>
         {% render_field form.password1 name='password1' class+='form-control' id='password-input-group' placeholder=form.password1.label %}
+        <div class="invalid-feedback" id="invalid-password1"></div>
       </div>
 
       <label class="sr-only" for="password2-input-group">
@@ -69,6 +70,7 @@
           <span class="input-group-text"><i class="icon icon-lock" aria-hidden="true"></i></span>
         </div>
         {% render_field form.password2 name='password2' class+='form-control' id='password2-input-group' placeholder=form.password2.label %}
+        <div class="invalid-feedback" id="invalid-password2"></div>
       </div>
 
       <div class="input-group mb-3 fade-in">
@@ -92,7 +94,7 @@
       </div>
       <div class="input-group mb-1 fade-in">
         <p>
-          {% trans "* You must click, read, and agree the terms of service and privacy policy to signup and use this service." %}
+          {% trans "* By checking this box you are agreeing to the terms of service and privacy policy for the Baby Asst application." %}
         </p>
       </div>
 
@@ -116,23 +118,58 @@
 <script>
 $(function(){
   var form = $('#signup-form');
-  var termsCheckBox = $('#accept-terms');
-  termsCheckBox.prop("disabled", true);
+  var $termsCheckBox = $('#accept-terms');
+  // t$ermsCheckBox.prop("disabled", true);
 
-  var tosLinkClicked = false;
-  var privacyLinkClicked = false;
-  var tosLink = $('#terms-of-service-link').click(function(){
-    tosLinkClicked = true;
-    termsCheckBox.prop("disabled", !(tosLinkClicked && privacyLinkClicked));
+  var $passwd1 = $('#password-input-group');
+  var $passwd2 = $('#password2-input-group');
+
+  var $passwd1HelpText = $('#invalid-password1');
+  var $passwd2HelpText = $('#invalid-password2');
+
+  $passwd1.on('input', function(evt){
+    if ($passwd1.val()) {
+      if ($passwd1.val() !== $passwd2.val()) {
+        var extra = $passwd1.val().length < 6 ? ' and be at least 6 characters long' : '';
+        $passwd1HelpText.html('passwords must match' + extra);
+        $passwd2HelpText.html('passwords must match' + extra);
+      } else {
+        var msg = $passwd1.val().length < 6 ? 'must be at least 6 characters long' : '';
+        $passwd1HelpText.html(msg);
+        $passwd2HelpText.html(msg);
+      }
+    } else {
+      $passwd1HelpText.html('must be at least 6 characters long');
+      $passwd2HelpText.html('');
+    }
   });
-  var privacyLink = $('#privacy-policy-link').click(function(){
-    privacyLinkClicked = true;
-    termsCheckBox.prop("disabled", !(tosLinkClicked && privacyLinkClicked));
+  $passwd2.on('input', function(evt){
+    if ($passwd2.val()) {
+      if ($passwd1.val() !== $passwd2.val()) {
+        var extra = $passwd2.val().length < 6 ? ' and be at least 6 characters long' : '';
+        $passwd1HelpText.html('passwords must match' + extra);
+        $passwd2HelpText.html('passwords must match' + extra);
+      } else {
+        var msg = $passwd2.val().length < 6 ? 'must be at least 6 characters long' : '';
+        $passwd1HelpText.html(msg);
+        $passwd2HelpText.html(msg);
+      }
+    }
   });
+  var tosLinkClicked = true;
+  var privacyLinkClicked = true;
+  // var tosLink = $('#terms-of-service-link').click(function(){
+  //   tosLinkClicked = true;
+  //   $termsCheckBox.prop("disabled", !(tosLinkClicked && privacyLinkClicked));
+  // });
+  // var privacyLink = $('#privacy-policy-link').click(function(){
+  //   privacyLinkClicked = true;
+  //   $termsCheckBox.prop("disabled", !(tosLinkClicked && privacyLinkClicked));
+  // });
 
   form.submit(function(evt){
-    var termsAndPrivacyValidated = termsCheckBox.prop('checked') && tosLinkClicked && privacyLinkClicked;
-    if (!termsAndPrivacyValidated) {
+    var valid = $termsCheckBox.prop('checked') && tosLinkClicked && privacyLinkClicked && $passwd1.val() && $passwd1.val().length > 5 && $passwd1.val() === $passwd2.val();
+    if (!valid) {
       evt.preventDefault();
     }
   });
