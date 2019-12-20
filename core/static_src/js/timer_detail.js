@@ -325,25 +325,6 @@ BabyBuddy.TimerDetail = function (root) {
             $minutes.text(duration.minutes());
             $hours.text((duration.days() * 24) + duration.hours());
           }
-
-          // var seconds = Number( );
-          // if (seconds < 59) {
-          //   $seconds.text(seconds + 1);
-          //   return;
-          // } else {
-          //   $seconds.text('0');
-          // }
-          // $minutes.text($duration.minutes())
-          // var minutes = Number($minutes.text());
-          // if (minutes < 59) {
-          //   $minutes.text(minutes + 1);
-          //   return;
-          // } else {
-          //   $minutes.text('0');
-          // }
-
-          // var hours = Number($hours.text());
-          // $hours.text(hours + 1);
         },
         updateTimerDisplay: function() {
           if (!_.isEmpty(timer)) {
@@ -474,6 +455,9 @@ BabyBuddy.TimerDetail = function (root) {
               self.run();
               self.syncUI();
               BabyBuddy.updateTimerNavSpan();
+              setTimeout(() => {
+                window.location.href = `/timer/${timerId}/`;
+              }, 1200);
               return response;
             });
         }
