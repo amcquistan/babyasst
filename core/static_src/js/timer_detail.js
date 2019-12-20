@@ -195,7 +195,7 @@ BabyBuddy.TimerDetail = function (root) {
 
             $childrenSelect.change((evt) => {
               if (!_.isEmpty(timer)) {
-                timer.child = $(this).val();
+                timer.child = $childrenSelect.val();
                 const selectedAcct = accounts.find((a) => a.id == timer.child);
                 if (selectedAcct) {
                   timer.account = selectedAcct.id;
@@ -208,7 +208,7 @@ BabyBuddy.TimerDetail = function (root) {
 
             $accountSelect.change((evt) => {
               if (!_.isEmpty(timer)) {
-                timer.account = $(this).val();
+                timer.account = $accountSelect.val();
                 self.fillChildOptions(children.filter((c) => c.account == timer.account));
                 self.save();
               } else {
