@@ -73,7 +73,7 @@ BabyBuddy.TummyTime = function() {
       });
 
       $startFilterPicker.datetimepicker({
-        defaultDate: moment().subtract(30, 'days'),
+        defaultDate: moment().subtract(14, 'days'),
         format: 'YYYY-MM-DD'
       });
       $endFilterPicker.datetimepicker({

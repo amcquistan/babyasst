@@ -150,7 +150,6 @@
         </div>
         <div class="col-lg-6 col-sm-12">
           {% card_statistics object %}
-          {% comment %}{% card_sleep_day object %}{% endcomment %}
 
           <div class="card card-dashboard card-sleep" id="todays-sleep">
             <div class="card-header">
@@ -181,7 +180,22 @@
                 <div class="card-text text-center"></div>
               </div>
           </div>
-          {% comment %}{% card_feeding_day object %}{% endcomment %}
+
+
+          <div class="card card-dashboard card-tummytime" id='todays-tummytime'>
+            <div class="card-header">
+              <i class="icon icon-tummytime pull-left" aria-hidden="true"></i>
+              Today's Tummytime
+            </div>
+            <div class="card-body text-center"">
+              <span class="card-title" style="font-weight: bolder;">
+                <i class="icon icon-sad" aria-hidden="true"></i>
+                Nothing Yet
+                <i class="icon icon-sad" aria-hidden="true"></i>
+              </span>
+              <div class="card-text text-center"></div>
+            </div>
+          </div>
         </div>
 
       </div>

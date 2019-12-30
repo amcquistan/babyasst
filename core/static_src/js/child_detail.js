@@ -59,17 +59,21 @@ BabyBuddy.ChildDetail = function(root) {
       $currentTimelineDate.html(timelineDate.format('LL'));
       self.fetchTimeline().then(response => {
         const endOfDay = moment().endOf('day');
-        console.log('response', response);
-        const { sleep, feedings } = response.items;
+        const startOfDay = moment().startOf('day');
+        console.log('child response', response);
+
+        const { sleep, feedings, tummytimes } = response.items;
         const sleepDuration = sleep.map(s => {
-          const e = moment(s.end);
-          if (e.isAfter(endOfDay)) {
+          const end = moment(s.end);
+          const start = moment(s.start);
+          if (start.isBefore(startOfDay)) {
+            return moment.duration(moment(s.end).diff(startOfDay));
+          } else if (end.isAfter(endOfDay)) {
             return moment.duration(endOfDay.diff(moment(s.start)));
           }
           return moment.duration(s.duration);
         }).reduce((acc, d) => acc.add(d), moment.duration());
 
-        // id = todays-sleep
         if (sleepDuration.asMilliseconds()) {
           let durationDisplay;
           if (sleepDuration.hours() && sleepDuration.minutes()) {
@@ -124,6 +128,31 @@ BabyBuddy.ChildDetail = function(root) {
           const $feedingCard = $el.find('#todays-feedings');
           $feedingCard.find('.card-title').html(feedingTitle)
           $feedingCard.find('.card-text').html(`total feeds: ${feedings.length}`);
+        }
+
+        if (!_.isEmpty(tummytimes)) {
+          const tummytimeDuration = tummytimes.map(t => {
+            const end = moment(t.end);
+            const start = moment(t.start);
+            if (start.isBefore(startOfDay)) {
+              return moment.duration(moment(t.end).diff(startOfDay));
+            } else if (end.isAfter(endOfDay)) {
+              return moment.duration(endOfDay.diff(moment(t.start)));
+            }
+            return moment.duration(t.duration);
+          }).reduce((acc, d) => acc.add(d), moment.duration());
+
+          if (tummytimeDuration.asMilliseconds()) {
+            let durationDisplay;
+            if (sleepDuration.minutes() && sleepDuration.seconds()) {
+              durationDisplay = `${sleepDuration.minutes()} mins, ${sleepDuration.seconds()} secs`;
+            } else if (sleepDuration.minutes()) {
+              durationDisplay = `${sleepDuration.minutes()} mins`;
+            } else if (sleepDuration.seconds()) {
+              durationDisplay = `${sleepDuration.seconds()} secs`;
+            }
+            $el.find('#todays-tummytime').find('.card-title').html(durationDisplay);
+          }
         }
       });
       self.fetchChild();
@@ -270,8 +299,38 @@ BabyBuddy.ChildDetail = function(root) {
       $el.find('#timeline-chart').empty();
       $el.find('#timeline-top-axis').empty();
       $el.find('#timeline-bottom-axis').empty();
+      const startOfDay = timelineDate.clone().startOf('day');
+      const endOfDay = timelineDate.clone().endOf('day');
 
-      const { changes, feedings, sleep } = currentTimeline.items;
+      let { changes } = currentTimeline.items;
+      const feedings = currentTimeline.items.feedings.map(x => {
+        let duration = moment.duration(x.duration);
+        let start = moment(x.start);
+        let end = moment(x.end);
+        if (moment(x.start).isBefore(startOfDay)) {
+          start = startOfDay.clone();
+          duration = moment.duration(moment(x.end).diff(start));
+        } else if (moment(x.end).isAfter(endOfDay)) {
+          end = endOfDay.clone();
+          duration = moment.duration(end.diff(x.start));
+        }
+        return Object.assign({duration, clampedStart: start.toISOString(), clampedEnd: end.toISOString()}, x);
+      });
+      const sleep = currentTimeline.items.sleep.map(x => {
+        let duration = moment.duration(x.duration);
+        let start = moment(x.start);
+        let end = moment(x.end);
+        if (moment(x.start).isBefore(startOfDay)) {
+          start = startOfDay.clone();
+          duration = moment.duration(moment(x.end).diff(start));
+        } else if (moment(x.end).isAfter(endOfDay)) {
+          end = endOfDay.clone();
+          duration = moment.duration(end.diff(x.start));
+        }
+        return Object.assign({duration, clampedStart: start.toISOString(), clampedEnd: end.toISOString()}, x);
+      });
+
+      console.log('feedings', feedings);
 
       const h = 1200;
       const w = $el.find('#timeline-card').width();
@@ -315,7 +374,7 @@ BabyBuddy.ChildDetail = function(root) {
           .call(axisY)
           .select(".domain").remove();
 
-      const minDuration = scaleY(start.clone().add(moment.duration(23,'minutes')).toDate()) - scaleY(start.toDate());
+      const minDuration = scaleY(start.clone().add(moment.duration(20,'minutes')).toDate()) - scaleY(start.toDate());
       const minTextDy = scaleY(start.clone().add(moment.duration(15,'minutes')).toDate()) - scaleY(start.toDate());
 
       svg.selectAll('.diaper-change-tl')
@@ -359,11 +418,11 @@ BabyBuddy.ChildDetail = function(root) {
             .append('rect')
             .classed('feeding-tl', true)
             .attr('x', scaleX('Feedings'))
-            .attr('y', d => scaleY(moment(d.start).toDate()))
+            .attr('y', d => scaleY(moment(d.clampedStart).toDate()))
             .attr('width', scaleX.bandwidth())
             .attr('height', d => {
-                const s = scaleY(moment(d.start).toDate());
-                let e = scaleY(moment(d.end).toDate());
+                const s = scaleY(moment(d.clampedStart).toDate());
+                let e = scaleY(moment(d.clampedEnd).toDate());
                 e = e > maxY ? maxY : e;
                 const rectHt = e - s;
                 return rectHt < minDuration ? minDuration : rectHt;
@@ -376,12 +435,12 @@ BabyBuddy.ChildDetail = function(root) {
             .append('text')
             .classed('feeding-tl-label', true)
             .attr('x', scaleX('Feedings'))
-            .attr('y', d => scaleY(moment(d.start).toDate()))
+            .attr('y', d => scaleY(moment(d.clampedStart).toDate()))
             .attr('dx', scaleX.bandwidth() * 0.5)
             .attr('fill', 'white')
             .attr('dy', d => {
-                const s = scaleY(moment(d.start).toDate());
-                let e = scaleY(moment(d.end).toDate());
+                const s = scaleY(moment(d.clampedStart).toDate());
+                let e = scaleY(moment(d.clampedEnd).toDate());
                 e = e > maxY ? maxY : e;
                 const dy = (e - s) * 0.65;
                 return dy < minTextDy ? minTextDy : dy;
@@ -392,7 +451,6 @@ BabyBuddy.ChildDetail = function(root) {
                 return `${d.amount} ${units}`;
               }
 
-              let text;
               const duration = moment.duration(d.duration);
               if (d.method === 'left breast') {
                 return `Left: ${duration.asMinutes()} mins`;
@@ -410,11 +468,11 @@ BabyBuddy.ChildDetail = function(root) {
             .append('rect')
             .classed('sleep-tl', true)
             .attr('x', scaleX('Sleep'))
-            .attr('y', d => scaleY(moment(d.start).toDate()))
+            .attr('y', d => scaleY(moment(d.clampedStart).toDate()))
             .attr('width', scaleX.bandwidth())
             .attr('height', function(d){
-                const s = scaleY(moment(d.start).toDate());
-                let e = scaleY(moment(d.end).toDate());
+                const s = scaleY(moment(d.clampedStart).toDate());
+                let e = scaleY(moment(d.clampedEnd).toDate());
                 e = e > maxY ? maxY : e;
                 return (e - s);
             })
@@ -426,18 +484,17 @@ BabyBuddy.ChildDetail = function(root) {
             .append('text')
             .classed('sleep-tl-label', true)
             .attr('x', scaleX('Sleep'))
-            .attr('y', d => scaleY(moment(d.start).toDate()))
+            .attr('y', d => scaleY(moment(d.clampedStart).toDate()))
             .attr('dx', scaleX.bandwidth() * 0.5)
             .attr('dy', d => {
-                const s = scaleY(moment(d.start).toDate());
-                let e = scaleY(moment(d.end).toDate());
+                const s = scaleY(moment(d.clampedStart).toDate());
+                let e = scaleY(moment(d.clampedEnd).toDate());
                 e = e > maxY ? maxY : e;
                 const dy = e - s;
                 return dy < minDuration ? minTextDy : dy * 0.65;
             })
             .text(d => moment.duration(d.duration).humanize())
             .on('click', d => self.showSleepModal(d));
-      
     },
     showDiaperChangeModal: function(d) {
       $diaperChangeModal.modal('show');

@@ -230,11 +230,12 @@ class TimeLineSerializer(serializers.Serializer):
         super(TimeLineSerializer, self).__init__(**kwargs)
 
     def get_items(self, instance):
-        changes, feedings, sleep = timeline.get_timeline(self.child, instance['start'], instance['end'])
+        changes, feedings, sleep, tummytime = timeline.get_timeline(self.child, instance['start'], instance['end'])
         data = {
           'changes': DiaperChangeSerializer(changes, many=True).data,
           'feedings': FeedingSerializer(feedings, many=True).data,
-          'sleep': SleepSerializer(sleep, many=True).data
+          'sleep': SleepSerializer(sleep, many=True).data,
+          'tummytimes': TummyTimeSerializer(tummytime, many=True).data
         }
         return data
 

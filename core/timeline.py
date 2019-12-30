@@ -1,26 +1,44 @@
 # -*- coding: utf-8 -*-
 from datetime import timedelta
 
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from core.models import DiaperChange, Feeding, Sleep, TummyTime
 from core.utils import duration_parts, duration_string
 
+def duration_stradles_day(items, min_date, max_date):
+
+    filtered_items = []
+    for item in items:
+        stradles_start = item.start <= max_date and item.end > min_date
+        stradles_end = item.end >= min_date and item.start < max_date
+        if item.start >= min_date and stradles_start or stradles_end:
+            filtered_items.append(item)
+    return filtered_items
+
 def get_timeline(child, min_date, max_date):
+    fn = duration_stradles_day
+    s = min_date + timedelta(minutes=-180)
+    e = max_date + timedelta(minutes=180)
     changes = DiaperChange.objects.filter(
-        child=child, 
-        time__range=(min_date, max_date + timedelta(minutes=1))
-      ).order_by('time')
-    feedings = Feeding.objects.filter(
-        child=child, 
-        start__range=(min_date, max_date)
-      ).order_by('start')
-    sleep = Sleep.objects.filter(
         child=child,
-        start__range=(min_date, max_date)
-      ).order_by('-start')
-    return changes, feedings, sleep
+        time__range=(min_date, max_date + timedelta(minutes=3))
+      ).order_by('time')
+    feedings = fn(Feeding.objects.filter(
+        child=child,
+        start__range=(s, e)
+      ).order_by('start'), min_date, max_date)
+    sleep = fn(Sleep.objects.filter(
+        child=child,
+        start__range=(s, e)
+      ).order_by('-start'), min_date, max_date)
+    tummytime = fn(TummyTime.objects.filter(
+        child=child,
+        start__range=(s, e)
+      ).order_by('-start'), min_date, max_date)
+    return changes, feedings, sleep, tummytime
 
 
 def get_objects(child, date):
