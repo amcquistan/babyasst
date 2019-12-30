@@ -144,12 +144,12 @@ BabyBuddy.ChildDetail = function(root) {
 
           if (tummytimeDuration.asMilliseconds()) {
             let durationDisplay;
-            if (sleepDuration.minutes() && sleepDuration.seconds()) {
-              durationDisplay = `${sleepDuration.minutes()} mins, ${sleepDuration.seconds()} secs`;
-            } else if (sleepDuration.minutes()) {
-              durationDisplay = `${sleepDuration.minutes()} mins`;
-            } else if (sleepDuration.seconds()) {
-              durationDisplay = `${sleepDuration.seconds()} secs`;
+            if (tummytimeDuration.minutes() && tummytimeDuration.seconds()) {
+              durationDisplay = `${tummytimeDuration.minutes()} mins, ${tummytimeDuration.seconds()} secs`;
+            } else if (tummytimeDuration.minutes()) {
+              durationDisplay = `${tummytimeDuration.minutes()} mins`;
+            } else if (tummytimeDuration.seconds()) {
+              durationDisplay = `${tummytimeDuration.seconds()} secs`;
             }
             $el.find('#todays-tummytime').find('.card-title').html(durationDisplay);
           }
