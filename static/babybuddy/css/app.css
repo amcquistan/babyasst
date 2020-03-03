@@ -4789,20 +4789,24 @@ button.bg-success:focus,
 .card-tummytime button.card-header:focus {
   background-color: #196c3e !important; }
 
-.bg-info {
+.bg-info, .card-weight .card-header {
   background-color: #15b2d3 !important; }
 
-a.bg-info:hover, a.bg-info:focus,
+a.bg-info:hover, .card-weight a.card-header:hover, a.bg-info:focus, .card-weight a.card-header:focus,
 button.bg-info:hover,
-button.bg-info:focus {
+.card-weight button.card-header:hover,
+button.bg-info:focus,
+.card-weight button.card-header:focus {
   background-color: #108ba5 !important; }
 
-.bg-warning {
+.bg-warning, .card-temperature .card-header {
   background-color: #ffbe42 !important; }
 
-a.bg-warning:hover, a.bg-warning:focus,
+a.bg-warning:hover, .card-temperature a.card-header:hover, a.bg-warning:focus, .card-temperature a.card-header:focus,
 button.bg-warning:hover,
-button.bg-warning:focus {
+.card-temperature button.card-header:hover,
+button.bg-warning:focus,
+.card-temperature button.card-header:focus {
   background-color: #ffac0f !important; }
 
 .bg-danger, .card-diaperchange .card-header {
@@ -4815,16 +4819,18 @@ button.bg-danger:focus,
 .card-diaperchange button.card-header:focus {
   background-color: #7d1b25 !important; }
 
-.bg-light, .card-statistics .card-header, .card-timer .card-header {
+.bg-light, .card-statistics .card-header, .card-timer .card-header, .card-timeline .card-header {
   background-color: #f8f9fa !important; }
 
-a.bg-light:hover, .card-statistics a.card-header:hover, .card-timer a.card-header:hover, a.bg-light:focus, .card-statistics a.card-header:focus, .card-timer a.card-header:focus,
+a.bg-light:hover, .card-statistics a.card-header:hover, .card-timer a.card-header:hover, .card-timeline a.card-header:hover, a.bg-light:focus, .card-statistics a.card-header:focus, .card-timer a.card-header:focus, .card-timeline a.card-header:focus,
 button.bg-light:hover,
 .card-statistics button.card-header:hover,
 .card-timer button.card-header:hover,
+.card-timeline button.card-header:hover,
 button.bg-light:focus,
 .card-statistics button.card-header:focus,
-.card-timer button.card-header:focus {
+.card-timer button.card-header:focus,
+.card-timeline button.card-header:focus {
   background-color: #dae0e5 !important; }
 
 .bg-dark {
@@ -4896,16 +4902,16 @@ button.bg-error:focus {
 .border-success, .card-tummytime {
   border-color: #239556 !important; }
 
-.border-info {
+.border-info, .card-weight {
   border-color: #15b2d3 !important; }
 
-.border-warning {
+.border-warning, .card-temperature {
   border-color: #ffbe42 !important; }
 
 .border-danger, .card-diaperchange {
   border-color: #a72431 !important; }
 
-.border-light, .card-statistics, .card-timer {
+.border-light, .card-statistics, .card-timer, .card-timeline {
   border-color: #f8f9fa !important; }
 
 .border-dark {
@@ -7128,7 +7134,7 @@ button.bg-error:focus {
 .font-italic {
   font-style: italic !important; }
 
-.text-white, .card-diaperchange .card-header, .card-feeding .card-header, .card-sleep .card-header, .card-tummytime .card-header {
+.text-white, .card-bath .card-header, .card-diaperchange .card-header, .card-feeding .card-header, .card-note .card-header, .card-sleep .card-header, .card-tummytime .card-header, .card-weight .card-header, .card-temperature .card-header {
   color: #fff !important; }
 
 .text-primary, .card-feeding .card-body {
@@ -7137,10 +7143,10 @@ button.bg-error:focus {
 a.text-primary:hover, .card-feeding a.card-body:hover, a.text-primary:focus, .card-feeding a.card-body:focus {
   color: #144159 !important; }
 
-.text-secondary {
+.text-secondary, .card-sleep .card-body {
   color: #ff8f00 !important; }
 
-a.text-secondary:hover, a.text-secondary:focus {
+a.text-secondary:hover, .card-sleep a.card-body:hover, a.text-secondary:focus, .card-sleep a.card-body:focus {
   color: #b36400 !important; }
 
 .text-success, .card-tummytime .card-body {
@@ -7149,22 +7155,22 @@ a.text-secondary:hover, a.text-secondary:focus {
 a.text-success:hover, .card-tummytime a.card-body:hover, a.text-success:focus, .card-tummytime a.card-body:focus {
   color: #145732 !important; }
 
-.text-info {
+.text-info, .card-weight .card-body {
   color: #15b2d3 !important; }
 
-a.text-info:hover, a.text-info:focus {
+a.text-info:hover, .card-weight a.card-body:hover, a.text-info:focus, .card-weight a.card-body:focus {
   color: #0e778d !important; }
 
-.text-warning {
+.text-warning, .card-temperature .card-body {
   color: #ffbe42 !important; }
 
-a.text-warning:hover, a.text-warning:focus {
+a.text-warning:hover, .card-temperature a.card-body:hover, a.text-warning:focus, .card-temperature a.card-body:focus {
   color: #f5a000 !important; }
 
-.text-danger, .card-diaperchange .card-body {
+.text-danger {
   color: #a72431 !important; }
 
-a.text-danger:hover, .card-diaperchange a.card-body:hover, a.text-danger:focus, .card-diaperchange a.card-body:focus {
+a.text-danger:hover, a.text-danger:focus {
   color: #68161f !important; }
 
 .text-light, .card-statistics .card-body, .card-timer .card-body {
@@ -7173,10 +7179,10 @@ a.text-danger:hover, .card-diaperchange a.card-body:hover, a.text-danger:focus, 
 a.text-light:hover, .card-statistics a.card-body:hover, .card-timer a.card-body:hover, a.text-light:focus, .card-statistics a.card-body:focus, .card-timer a.card-body:focus {
   color: #cbd3da !important; }
 
-.text-dark, .card-statistics .card-header, .card-timer .card-header {
+.text-dark, .card-statistics .card-header, .card-timer .card-header, .card-timeline .card-header {
   color: #343a40 !important; }
 
-a.text-dark:hover, .card-statistics a.card-header:hover, .card-timer a.card-header:hover, a.text-dark:focus, .card-statistics a.card-header:focus, .card-timer a.card-header:focus {
+a.text-dark:hover, .card-statistics a.card-header:hover, .card-timer a.card-header:hover, .card-timeline a.card-header:hover, a.text-dark:focus, .card-statistics a.card-header:focus, .card-timer a.card-header:focus, .card-timeline a.card-header:focus {
   color: #121416 !important; }
 
 .text-debug {
@@ -7305,6 +7311,23 @@ a.text-error:hover, a.text-error:focus {
   background-color: inherit;
   border-color: inherit; }
 
+.diaperchange-legend-text, .breast-feeding-legend-text {
+  font-size: 22px;
+  text-anchor: middle; }
+
+.diaperchange-bar-text, .breast-feeding-bar-text {
+  font-size: 18px;
+  text-anchor: middle; }
+
+.sleep-chart-axis-label, .chart-axis-label {
+  font-size: 18px;
+  text-anchor: middle;
+  fill: white; }
+
+.tummytime-chart-bar {
+  fill: #239556;
+  shape-rendering: crispEdges; }
+
 /*!
  *  Font Awesome 4.7.0 by @davegandy - http://fontawesome.io - @fontawesome
  *  License - http://fontawesome.io/license (Font: SIL OFL 1.1, CSS: MIT License)
@@ -7335,13 +7358,13 @@ a.text-error:hover, a.text-error:focus {
 .fa-2x, .icon-2x {
   font-size: 2em; }
 
-.fa-3x {
+.fa-3x, .icon-3x {
   font-size: 3em; }
 
-.fa-4x {
+.fa-4x, .icon-4x {
   font-size: 4em; }
 
-.fa-5x {
+.fa-5x, .icon-5x {
   font-size: 5em; }
 
 .fa-fw {
@@ -7728,7 +7751,7 @@ a.text-error:hover, a.text-error:focus {
 .fa-chevron-right:before, .icon-chevron-right:before {
   content: ""; }
 
-.fa-plus-circle:before {
+.fa-plus-circle:before, .icon-add-circle:before {
   content: ""; }
 
 .fa-minus-circle:before {
@@ -8260,7 +8283,7 @@ a.text-error:hover, a.text-error:focus {
 .fa-folder-open-o:before {
   content: ""; }
 
-.fa-smile-o:before, .icon-tummytime:before {
+.fa-smile-o:before, .icon-happy:before, .icon-tummytime:before {
   content: ""; }
 
 .fa-frown-o:before, .icon-sad:before {
@@ -9564,7 +9587,8 @@ a.text-error:hover, a.text-error:focus {
 
 .fa-bathtub:before,
 .fa-s15:before,
-.fa-bath:before {
+.fa-bath:before,
+.icon-bath:before {
   content: ""; }
 
 .fa-podcast:before {
@@ -9654,6 +9678,17 @@ a.text-error:hover, a.text-error:focus {
   #view-core\:child .child-detail-column {
     position: fixed;
     width: 100%; } }
+
+a.add-activity {
+  text-decoration: none;
+  text-align: center;
+  display: inline-block; }
+  a.add-activity:hover {
+    cursor: pointer; }
+  a.add-activity i.icon {
+    display: block;
+    font-style: normal;
+    text-align: center; }
 
 .timeline {
   list-style: none;
@@ -9765,6 +9800,27 @@ a.text-error:hover, a.text-error:focus {
     margin-left: 0;
     top: 16px; } }
 
+.diaper-change-tl {
+  shape-rendering: crispEdges; }
+
+.feeding-tl, .feeding-chart-bar {
+  fill: #226f97;
+  shape-rendering: crispEdges; }
+
+.sleep-tl, .sleep-chart-bar {
+  fill: #ff8f00;
+  shape-rendering: crispEdges; }
+
+.sleep-tl:hover, .feeding-tl:hover, .diaper-change-tl:hover, .sleep-tl:active, .feeding-tl:active, .diaper-change-tl:active {
+  cursor: pointer;
+  fill-opacity: 0.9; }
+
+.diaper-change-tl-label, .feeding-tl-label, .sleep-tl-label {
+  text-anchor: middle;
+  font-size: 12px; }
+  .diaper-change-tl-label:hover, .feeding-tl-label:hover, .sleep-tl-label:hover {
+    cursor: pointer; }
+
 #timer-status {
   font-size: 5.5rem;
   font-weight: 300; }
@@ -9778,9 +9834,18 @@ a.text-error:hover, a.text-error:focus {
 .card-dashboard .card-header {
   margin-bottom: 0; }
 
+.card-bath {
+  text-decoration: none !important;
+  border-color: #2c7873; }
+  .card-bath .card-header {
+    background-color: #2c7873; }
+  .card-bath .card-body {
+    color: #2c7873 !important; }
+
 .card-diaperchange {
-  text-decoration: none; }
+  text-decoration: none !important; }
   .card-diaperchange .card-body {
+    color: #c3515c !important;
     text-decoration: none !important; }
   .card-diaperchange .progress {
     height: 2rem; }
@@ -9789,6 +9854,14 @@ a.text-error:hover, a.text-error:focus {
   text-decoration: none !important; }
   .card-feeding .card-body {
     text-decoration: none; }
+
+.card-note {
+  text-decoration: none !important;
+  border-color: #151965; }
+  .card-note .card-header {
+    background-color: #151965; }
+  .card-note .card-body {
+    color: #151965; }
 
 .card-sleep {
   text-decoration: none !important; }
@@ -9799,7 +9872,16 @@ a.text-error:hover, a.text-error:focus {
 .card-tummytime {
   text-decoration: none !important; }
 
-.card-feeding .card-body .card-selected-icon, .card-sleep .card-body .card-selected-icon, .card-tummytime .card-body .card-selected-icon {
+.card-weight {
+  text-decoration: none !important; }
+
+.card-temperature {
+  text-decoration: none !important; }
+
+.card-timeline {
+  text-decoration: none !important; }
+
+.card-feeding .card-body .card-selected-icon, .card-sleep .card-body .card-selected-icon, .card-tummytime .card-body .card-selected-icon, .card-weight .card-body .card-selected-icon, .card-temperature .card-body .card-selected-icon {
   display: none; }
 
 .card-active {
