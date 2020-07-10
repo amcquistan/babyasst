@@ -1,6 +1,6 @@
 <img src="babybuddy/static_src/logo/icon.png" height="150" align="left">
 
-# Baby Buddy
+# Baby Buddy Fork and Rebrand to BabyAsst
 
 A buddy for babies! Helps caregivers track sleep, feedings, diaper changes, and
 tummy time to learn about and predict baby's needs without (*as much*) guess
